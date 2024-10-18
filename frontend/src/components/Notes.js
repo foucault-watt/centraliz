@@ -128,6 +128,7 @@ const Notes = () => {
 
   return (
     <div className="container">
+      <p className="rezoleo">Pour l'instant ça marche pas mais on va dire que c'est la faute de Rezoleo 👀</p>
       {!isLoggedIn && (
         <form className="login-form" onSubmit={handleLogin}>
           <input
@@ -144,7 +145,7 @@ const Notes = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <span className="safe">Je vous jure c'est safe 👌</span>
+          <span className="safe" onClick={() => alert("Web Aurion n'utilise pas le CAS donc vous êtes obligé de donner votre mot de passe en clair, mais il n'est et ne sera en aucun cas stocké ou utilisé.")}>Je vous jure c'est safe 👌</span>
           <button type="submit">Se connecter</button>
         </form>
       )}

@@ -26,6 +26,7 @@ const App = () => {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
+      console.log(`${process.env.REACT_APP_URL_BACK}/api/auth/login`);
       window.location.href = `${process.env.REACT_APP_URL_BACK}/api/auth/login`;
     }
   }, [isLoading, isAuthenticated]);

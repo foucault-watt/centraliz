@@ -1,4 +1,4 @@
-.rbc-toolbal-label{
+.cla-calendar .rbc-toolbar-label {
   display: none !important;
 }
 
@@ -13,4 +13,23 @@
 
 .rbc-current-time-indicator{
   display: none !important; 
+}
+
+.rbc-agenda-view table.rbc-agenda-table .rbc-agenda-time-cell {
+  display: none !important;
+}
+
+// .rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+//   display: none !important;
+// }
+
+.cla-calendar{
+  .rbc-agenda-table {
+    thead tr {
+      th:nth-child(2) {
+        // Styles pour l'élément "Heure"
+        display: none !important; // Exemple
+      }
+    }
+  }
 }

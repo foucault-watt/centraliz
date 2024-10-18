@@ -32,7 +32,7 @@ exports.callback = async (req, res) => {
 
     req.session.user = { username, casTicket: ticket };
     console.log("toto", ticket);
-    res.redirect(process.env.URL_BACK);
+    res.redirect(process.env.URL_FRONT);
     console.log("Ticket CAS validé.");
   } catch (error) {
     console.error("Erreur lors de la validation du ticket CAS:", error);

@@ -60,8 +60,10 @@ $transition: all 0.3s ease;
 }
 
 @media (max-width: 768px) {
+
+  
   .main {
-    grid-template-columns: 1fr;
+    grid-template-columns: 0px 1fr 0px;
   }
 
   .div-hp-calendar,

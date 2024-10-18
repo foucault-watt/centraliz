@@ -1,0 +1,47 @@
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #4267ce;
+  color: white;
+  height: 11vmin;
+}
+
+.header-logo {
+  height: 10vmin;
+  padding-right: 4px;
+}
+
+.header-title {
+  font-size: 3rem;
+}
+
+@media (max-width: 767px) {
+  .header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #4267ce;
+    color: white;
+    height: 11vmin;
+  }
+
+  .header-logo {
+    height: 9vmin;
+    padding-right: 2px;
+  }
+
+  .header-title {
+    font-size: 2rem;
+  }
+}
+
+@keyframes header-logo {
+  0% { transform: translate(-2px, -1px); }
+  33% { transform: translate(+2px, 2px); }
+  66% { transform: translate(-1px, 0px); }
+  100% { transform: translate(2px, -2px); }
+}
+.header-logo:hover {
+  animation: logo .1s infinite alternate;
+}

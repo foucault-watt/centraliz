@@ -1,0 +1,261 @@
+// Mixins
+@mixin transition($property: all, $duration: 0.3s, $timing: ease) {
+  transition: $property $duration $timing;
+}
+
+@mixin box-shadow($x: 0, $y: 2px, $blur: 5px, $color: rgba(0, 0, 0, 0.1)) {
+  box-shadow: $x $y $blur $color;
+}
+
+// Styles
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0px;
+  font-family: Arial, sans-serif;
+  color: $second;
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.module {
+  border: 1px solid $day-border;
+  border-radius: 5px;
+  overflow: hidden;
+  @include box-shadow();
+
+  &-header {
+    background-color: $day;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    @include transition(background-color);
+
+    &:hover {
+      background-color: darken($day, 5%);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.2em;
+      color: $second;
+      flex-grow: 1;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+
+      .moyenne {
+        margin-right: 10px;
+      }
+
+      &::after {
+        content: '▼';
+        font-size: 12px;
+        @include transition(transform);
+      }
+    }
+
+    &.expanded .header-right::after {
+      transform: rotate(180deg);
+    }
+  }
+
+  &-content {
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    @include transition(max-height, 0.3s, ease-out);
+
+    &.expanded {
+      padding: 15px;
+      max-height: 1000px; // Adjust this value as needed
+    }
+  }
+}
+
+.moyenne {
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.9em;
+
+  &.vert {
+    background-color: $green;
+    color: white;
+  }
+
+  &.orange {
+    background-color: $orange;
+    color: white;
+  }
+
+  &.rouge {
+    background-color: $red;
+    color: white;
+  }
+}
+
+.epreuve {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: lighten($day, 5%);
+  border-radius: 5px;
+
+  h3 {
+    margin-top: 0;
+    color: $main;
+    font-size: 1.1em;
+  }
+
+  p {
+    margin: 5px 0;
+    font-size: 0.9em;
+  }
+}
+
+// Upload section styles
+.upload-section {
+  display: flex;
+  justify-content: center;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  font-size: 1em;
+  background-color: $main;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  @include transition(background-color);
+
+  &:hover {
+    background-color: darken($main, 10%);
+  }
+
+  .upload-icon {
+    margin-right: 10px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+// Form Styles
+.login-form {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  margin: 20px auto;
+  margin-top: 0px !important;
+  padding: 20px;
+  background-color: lighten($day, 10%);
+  border-radius: 5px;
+  border: 1px solid $day-border;
+  @include box-shadow();
+  
+  input {
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 1em;
+    border: 1px solid $day-border;
+    border-radius: 5px;
+    @include transition(border-color);
+
+    &:focus {
+      border-color: $main;
+      outline: none;
+    }
+  }
+
+  button {
+    padding: 10px 15px;
+    font-size: 1em;
+    background-color: $main;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    @include transition(background-color);
+
+    &:hover {
+      background-color: darken($main, 10%);
+    }
+  }
+}
+
+.error {
+  color: $red;
+  font-weight: bold;
+  text-align: center;
+}
+
+.loadingo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 20vh;
+  font-family: Arial, sans-serif;
+}
+
+.loadingo-text {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.bomb-container {
+  display: flex;
+  gap: 20px;
+  .bomb {
+    font-size: 2rem;
+    animation: dropBomb 0.9s ease-in-out infinite;
+  }
+}
+
+.explosion {
+  font-size: 3rem;
+  opacity: 0;
+  animation: explode 1s ease-in-out infinite 1s;
+}
+
+@keyframes dropBomb {
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+@keyframes explode {
+  0%, 50% {
+    opacity: 0;
+  }
+  50.1% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.safe {
+  color: $second;
+  margin-bottom: 10px;
+  text-align: center;
+}

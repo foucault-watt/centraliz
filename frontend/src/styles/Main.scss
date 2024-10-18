@@ -1,0 +1,74 @@
+$border-radius: 20px;
+$gap: 20px;
+$transition: all 0.3s ease;
+
+.main {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: $gap;
+  padding: $gap;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+%card {
+  border-radius: $border-radius;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: $transition;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.div-hp-calendar {
+  @extend %card;
+  grid-column: span 8;
+  background-color: #ffebee !important;
+  border: 2px solid #ef9a9a;
+}
+
+.div-cla-calendar {
+  @extend %card;
+  grid-column: span 4;
+  background-color: #fff3e0;
+  border: 2px solid #ffcc80;
+}
+
+.div-notes {
+  @extend %card;
+  grid-column: span 6;
+  background-color: #e8f5e9;
+  border: 2px solid #a5d6a7;
+}
+
+.div-mail {
+  @extend %card;
+  grid-column: span 4;
+  background-color: #e0f7fa;
+  border: 2px solid #80deea;
+}
+
+.div-links {
+  @extend %card;
+  grid-column: span 2;
+  background-color: #f3e5f5;
+  border: 2px solid #ce93d8;
+  padding: 10px !important;
+}
+
+@media (max-width: 768px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+
+  .div-hp-calendar,
+  .div-cla-calendar,
+  .div-notes,
+  .div-mail,
+  .div-links {
+    grid-column: 1 / -1;
+  }
+}

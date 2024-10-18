@@ -1,0 +1,123 @@
+.rbc-event-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: smaller;
+}
+
+.rbc-event-label {
+  display: none;
+}
+
+.rbc-event {
+  background-color: $main !important;
+  text-align: center;
+}
+
+.rbc-event-content {
+  margin: auto;
+}
+
+.rbc-allday-cell {
+  display: none;
+}
+
+.rbc-event.tne-event {
+  background-color: $green !important;
+  border-color: #399252 !important;
+}
+
+.rbc-event.cb-event {
+  background-color: $red !important;
+  border-color: #913838 !important;
+}
+
+.hp-calendar .rbc-toolbar {
+  color: $second !important;
+}
+
+.hp-calendar * {
+  color: $second;
+}
+
+.hp-calendar .rbc-events-container * {
+  color: white !important;
+}
+
+.rbc-toolbar-label {
+  display: none !important;
+}
+
+.rbc-toolbar {
+  padding-bottom: 12px !important;
+}
+
+.rbc-today {
+  background-color: #f8e5e8 !important;
+}
+
+// Nouveaux styles pour l'authentification
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 20px;
+}
+
+.auth-form {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+
+  .ical-destock {
+    max-width: 100%;
+    height: auto;  }
+
+  h2 {
+    color: $second;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  h3 {
+    color: $second;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  .input-group {
+    margin-bottom: 1rem;
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      color: $second;
+
+      &:focus {
+        outline: none;
+        border-color: $main;
+      }
+    }
+  }
+
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: $main;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: darken($main, 10%);
+    }
+  }
+}

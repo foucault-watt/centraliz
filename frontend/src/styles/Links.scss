@@ -1,0 +1,29 @@
+.liste-services {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+  
+  .liste-services li {
+    margin: 10px;
+    text-align: center;
+  }
+  
+  .liste-services a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+  }
+  
+  .liste-services img {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .liste-services span {
+    font-size: 14px;
+  }

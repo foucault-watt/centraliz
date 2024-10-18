@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
+    <cas:authenticationSuccess>
+        <cas:user>fwattinn</cas:user>
+        <cas:attributes>
+            <cas:isFromNewLogin>false</cas:isFromNewLogin>
+            <cas:mail>foucault.wattinne@iteem.centralelille.fr</cas:mail>
+            <cas:authenticationDate>2024-10-12T20:24:35.560+02:00[Europe/Paris]</cas:authenticationDate>
+            <cas:displayName>Foucault Wattinne</cas:displayName>
+            <cas:givenName>foucault</cas:givenName>
+            <cas:successfulAuthenticationHandlers>LdapAuthenticationHandler</cas:successfulAuthenticationHandlers>
+            <cas:authenticationMethod>LdapAuthenticationHandler</cas:authenticationMethod>
+            <cas:edupersonprimaryaffiliation>student</cas:edupersonprimaryaffiliation>
+            <cas:supannCivilite>M.</cas:supannCivilite>
+            <cas:longTermAuthenticationRequestTokenUsed>false</cas:longTermAuthenticationRequestTokenUsed>
+            <cas:sn>wattinne</cas:sn>
+            <cas:memberOf>cn=IE1,ou=Groups,dc=ec-lille,dc=fr</cas:memberOf>
+            <cas:memberOf>cn=Moodle,ou=Groups,dc=ec-lille,dc=fr</cas:memberOf>
+            <cas:memberOf>cn=Etudiants,ou=Groups,dc=ec-lille,dc=fr</cas:memberOf>
+        </cas:attributes>
+    </cas:authenticationSuccess>
+</cas:serviceResponse>

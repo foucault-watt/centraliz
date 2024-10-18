@@ -1,7 +1,7 @@
 # Centraliz : La plateforme qui simplifie ta vie étudiante 🚀
 
 ## 🌟 Description
-
+david, battiop, benoit
 **Centraliz** est l’outil indispensable pour tous les étudiants de **Centrale Lille**, **ITEEM** et **ENSCL**. Plus besoin de jongler entre Hypperplanning, Web Aurion et le CLA ! Centraliz regroupe en un seul endroit les ressources dont tu as besoin pour t'organiser.
 
 ### 🎯 Que peux-tu faire avec Centraliz ?

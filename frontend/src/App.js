@@ -9,7 +9,7 @@ const App = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_URL_BACK}/auth/status`, {
+        const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/auth/status`, {
           credentials: "include",
         });
         const data = await response.json();
@@ -26,7 +26,7 @@ const App = () => {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      window.location.href = `${process.env.REACT_APP_URL_BACK}/auth/login`;
+      window.location.href = `${process.env.REACT_APP_URL_BACK}/api/auth/login`;
     }
   }, [isLoading, isAuthenticated]);
 

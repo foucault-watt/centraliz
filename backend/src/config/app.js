@@ -33,4 +33,9 @@ app.use("/api", csvRoutes);
 app.use("/api", claRoutes);
 app.use("/api", hpRoutes);
 
+app.post("/api/crash", async (req, res) => {
+  res.send("CRASH");
+  process.exit(1);
+});
+
 module.exports = app;

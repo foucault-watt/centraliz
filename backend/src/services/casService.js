@@ -24,15 +24,16 @@ exports.callback = async (req, res) => {
     const response = await axios.get(validateUrl);
 
     const usernameMatch = /<cas:user>(.*?)<\/cas:user>/.exec(response.data);
-    const username = usernameMatch ? usernameMatch[1] : null;
+    const userName = usernameMatch ? usernameMatch[1] : null;
 
-    if (!username) {
+    if (!userName) {
       return res.status(401).send("Échec de l'authentification CAS.");
     }
 
-    req.session.user = { username, casTicket: ticket };
-    console.log("toto", ticket);
+    req.session.user = { userName, casTicket: ticket, displayName: /<cas:displayName>(.*?)<\/cas:displayName>/.exec(response.data)[1] };
+    console.log("tata", req.session.user);
     res.redirect(process.env.URL_FRONT);
+
     console.log("Ticket CAS validé.");
   } catch (error) {
     console.error("Erreur lors de la validation du ticket CAS:", error);

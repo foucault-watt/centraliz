@@ -33,3 +33,16 @@
     }
   }
 }
+
+.rbc-agenda-table{
+  margin-bottom: 4px;
+}
+
+.rbc-agenda-view table.rbc-agenda-table{
+  border-collapse: separate;
+  border-radius: 6px;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td + td{
+  padding-bottom: 12px;
+}

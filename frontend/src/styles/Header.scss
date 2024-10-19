@@ -1,9 +1,13 @@
 .header {
+  background-color: #4267ce;
+}
+
+.header-link {
+  color: white;
+  text-decoration: none;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #4267ce;
-  color: white;
   height: 11vmin;
 }
 
@@ -35,3 +39,4 @@
     font-size: 3rem;
   }
 }
+

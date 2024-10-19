@@ -145,7 +145,7 @@ const Notes = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <span className="safe" onClick={() => alert("Web Aurion n'utilise pas le CAS donc vous êtes obligé de donner votre mot de passe en clair, mais il n'est et ne sera en aucun cas stocké ou utilisé.")}>Je vous jure c'est safe 👌</span>
+          <span className="safe" onClick={() => alert("Web Aurion n'utilise pas le CAS donc vous êtes obligé de donner votre mot de passe en clair, mais il n'est et ne sera en aucun cas stocké ou utilisé.")}><u>Je vous jure c'est safe</u> 👌</span>
           <button type="submit">Se connecter</button>
         </form>
       )}

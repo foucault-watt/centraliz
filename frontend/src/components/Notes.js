@@ -128,7 +128,7 @@ const Notes = () => {
 
   return (
     <div className="container">
-      <p className="rezoleo">Pour l'instant ça marche pas mais on va dire que c'est la faute de Rezoleo 👀</p>
+      <p className="rezoleo">Pour l'instant ça marche pas mais je bosse dessus avec archarnement 👀</p>
       {!isLoggedIn && (
         <form className="login-form" onSubmit={handleLogin}>
           <input

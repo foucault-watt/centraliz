@@ -14,12 +14,12 @@ const services = [
   {
     name: "Zimbra",
     link: "https://mail.centralelille.fr/",
-    image: process.env.PUBLIC_URL + "/links/zimbra-big.png",
+    image: process.env.PUBLIC_URL + "/links/zimbra.png",
   },
   {
     name: "Moodle",
     link: "https://moodle2425.centralelille.fr/",
-    image: process.env.PUBLIC_URL + "/links/moodle-big.png",
+    image: process.env.PUBLIC_URL + "/links/moodle.png",
   },
   {
     name: "Web Aurion",
@@ -47,7 +47,7 @@ const services = [
   {
     name: "Eclosion",
     link: "https://eclosion.rezoleo.fr/",
-    image: process.env.PUBLIC_URL + "/links/eclosion-big.png",
+    image: process.env.PUBLIC_URL + "/links/eclosion.png",
   },
   {
     name: "Pain'Gouin",

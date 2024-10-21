@@ -1,0 +1,209 @@
+.footer {
+    background-color: $main-dark;
+    background-image: linear-gradient(to bottom, lighten($main-dark, 3%), $main-dark);
+    color: white;
+    margin-top: 1rem;
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+  
+    &__main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+  
+    &__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      gap: 2rem;
+  
+      @media (max-width: 968px) {
+        grid-template-columns: 1fr 1fr;
+        
+        .footer__section:last-child {
+          grid-column: span 2;
+        }
+      }
+  
+      @media (max-width: 576px) {
+        grid-template-columns: 1fr;
+  
+        .footer__section:last-child {
+          grid-column: span 1;
+        }
+      }
+    }
+  
+    &__section {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.9rem;
+    }
+  
+    &__title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      position: relative;
+      padding-bottom: 0.4rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+  
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 30px;
+        height: 2px;
+        background-color: rgba(255, 255, 255, 0.5);
+        transition: width 0.3s ease;
+      }
+  
+      &:hover::after {
+        width: 50px;
+      }
+    }
+  
+    &__text {
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.85rem;
+    }
+  
+    &__version {
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: auto;
+      font-size: 0.8rem;
+    }
+  
+    &__contact {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  
+    &__author {
+      font-weight: 400;
+      b {
+        font-weight: 600;
+      }
+    }
+  
+    &__contact-info {
+      font-size: 0.85rem;
+    }
+  
+    &__link {
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        bottom: -1px;
+        left: 0;
+        background-color: white;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+      }
+  
+      &:hover::after {
+        transform: scaleX(1);
+      }
+    }
+  
+    &__social {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+  
+    &__social-link {
+      color: white;
+      transition: all 0.3s ease;
+      padding: 0.4rem;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+    }
+  
+    &__form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 0.75rem;
+      border-radius: 6px;
+    }
+  
+    &__textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      min-height: 80px;
+      font-size: 0.85rem;
+      resize: vertical;
+      transition: all 0.3s ease;
+  
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+  
+      &:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+  
+    &__submit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+  
+      svg {
+        transition: transform 0.3s ease;
+      }
+  
+      &:hover svg {
+        transform: translateX(3px);
+      }
+    }
+  
+    &__status {
+      text-align: center;
+      padding: 0.4rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.8rem;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  }

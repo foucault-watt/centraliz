@@ -46,3 +46,15 @@
 .rbc-agenda-view table.rbc-agenda-table tbody > tr > td + td{
   padding-bottom: 12px;
 }
+
+.cla-calendar .rbc-btn-group {
+  button:first-child {
+    display: none;
+  }
+}
+
+.cla-calendar .rbc-btn-group button:nth-child(2) {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+
+}

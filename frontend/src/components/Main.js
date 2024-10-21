@@ -4,9 +4,11 @@ import HpCalendar from "./HpCalendar";
 import Links from "./Links";
 import Mail from "./Mail";
 import Notes from "./Notes";
+import Footer from "./Footer";
 
 function Main() {
   return (
+    <>
     <div className="main">
       <div className="div-hp-calendar">
         <HpCalendar />
@@ -28,7 +30,10 @@ function Main() {
       <div className="div-links">
         <Links />
       </div>
+
     </div>
+    <Footer />
+    </>
   );
 }
 

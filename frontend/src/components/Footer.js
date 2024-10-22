@@ -5,17 +5,43 @@ import {
   MessageSquare,
   Send,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { UserContext } from "../App";
 
 const Footer = () => {
   const [feedback, setFeedback] = useState("");
   const [submitStatus, setSubmitStatus] = useState("");
+  const { userName } = useContext(UserContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitStatus("Merci pour votre feedback!");
-    setFeedback("");
-    setTimeout(() => setSubmitStatus(""), 3000);
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/feedback`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: userName, // Assurez-vous d'avoir accès à l'utilisateur connecté
+            text: feedback,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setSubmitStatus("Merci pour votre feedback!");
+        setFeedback("");
+        setTimeout(() => setSubmitStatus(""), 3000);
+      } else {
+        setSubmitStatus("Une erreur est survenue");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      setSubmitStatus("Une erreur est survenue");
+    }
   };
 
   return (
@@ -31,7 +57,7 @@ const Footer = () => {
               quotidienne en centralisant vos calendriers, notes et mails.
             </p>
             <div className="footer__version">
-              <small>Version 0.4.1</small>
+              <small>Version 0.5</small>
             </div>
           </div>
 

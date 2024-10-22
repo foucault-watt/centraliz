@@ -6,6 +6,7 @@ const authRoutes = require("../routes/auth");
 const csvRoutes = require("../routes/csv");
 const claRoutes = require("../routes/cla");
 const hpRoutes = require("../routes/hp");
+const feedbackRoutes = require("../routes/feedback");
 const morgan = require("morgan");
 const app = express();
 
@@ -32,8 +33,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api", csvRoutes);
 app.use("/api", claRoutes);
 app.use("/api", hpRoutes);
+app.use("/api", feedbackRoutes);
 
-app.use("/api/crash", async (req, res) => {
+app.use("/api/crashh", async (req, res) => {
   res.send("CRASH");
   process.exit(1);
 });

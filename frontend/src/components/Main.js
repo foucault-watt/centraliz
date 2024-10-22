@@ -30,10 +30,12 @@ function Main() {
       <div className="div-links">
         <Links />
       </div>
-
     </div>
     <Footer />
+
+
     </>
+    
   );
 }
 

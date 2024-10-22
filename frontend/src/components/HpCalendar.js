@@ -1,18 +1,19 @@
 import ICAL from "ical.js";
 import moment from "moment";
 import "moment/locale/fr";
-import React, { useEffect, useState, useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
-import { UserContext } from "../App";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { UserContext } from "../App";
+import { ArrowLeft, ArrowRight, Undo2 } from "lucide-react";
 
 moment.locale("fr");
 const localizer = momentLocalizer(moment);
 
 const messages = {
-  next: "Suivant",
-  previous: "Précédent",
-  today: "Aujourd'hui",
+  next: <ArrowRight/>,
+  previous: <ArrowLeft/>,
+  today: <Undo2/>,
   month: "Mois",
   week: "Semaine",
   day: "Jour",
@@ -27,14 +28,14 @@ const messages = {
 const getInitialDate = () => {
   const today = moment();
   const dayOfWeek = today.day();
-  
+
   // Si c'est samedi (6) ou dimanche (0), aller au lundi suivant
   if (dayOfWeek === 6) {
-    return today.add(2, 'days').toDate();
+    return today.add(2, "days").toDate();
   } else if (dayOfWeek === 0) {
-    return today.add(1, 'days').toDate();
+    return today.add(1, "days").toDate();
   }
-  
+
   return today.toDate();
 };
 
@@ -68,7 +69,9 @@ const HpCalendar = () => {
 
   const checkExistingCalendar = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/check-user/${userName}`);
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/check-user/${userName}`
+      );
       const data = await response.json();
 
       if (data.exists) {
@@ -86,9 +89,11 @@ const HpCalendar = () => {
 
   const fetchCalendarData = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/hp-data?userId=${userName}`);
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/hp-data?userId=${userName}`
+      );
       if (!response.ok) {
-        throw new Error('Erreur lors de la récupération des données');
+        throw new Error("Erreur lors de la récupération des données");
       }
       const data = await response.text();
       setIcalData(data);
@@ -104,18 +109,23 @@ const HpCalendar = () => {
     setLinkError("");
 
     try {
-      const validationResponse = await fetch(`${process.env.REACT_APP_URL_BACK}/api/validate-ical`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ icalLink }),
-      });
+      const validationResponse = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/validate-ical`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ icalLink }),
+        }
+      );
 
       const validationData = await validationResponse.json();
 
       if (!validationData.isValid) {
-        setLinkError("Le lien fourni n'est pas un calendrier iCal valide. Veuillez réessayer.");
+        setLinkError(
+          "Le lien fourni n'est pas un calendrier iCal valide. Veuillez réessayer."
+        );
         return;
       }
 
@@ -174,50 +184,58 @@ const HpCalendar = () => {
   };
 
   const getNextWorkday = (date) => {
-    const nextDay = moment(date).add(1, 'days');
-    if (nextDay.day() === 6) { // Si c'est samedi
-      return nextDay.add(2, 'days'); // Aller à lundi
-    } else if (nextDay.day() === 0) { // Si c'est dimanche
-      return nextDay.add(1, 'days'); // Aller à lundi
+    const nextDay = moment(date).add(1, "days");
+    if (nextDay.day() === 6) {
+      // Si c'est samedi
+      return nextDay.add(2, "days"); // Aller à lundi
+    } else if (nextDay.day() === 0) {
+      // Si c'est dimanche
+      return nextDay.add(1, "days"); // Aller à lundi
     }
     return nextDay;
   };
 
   const getPreviousWorkday = (date) => {
-    const prevDay = moment(date).subtract(1, 'days');
-    if (prevDay.day() === 6) { // Si c'est samedi
-      return prevDay.subtract(1, 'days'); // Aller à vendredi
-    } else if (prevDay.day() === 0) { // Si c'est dimanche
-      return prevDay.subtract(2, 'days'); // Aller à vendredi
+    const prevDay = moment(date).subtract(1, "days");
+    if (prevDay.day() === 6) {
+      // Si c'est samedi
+      return prevDay.subtract(1, "days"); // Aller à vendredi
+    } else if (prevDay.day() === 0) {
+      // Si c'est dimanche
+      return prevDay.subtract(2, "days"); // Aller à vendredi
     }
     return prevDay;
   };
 
   const handleNavigate = (newDate, view, action) => {
-    if (window.innerWidth < 768 && view === 'day') {
+    if (window.innerWidth < 768 && view === "day") {
       let adjustedDate = moment(newDate);
 
-      switch(action) {
-        case 'NEXT':
+      switch (action) {
+        case "NEXT":
           adjustedDate = getNextWorkday(currentDate);
           break;
-        case 'PREV':
+        case "PREV":
           adjustedDate = getPreviousWorkday(currentDate);
           break;
-        case 'TODAY':
+        case "TODAY":
           // Si aujourd'hui est un weekend, aller au prochain jour ouvré
-          if (adjustedDate.day() === 0) { // Dimanche
-            adjustedDate.add(1, 'days');
-          } else if (adjustedDate.day() === 6) { // Samedi
-            adjustedDate.add(2, 'days');
+          if (adjustedDate.day() === 0) {
+            // Dimanche
+            adjustedDate.add(1, "days");
+          } else if (adjustedDate.day() === 6) {
+            // Samedi
+            adjustedDate.add(2, "days");
           }
           break;
         default:
           // Vérifier que le jour est un jour ouvré
-          if (adjustedDate.day() === 0) { // Dimanche
-            adjustedDate.add(1, 'days');
-          } else if (adjustedDate.day() === 6) { // Samedi
-            adjustedDate.subtract(1, 'days');
+          if (adjustedDate.day() === 0) {
+            // Dimanche
+            adjustedDate.add(1, "days");
+          } else if (adjustedDate.day() === 6) {
+            // Samedi
+            adjustedDate.subtract(1, "days");
           }
       }
 
@@ -233,7 +251,10 @@ const HpCalendar = () => {
         {showLinkInput ? (
           <form onSubmit={handleSubmitLink} className="auth-form">
             <h2>C'est votre première visite !</h2>
-            <h3>Sur votre Hypperplanning, veuillez exporter le lien de votre calendrier</h3>
+            <h3>
+              Sur votre Hypperplanning, veuillez exporter le lien de votre
+              calendrier
+            </h3>
             <img
               src={process.env.PUBLIC_URL + "/ical-destock.jpg"}
               className="ical-destock"

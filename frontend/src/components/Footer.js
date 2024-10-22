@@ -57,7 +57,7 @@ const Footer = () => {
               quotidienne en centralisant vos calendriers, notes et mails.
             </p>
             <div className="footer__version">
-              <small>Version 0.5</small>
+              <small>Version 0.5.1</small>
             </div>
           </div>
 

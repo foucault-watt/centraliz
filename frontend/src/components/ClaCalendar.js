@@ -5,14 +5,15 @@ import React, { useEffect, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "../styles/ClaCalendar.scss";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 moment.locale("fr");
 
 const localizer = momentLocalizer(moment);
 
 const messages = {
-  next: "Suivant",
-  previous: "Précédent",
+  next: <ArrowRight />,
+  previous: <ArrowLeft />,
   today: "Aujourd'hui",
   month: "Mois",
   week: "Semaine",

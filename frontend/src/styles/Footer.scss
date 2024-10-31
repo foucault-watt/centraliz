@@ -2,7 +2,6 @@
     background-color: $main-dark;
     background-image: linear-gradient(to bottom, lighten($main-dark, 3%), $main-dark);
     color: white;
-    margin-top: 1rem;
     box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
   
     &__main {

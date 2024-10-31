@@ -1,19 +1,19 @@
 import ICAL from "ical.js";
+import { ArrowLeft, ArrowRight, Undo2 } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
 import React, { useContext, useEffect, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { UserContext } from "../App";
-import { ArrowLeft, ArrowRight, Undo2 } from "lucide-react";
 
 moment.locale("fr");
 const localizer = momentLocalizer(moment);
 
 const messages = {
-  next: <ArrowRight/>,
-  previous: <ArrowLeft/>,
-  today: <Undo2/>,
+  next: <ArrowRight />,
+  previous: <ArrowLeft />,
+  today: <Undo2 />,
   month: "Mois",
   week: "Semaine",
   day: "Jour",
@@ -252,14 +252,32 @@ const HpCalendar = () => {
           <form onSubmit={handleSubmitLink} className="auth-form">
             <h2>C'est votre première visite !</h2>
             <h3>
-              Sur votre Hypperplanning, veuillez exporter le lien de votre
-              calendrier
+              Sur votre{" "}
+              <a
+                href="https://planning.centralelille.fr"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Hypperplanning
+              </a>
+              , veuillez exporter le lien de votre calendrier
             </h3>
+            <img
+              src={process.env.PUBLIC_URL + "/ical-link-mobile.png"}
+              className="ical-ico"
+              alt="Lien de votre calendrier"
+            />
+            <img
+              src={process.env.PUBLIC_URL + "/ical-link-destock.png"}
+              className="ical-ico"
+              alt="Lien de votre calendrier"
+            />
             <img
               src={process.env.PUBLIC_URL + "/ical-destock.jpg"}
               className="ical-destock"
               alt="Lien de votre calendrier"
             />
+
             <div className="input-group">
               <input
                 type="text"

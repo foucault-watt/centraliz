@@ -53,11 +53,12 @@ const Footer = () => {
             <h3 className="footer__title">À propos</h3>
             <p className="footer__text">
               Centraliz est votre outil de productivité tout-en-un pour
-              Iteemiens, Centraliens et Chimistes. Simplifiez votre organisation
+              Iteemiens, Centraliens et Chimistes. <br/>
+              Simplifiez votre organisation
               quotidienne en centralisant vos calendriers, notes et mails.
             </p>
             <div className="footer__version">
-              <small>Version 0.5.1</small>
+              <small>Version 0.5.2</small>
             </div>
           </div>
 

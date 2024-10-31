@@ -4,23 +4,19 @@
   "proxy": "http://localhost:3001",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.7",
-    "client": "file:",
     "ical.js": "^2.1.0",
-    "lucide-react": "^0.452.0",
+    "lucide-react": "^0.453.0",
     "moment": "^2.30.1",
     "node-cas-authentication": "^0.0.15",
     "papaparse": "^5.4.1",
     "react": "^18.3.1",
-    "react-big-calendar": "^1.14.0",
+    "react-big-calendar": "^1.15.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.1",
     "react-scripts": "^5.0.1",
     "sass": "^1.77.8",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^4.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -45,5 +41,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.2",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2"
   }
 }

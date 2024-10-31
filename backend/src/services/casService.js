@@ -23,6 +23,8 @@ exports.callback = async (req, res) => {
     )}&ticket=${ticket}`;
     const response = await axios.get(validateUrl);
 
+    console.log(ticket);
+
     const usernameMatch = /<cas:user>(.*?)<\/cas:user>/.exec(response.data);
     const userName = usernameMatch ? usernameMatch[1] : null;
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, createContext } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import Header from "./components/Header.js";
 import Main from "./components/Main.js";
 
@@ -13,19 +13,21 @@ const App = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/auth/status`, {
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_URL_BACK}/api/auth/status`,
+          {
+            credentials: "include",
+          }
+        );
         const data = await response.json();
         console.log(data);
         setIsAuthenticated(data.authenticated);
 
         setUserName(data.user.userName);
         setDisplayName(data.user.displayName);
-        
+
         console.log(data.user.userName);
         console.log(data.user.displayName);
-
       } catch (error) {
         console.error("Error checking auth status:", error);
       } finally {

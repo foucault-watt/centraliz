@@ -1,0 +1,174 @@
+
+// Mixins (repris du style existant)
+@mixin transition($property: all, $duration: 0.3s, $timing: ease) {
+  transition: $property $duration $timing;
+}
+
+@mixin box-shadow($x: 0, $y: 2px, $blur: 5px, $color: rgba(0, 0, 0, 0.1)) {
+  box-shadow: $x $y $blur $color;
+}
+
+// Styles pour le conteneur principal
+.zimbra-auth-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 25px;
+  background-color: lighten($day, 10%);
+  border-radius: 10px;
+  border: 1px solid $day-border;
+  @include box-shadow(0, 4px, 12px, rgba(0, 0, 0, 0.1));
+
+  h2 {
+    color: $second;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    label {
+      color: $second;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9em;
+    }
+
+    input {
+      padding: 12px;
+      border: 1px solid $day-border;
+      border-radius: 6px;
+      font-size: 1em;
+      background-color: white;
+      @include transition(border-color);
+
+      &:focus {
+        outline: none;
+        border-color: $main;
+        @include box-shadow(0, 0, 0, rgba($main, 0.2));
+      }
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 12px;
+      background-color: $main;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      @include transition(background-color);
+
+      &:hover {
+        background-color: darken($main, 10%);
+      }
+    }
+  }
+
+  p {
+    margin-top: 15px;
+    text-align: center;
+    color: $second;
+
+    &.error {
+      color: $red;
+    }
+
+    &.success {
+      color: $green;
+    }
+  }
+}
+
+// Styles pour la liste des emails
+.mail-list {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0;
+  list-style: none;
+
+  .mail-item {
+    margin-bottom: 15px;
+    padding: 20px;
+    background-color: lighten($day, 8%);
+    border-radius: 10px;
+    border: 1px solid $day-border;
+    @include box-shadow();
+    @include transition(transform);
+
+    &:hover {
+      transform: translateY(-2px);
+      @include box-shadow(0, 6px, 15px, rgba(0, 0, 0, 0.12));
+    }
+
+    h3 {
+      color: $second;
+      margin: 0 0 12px 0;
+      font-size: 1.2em;
+    }
+
+    p {
+      color: $second;
+      margin: 0 0 15px 0;
+      line-height: 1.5;
+    }
+
+    .mail-meta {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid $day-border;
+      font-size: 0.85em;
+      color: lighten($second, 20%);
+
+      span {
+        &:first-child {
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+// État de chargement
+.loading {
+  text-align: center;
+  color: $second;
+  padding: 20px;
+  font-style: italic;
+}
+
+// En-tête des mails
+.mail-header {
+  max-width: 800px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid $main;
+
+  h2 {
+    color: $main;
+    margin: 0;
+    font-size: 1.8em;
+  }
+}
+
+// Animation de chargement
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.loading {
+  animation: pulse 1.5s infinite ease-in-out;
+}

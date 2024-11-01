@@ -21,7 +21,7 @@ app.use(morgan("combined"));
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // Remplacez par l'URL de votre frontend
+    origin: `${process.env.URL_FRONT}`, // Remplacez par l'URL de votre frontend
     credentials: true,
   })
 );

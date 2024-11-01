@@ -15,7 +15,7 @@ Centraliz, le site indispensable pour que tu te concentres sur l’essentiel : a
 ## 👤 Auteur
 
 - **Foucault Wattinne**  
-Étudiant à l’ITEEM, avec une passion pour la programmation et l'innovation.
+Étudiant à l’ITEEM, avec une passion pour la tech et l'innovation.
 
 ## 📬 Contact
 

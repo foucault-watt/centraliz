@@ -1,69 +1,114 @@
-$border-radius: 20px;
-$gap: 20px;
-$transition: all 0.3s ease;
+// Variables
+$border-radius: 25px;
+$gap: 25px; 
+$transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+$shadow-default: 0 8px 20px rgba(0, 0, 0, 0.08);
+$shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
+// Base styles
 .main {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: $gap;
   padding: $gap;
-  max-width: 1500px;
+  max-width: 1600px;
   margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f8f9fa 100%);
 }
 
 %card {
   border-radius: $border-radius;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  box-shadow: $shadow-default;
   transition: $transition;
+  backdrop-filter: blur(10px);
+  border: 3px solid rgba(255, 255, 255, 0.2);
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: $shadow-hover;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: $border-radius;
+    background: inherit;
+    z-index: -1;
+    opacity: 0.7;
   }
 }
 
 .div-hp-calendar {
   @extend %card;
   grid-column: span 8;
-  background-color: #ffebee !important;
-  border: 2px solid #ef9a9a;
+  background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+  border-color: rgba(239, 154, 154, 0.5);
 }
 
 .div-cla-calendar {
   @extend %card;
   grid-column: span 4;
-  background-color: #fff3e0;
-  border: 2px solid #ffcc80;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-color: rgba(255, 204, 128, 0.5);
 }
 
 .div-notes {
   @extend %card;
   grid-column: span 4;
-  background-color: #e8f5e9;
-  border: 2px solid #a5d6a7;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-color: rgba(165, 214, 167, 0.5);
 }
 
 .div-mail {
   @extend %card;
   grid-column: span 6;
-  background-color: #e0f7fa;
-  border: 2px solid #80deea;
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  border-color: rgba(128, 222, 234, 0.5);
 }
 
 .div-links {
   @extend %card;
   grid-column: span 2;
-  background-color: #f3e5f5;
-  border: 2px solid #ce93d8;
-  padding: 10px !important;
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  border-color: rgba(206, 147, 216, 0.5);
+  padding: 15px !important;
+}
+
+// Animations
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.main > div {
+  animation: fadeIn 0.6s ease-out forwards;
+  animation-delay: calc(var(--animation-order) * 0.1s);
+}
+
+// Media Queries 
+@media (max-width: 1024px) {
+  .main {
+    grid-template-columns: repeat(8, 1fr);
+    padding: $gap/1.5;
+    gap: $gap/1.5;
+  }
 }
 
 @media (max-width: 768px) {
-
-  
   .main {
-    grid-template-columns: 0px 1fr 0px;
+    grid-template-columns: repeat(4, 1fr);
+    padding: $gap/2;
+    gap: $gap/2;
+  }
+
+  %card {
+    padding: 20px;
   }
 
   .div-hp-calendar,
@@ -71,6 +116,6 @@ $transition: all 0.3s ease;
   .div-notes,
   .div-mail,
   .div-links {
-    grid-column: 1 / -1;
+    grid-column: span 4;
   }
 }

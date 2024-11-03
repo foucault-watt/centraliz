@@ -1,11 +1,14 @@
+// Notes.js
 import axios from "axios";
 import Papa from "papaparse";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Upload } from "lucide-react";
 
 const Notes = () => {
   const [modules, setModules] = useState({});
   const [expandedModules, setExpandedModules] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isCSVUploaded, setIsCSVUploaded] = useState(false);
   const [error, setError] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -39,15 +42,13 @@ const Notes = () => {
       setError("Erreur de chargement des notes. Veuillez réessayer plus tard.");
       setIsLoading(false);
     }
-  }, [username, password]); // On ajoute username et password comme dépendances
+  }, [username, password]);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && !isCSVUploaded) {
       fetchCSVData();
     }
-  }, [isLoggedIn, fetchCSVData]);
-
-
+  }, [isLoggedIn, isCSVUploaded, fetchCSVData]);
 
   const processGrades = (grades) => {
     const processedModules = {};
@@ -89,6 +90,35 @@ const Notes = () => {
     );
   };
 
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+
+    if (file && file.type === "text/csv") {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const csvData = e.target.result;
+
+        Papa.parse(csvData, {
+          header: true,
+          complete: (results) => {
+            processGrades(results.data);
+            setIsCSVUploaded(true);
+            setIsLoggedIn(true);
+            setIsLoading(false);
+          },
+          error: () => {
+            setError("CSV invalide. Veuillez vérifier le fichier et réessayer.");
+          },
+        });
+      };
+
+      reader.readAsText(file);
+    } else {
+      setError("Veuillez sélectionner un fichier CSV valide.");
+    }
+  };
+
   const calculateAverage = (module) => {
     const { totalPoints, totalCoeff, vCount, nvCount } = module;
     const hasNumericNotes = totalCoeff > 0;
@@ -128,29 +158,51 @@ const Notes = () => {
 
   return (
     <div className="container">
-      <p className="rezoleo">Pour l'instant ça marche pas mais je bosse dessus avec archarnement 👀</p>
       {!isLoggedIn && (
-        <form className="login-form" onSubmit={handleLogin}>
-          <input
-            type="text"
-            placeholder="Nom d'utilisateur ENT"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Mot de passe ENT"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <span className="safe" onClick={() => alert("Web Aurion n'utilise pas le CAS donc vous êtes obligé de donner votre mot de passe en clair, mais il n'est et ne sera en aucun cas stocké ou utilisé.")}><u>Je vous jure c'est safe</u> 👌</span>
-          <button type="submit">Se connecter</button>
-        </form>
+        <>
+          <div className="upload-section">
+            <label className="upload-button">
+              <Upload className="upload-icon" />
+              Importer un CSV
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
+            </label>
+          </div>
+          <form className="login-form" onSubmit={handleLogin}>
+            <input
+              type="text"
+              placeholder="Nom d'utilisateur ENT"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Mot de passe ENT"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="safe"
+              onClick={() =>
+                alert(
+                  "Web Aurion n'utilise pas le CAS donc vous êtes obligé de donner votre mot de passe en clair, mais il n'est et ne sera en aucun cas stocké ou utilisé."
+                )
+              }
+            >
+              <u>Je vous jure c'est safe</u> 👌
+            </span>
+            <button type="submit">Se connecter</button>
+          </form>
+        </>
       )}
 
-      {isLoggedIn && (
+      {(isLoggedIn || isCSVUploaded) && (
         <>
           {isLoading && (
             <div className="loadingo-container">
@@ -195,9 +247,7 @@ const Notes = () => {
                           <p>{epreuve["Type de contrôle"]}</p>
                           <p>{epreuve["Début"]}</p>
                           <p>
-                            Coeff{" "}
-                            {epreuve["Coefficient de l'Épreuve dans le Module"]}{" "}
-                            - <b>{epreuve["Notes"]}</b>
+                            Coeff {epreuve["Coefficient de l'Épreuve dans le Module"]} - <b>{epreuve["Notes"]}</b>
                           </p>
                         </div>
                       ))}
@@ -214,4 +264,3 @@ const Notes = () => {
 };
 
 export default Notes;
-

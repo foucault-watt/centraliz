@@ -252,26 +252,29 @@ const HpCalendar = () => {
           <form onSubmit={handleSubmitLink} className="auth-form">
             <h2>C'est votre première visite !</h2>
             <h3>
-              Sur votre{" "}
+              Cliquez{" "}
               <a
                 href="https://planning.centralelille.fr"
                 target="_blank"
                 rel="noreferrer"
+                style={{ fontSize: "1.6rem" }}
               >
-                Hypperplanning
-              </a>
-              , veuillez exporter le lien de votre calendrier
+                ici
+              </a>{" "}
+              pour accéder à votre planning, puis copiez le lien ical.
             </h3>
-            <img
-              src={process.env.PUBLIC_URL + "/ical-link-mobile.png"}
-              className="ical-ico"
-              alt="Lien de votre calendrier"
-            />
-            <img
-              src={process.env.PUBLIC_URL + "/ical-link-destock.png"}
-              className="ical-ico"
-              alt="Lien de votre calendrier"
-            />
+            <div className="ical-container">
+              <img
+                src={process.env.PUBLIC_URL + "/ical-link-mobile.png"}
+                className="ical-ico"
+                alt="Lien de votre calendrier"
+              />
+              <img
+                src={process.env.PUBLIC_URL + "/ical-link-destock.png"}
+                className="ical-ico"
+                alt="Lien de votre calendrier"
+              />
+            </div>
             <img
               src={process.env.PUBLIC_URL + "/ical-destock.jpg"}
               className="ical-destock"

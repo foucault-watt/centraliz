@@ -1,4 +1,3 @@
-// frontend/src/components/Mail.js
 import React, { useState, useContext, useEffect } from "react";
 import { UserContext } from "../App";
 import ZimbraAuth from "./ZimbraAuth";

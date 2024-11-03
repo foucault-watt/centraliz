@@ -43,8 +43,17 @@
   color: white !important;
 }
 
+.rbc-events-container {
+  margin-right: 5% !important;
+  margin-left: 5% !important;
+}
+
 .rbc-toolbar {
-  padding-bottom: 12px !important;
+  padding-bottom: 5px !important;
+}
+
+.rbc-toolbar-label {
+  padding-top: 5px !important;
 }
 
 .rbc-today {
@@ -60,6 +69,12 @@
   padding: 20px;
 }
 
+.ical-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
 .auth-form {
   background-color: white;
   padding: 2rem;
@@ -70,7 +85,8 @@
 
   .ical-destock {
     max-width: 100%;
-    height: auto;  }
+    height: auto;
+  }
 
   h2 {
     color: $second;
@@ -118,8 +134,209 @@
   }
 }
 
-.ical-ico{
+.ical-ico {
   padding-left: 10%;
-  width: 24% ;
+  width: 24%;
   height: auto;
+}
+
+// Ajout des animations pour les différents éléments du calendrier
+.hp-calendar {
+  // Animation d'entrée du calendrier
+  animation: slideInFromBottom 0.6s ease-out;
+
+  // Effet de survol sur les événements avec perspective
+  .rbc-event {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    
+    &:hover {
+      transform: translateY(-2px) scale(1.02) rotateX(2deg);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 100;
+    }
+
+    // Animation d'apparition des événements
+    &.new-event {
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    // Animations spécifiques par type d'événement
+    &.tne-event {
+      &:hover {
+        transform: translateY(-2px) scale(1.02) rotateX(2deg);
+        box-shadow: 0 4px 12px rgba($green, 0.3);
+      }
+    }
+
+    &.cb-event {
+      &:hover {
+        transform: translateY(-2px) scale(1.02) rotateX(2deg);
+        box-shadow: 0 4px 12px rgba($red, 0.3);
+      }
+    }
+  }
+
+  // Animation des boutons de navigation
+  .rbc-toolbar {
+    button {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba($main, 0.2);
+      }
+      
+      &:active {
+        transform: translateY(1px);
+      }
+      
+      &.rbc-active {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+    }
+  }
+
+  // Animation du jour actuel
+  .rbc-today {
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        45deg,
+        rgba($main, 0.1) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba($main, 0.1) 50%,
+        rgba($main, 0.1) 75%,
+        transparent 75%
+      );
+      background-size: 20px 20px;
+      animation: todayPattern 30s linear infinite;
+      opacity: 0.5;
+    }
+  }
+}
+
+// Définition des animations
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  70% {
+    transform: scale(1.05) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba($main, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba($main, 0.1);
+  }
+}
+
+@keyframes todayPattern {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 40px;
+  }
+}
+
+// Animation pour le changement de vue
+.rbc-calendar {
+  .rbc-time-view, .rbc-month-view {
+    animation: fadeScale 0.3s ease-out;
+  }
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Amélioration des transitions entre les événements
+.rbc-events-container {
+  .rbc-event {
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:not(:hover) {
+      .rbc-event-content {
+        transition: color 0.3s ease;
+      }
+    }
+  }
+}
+
+// Animation de chargement pour les transitions de données
+.rbc-calendar {
+  &.loading {
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(white, 0.7);
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 40px;
+      height: 40px;
+      margin: -20px 0 0 -20px;
+      border: 3px solid rgba($main, 0.3);
+      border-top-color: $main;
+      border-radius: 50%;
+      z-index: 1001;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

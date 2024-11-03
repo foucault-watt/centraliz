@@ -9,34 +9,33 @@
 @import "Mail.scss";
 
 .loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #4267CF;
-    flex-direction: column;
-    text-align: center;
-    
-    .logo-loading {
-      width: 150px; // taille de départ
-      height: auto;
-      animation: scaleUpDown 1s infinite ease-in-out;
-    }
-  
-    .title-loading {
-      font-size: 36px;
-      color: white;
-      margin-top: 20px;
-      animation: fadeIn 1s ease-in-out infinite alternate;
-    }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #4267CF;
+  flex-direction: column;
+  text-align: center;
+
+  .logo-loading {
+    width: 150px;
+    height: auto;
+    animation: scaleUpDown 1s infinite ease-in-out;
   }
-  
-  @keyframes scaleUpDown {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.2);
-    }
+
+  .title-loading {
+    font-size: 36px;
+    color: white;
+    margin-top: 20px;
+    animation: fadeIn 1s ease-in-out infinite alternate;
   }
-  
+}
+
+@keyframes scaleUpDown {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}

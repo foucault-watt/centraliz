@@ -46,17 +46,15 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
 
   return (
     <div className="zimbra-auth-container">
-      <h2>Authentification Zimbra</h2>
+      <h2>Accès à vos mails</h2>
       <form onSubmit={handleSubmit}>
-        <label>
-          Mot de passe Zimbra :
           <input
             type="password"
             value={password}
+            placeholder="Entrez votre mot de passe ENT"
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </label>
         <button type="submit">Se connecter</button>
       </form>
       {status && <p>{status}</p>}

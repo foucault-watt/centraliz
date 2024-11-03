@@ -1,6 +1,6 @@
 // Variables
 $border-radius: 25px;
-$gap: 25px; 
+$gap: 25px;
 $transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 $shadow-default: 0 8px 20px rgba(0, 0, 0, 0.08);
 $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
@@ -15,6 +15,11 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   margin: 0 auto;
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #f8f9fa 100%);
+
+  > div {
+    animation: fadeIn 0.6s ease-out forwards;
+    animation-delay: calc(var(--animation-order) * 0.1s);
+  }
 }
 
 %card {
@@ -47,7 +52,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .div-hp-calendar {
   @extend %card;
   grid-column: span 8;
-  background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+  background: linear-gradient(135deg, #fff0f0 0%, #fed7d7 100%);
   border-color: rgba(239, 154, 154, 0.5);
 }
 
@@ -68,43 +73,44 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .div-mail {
   @extend %card;
   grid-column: span 6;
-  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  background: linear-gradient(135deg, #e0f7fa 0%, #ace9f1 100%);
   border-color: rgba(128, 222, 234, 0.5);
 }
 
 .div-links {
   @extend %card;
   grid-column: span 2;
-  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  background: linear-gradient(135deg, #faeefc 0%, #e1bee7 100%);
   border-color: rgba(206, 147, 216, 0.5);
   padding: 15px !important;
 }
 
 // Animations
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.main > div {
-  animation: fadeIn 0.6s ease-out forwards;
-  animation-delay: calc(var(--animation-order) * 0.1s);
-}
-
-// Media Queries 
+// Media Queries
 @media (max-width: 1024px) {
   .main {
     grid-template-columns: repeat(8, 1fr);
-    padding: $gap/1.5;
-    gap: $gap/1.5;
+    padding: $gap / 1.5;
+    gap: $gap / 1.5;
   }
 }
 
 @media (max-width: 768px) {
   .main {
     grid-template-columns: repeat(4, 1fr);
-    padding: $gap/2;
-    gap: $gap/2;
+    padding: $gap / 2;
+    gap: $gap / 2;
   }
 
   %card {

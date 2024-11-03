@@ -1,11 +1,11 @@
-$main: #597ee5; 
+$main: #597ee5;
 $main-dark: #4267ce;
 $second: #2c3e50;
 $day: #f7f7f7;
-$day-border:#ddd;
-$green:#49c16b;
-$orange:#FF9800;
-$red:#e65656;
+$day-border: #ddd;
+$green: #49c16b;
+$orange: #FF9800;
+$red: #e65656;
 
 * {
   padding: 0;
@@ -17,6 +17,7 @@ body {
   background: $day;
   font-family: sans-serif;
 }
+
 li {
   list-style-type: none;
 }

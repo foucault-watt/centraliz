@@ -35,10 +35,9 @@ const services = [
     name: "CLA",
     link: "https://centralelilleassos.fr/",
     image: process.env.PUBLIC_URL + "/links/cla.png",
-
   },
 
-{
+  {
     name: "BDS",
     link: "https://bds-centralelille.fr/",
     image: process.env.PUBLIC_URL + "/links/bds.png",
@@ -54,10 +53,17 @@ const services = [
     link: "https://paingouin.rezoleo.fr/",
     image: process.env.PUBLIC_URL + "/links/paingouin.png",
   },
-  { name: "My'Iteem", link: "https://myiteem.fr/", image: process.env.PUBLIC_URL + "/links/myiteem.png" },
-  { name: "Le Clap", link: "https://le-clap.fr/", image: process.env.PUBLIC_URL + "/links/clap.png" },
+  {
+    name: "My'Iteem",
+    link: "https://myiteem.fr/",
+    image: process.env.PUBLIC_URL + "/links/myiteem.png",
+  },
+  {
+    name: "Le Clap",
+    link: "https://le-clap.fr/",
+    image: process.env.PUBLIC_URL + "/links/clap.png",
+  },
 ];
-
 
 const Links = () => {
   return (
@@ -66,7 +72,6 @@ const Links = () => {
         <li key={index}>
           <a href={service.link} target="_blank" rel="noreferrer">
             <img src={service.image} alt={`Icône ${service.name}`} />
-            
           </a>
         </li>
       ))}

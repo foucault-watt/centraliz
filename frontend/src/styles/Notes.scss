@@ -19,6 +19,7 @@ $fade-duration: 0.3s;
   padding: 0px;
   font-family: Arial, sans-serif;
   color: $second;
+  text-align: center;
 }
 
 .grid {
@@ -165,7 +166,7 @@ $fade-duration: 0.3s;
 .upload-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 18px;
+  margin-bottom: 5px;
 
   .upload-button {
     display: flex;
@@ -191,13 +192,21 @@ $fade-duration: 0.3s;
   }
 }
 
+.upload-message {
+  margin: 5px 0 10px 0 !important;
+  color: $second;
+  text-decoration: underline;
+}
+
+
 // Form Styles
 .login-form {
+  display: none !important;
   display: flex;
   flex-direction: column;
   max-width: 400px;
   margin: 20px auto;
-  margin-top: 0px !important;
+  margin-top: 20px !important;
   padding: 20px;
   background-color: lighten($day, 10%);
   border-radius: 5px;
@@ -305,10 +314,4 @@ $fade-duration: 0.3s;
     transform: scale(0);
     opacity: 0;
   }
-}
-
-.safe {
-  color: $second;
-  margin-bottom: 10px;
-  text-align: center;
 }

@@ -171,7 +171,10 @@ const Notes = () => {
                 style={{ display: "none" }}
               />
             </label>
+            
           </div>
+          <span className="upload-message">WebAurion : Exporter vos notes CSV en UTF-8</span>
+
           <form className="login-form" onSubmit={handleLogin}>
             <input
               type="text"
@@ -187,16 +190,6 @@ const Notes = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <span
-              className="safe"
-              onClick={() =>
-                alert(
-                  "Web Aurion n'utilise pas le CAS donc vous êtes obligé de donner votre mot de passe en clair, mais il n'est et ne sera en aucun cas stocké ou utilisé."
-                )
-              }
-            >
-              <u>Je vous jure c'est safe</u> 👌
-            </span>
             <button type="submit">Se connecter</button>
           </form>
         </>

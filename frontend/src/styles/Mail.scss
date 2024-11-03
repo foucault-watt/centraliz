@@ -28,15 +28,8 @@
   form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 5px;
 
-    label {
-      color: $second;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 0.9em;
-    }
 
     input {
       padding: 12px;
@@ -101,6 +94,10 @@
     @include box-shadow();
     @include transition(transform);
 
+  .mail-item :last-child {
+    margin-bottom: 0;
+  }
+
     &:hover {
       transform: translateY(-2px);
       @include box-shadow(0, 6px, 15px, rgba(0, 0, 0, 0.12));
@@ -147,10 +144,10 @@
 .mail-header {
   max-width: 800px;
   padding-bottom: 15px;
-  border-bottom: 2px solid $main;
+  border-bottom: 2px solid $second;
 
   h2 {
-    color: $main;
+    color: $second;
     margin: 0;
     font-size: 1.8em;
   }

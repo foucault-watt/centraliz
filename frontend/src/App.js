@@ -26,8 +26,6 @@ const App = () => {
         setUserName(data.user.userName);
         setDisplayName(data.user.displayName);
 
-        console.log(data.user.userName);
-        console.log(data.user.displayName);
       } catch (error) {
         console.error("Error checking auth status:", error);
       } finally {

@@ -14,8 +14,6 @@ class ZimbraService {
     const authString = Buffer.from(`${username}:${password}`).toString("base64");
     const url = "https://mail.centralelille.fr/home/~/inbox.rss?auth=ba";
 
-    console.log(`[ZimbraService] Tentative d'authentification pour l'utilisateur: ${username}`);
-
     try {
       const httpsAgent = new https.Agent({
         rejectUnauthorized: false, // **Attention : Désactive la vérification SSL (utiliser uniquement pour le développement)**
@@ -29,10 +27,7 @@ class ZimbraService {
         timeout: 10000, // Timeout de 10 secondes
       });
 
-      console.log(`[ZimbraService] Réponse de Zimbra: Status ${response.status}`);
-
       if (response.status === 200) {
-        console.log(`[ZimbraService] Authentification réussie pour ${username}`);
         return response.data; // Retourne le contenu RSS
       } else {
         console.error(`[ZimbraService] Échec de l'accès aux mails pour ${username}: Status ${response.status}`);
@@ -56,7 +51,6 @@ class ZimbraService {
    * @returns {Promise<Array>} - Liste des mails.
    */
   static async parseRSS(xmlData) {
-    console.log("[ZimbraService] Début du parsing du RSS");
 
     try {
       const parser = new xml2js.Parser();
@@ -86,7 +80,6 @@ class ZimbraService {
     const decoded = Buffer.from(zimbraToken, "base64").toString("ascii");
     const [username, password] = decoded.split(":");
 
-    console.log(`[ZimbraService] Authentification depuis token pour l'utilisateur: ${username}`);
 
     const xmlData = await this.authenticate(username, password);
     const mails = await this.parseRSS(xmlData);

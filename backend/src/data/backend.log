@@ -1,0 +1,195 @@
+2024-11-03T23:01:42.744Z - ::1 - - [03/Nov/2024:23:01:42 +0000] "GET /api/public-data/logins.json HTTP/1.1" 200 767 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:07.273Z - ::1 - - [03/Nov/2024:23:02:07 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:07.307Z - ::1 - - [03/Nov/2024:23:02:07 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:08.425Z - ::1 - - [03/Nov/2024:23:02:08 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:17.888Z - ::1 - - [03/Nov/2024:23:02:17 +0000] "GET /api/auth/callback?ticket=ST-380152-9lkc3GLZczDfgbm2blZY-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:19.692Z - ::1 - - [03/Nov/2024:23:02:19 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:19.700Z - ::1 - - [03/Nov/2024:23:02:19 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:19.871Z - ::1 - - [03/Nov/2024:23:02:19 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 200 15 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:19.894Z - ::1 - - [03/Nov/2024:23:02:19 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:20.043Z - ::1 - - [03/Nov/2024:23:02:20 +0000] "GET /api/cla-data HTTP/1.1" 200 3635 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:20.146Z - ::1 - - [03/Nov/2024:23:02:20 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:21.195Z - ::1 - - [03/Nov/2024:23:02:21 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:21.329Z - ::1 - - [03/Nov/2024:23:02:21 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:48.972Z - ::1 - - [03/Nov/2024:23:02:48 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:49.526Z - ::1 - - [03/Nov/2024:23:02:49 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:02:49.938Z - ::1 - - [03/Nov/2024:23:02:49 +0000] "GET /api/zimbra/mails HTTP/1.1" 200 16441 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:03:32.943Z - ::1 - - [03/Nov/2024:23:03:32 +0000] "POST /api/download-csv HTTP/1.1" 200 110 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:03:33.444Z - ::1 - - [03/Nov/2024:23:03:33 +0000] "GET /api/csv-data?path=C:\Code\centraliz\backend\src\utils\downloads\Mes%20Notes%20aux%20%C3%A9preuves.csv HTTP/1.1" 200 546 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:03:58.417Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-03T23:04:16.136Z - LOG: undefined
+[90mundefined[39m
+2024-11-03T23:04:16.160Z - ::1 - - [03/Nov/2024:23:04:16 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:16.166Z - LOG: undefined
+[90mundefined[39m
+2024-11-03T23:04:16.187Z - ::1 - - [03/Nov/2024:23:04:16 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:17.064Z - ::1 - - [03/Nov/2024:23:04:17 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:27.225Z - ::1 - - [03/Nov/2024:23:04:27 +0000] "GET /api/auth/callback?ticket=ST-380203-TJ9zJ69iLBbBVCtVMJQ9-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:28.389Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-380203-TJ9zJ69iLBbBVCtVMJQ9-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-380203-TJ9zJ69iLBbBVCtVMJQ9-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-03T23:04:28.414Z - ::1 - - [03/Nov/2024:23:04:28 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:28.421Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-380203-TJ9zJ69iLBbBVCtVMJQ9-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+2024-11-03T23:04:28.427Z - ::1 - - [03/Nov/2024:23:04:28 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-380203-TJ9zJ69iLBbBVCtVMJQ9-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-03T23:04:29.568Z - ::1 - - [03/Nov/2024:23:04:29 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 200 15 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:29.598Z - ::1 - - [03/Nov/2024:23:04:29 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:29.770Z - ::1 - - [03/Nov/2024:23:04:29 +0000] "GET /api/cla-data HTTP/1.1" 200 3635 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:29.875Z - ::1 - - [03/Nov/2024:23:04:29 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:29.897Z - ::1 - - [03/Nov/2024:23:04:29 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:30.031Z - ::1 - - [03/Nov/2024:23:04:30 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:44.618Z - ::1 - - [03/Nov/2024:23:04:44 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:45.012Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-03T23:04:45.068Z - ::1 - - [03/Nov/2024:23:04:45 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:04:45.330Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-03T23:04:45.403Z - LOG: [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-03T23:04:45.434Z - ::1 - - [03/Nov/2024:23:04:45 +0000] "GET /api/zimbra/mails HTTP/1.1" 200 16441 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-03T23:05:05.680Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:05:07.311Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-03T23:05:07.657Z - LOG: Page loaded
+Page loaded
+2024-11-03T23:05:10.350Z - LOG: Credentials entered
+Credentials entered
+2024-11-03T23:05:17.821Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:05:18.132Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:05:18.153Z - LOG: PAGE LOG: Refused to execute script from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.
+PAGE LOG: Refused to execute script from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.
+2024-11-03T23:05:18.520Z - LOG: PAGE LOG: Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading
+PAGE LOG: Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading
+2024-11-03T23:05:19.182Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-03T23:05:19.796Z - LOG: Logged in successfully
+Logged in successfully
+2024-11-03T23:05:19.884Z - LOG: Sidebar loaded
+Sidebar loaded
+2024-11-03T23:05:20.364Z - LOG: Clicked on the result element
+Clicked on the result element
+2024-11-03T23:05:23.578Z - LOG: Clicked on the iteem element
+Clicked on the iteem element
+2024-11-03T23:05:29.143Z - LOG: Clicked on the notes element
+Clicked on the notes element
+2024-11-03T23:05:31.641Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:05:32.274Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:05:32.891Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-03T23:05:33.637Z - LOG: Clicked on the export element
+Clicked on the export element
+2024-11-03T23:05:36.617Z - LOG: Clicked on the csv element
+Clicked on the csv element
+2024-11-03T23:05:41.629Z - LOG: CSV downloaded: Mes Notes aux épreuves.csv
+CSV downloaded: Mes Notes aux épreuves.csv
+2024-11-03T23:06:07.113Z - ::1 - - [03/Nov/2024:23:06:07 +0000] "POST /api/download-csv HTTP/1.1" 200 110 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:06:07.563Z - ::1 - - [03/Nov/2024:23:06:07 +0000] "GET /api/csv-data?path=C:\Code\centraliz\backend\src\utils\downloads\Mes%20Notes%20aux%20%C3%A9preuves.csv HTTP/1.1" 200 546 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:07:38.614Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-03T23:08:02.544Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-03T23:08:14.989Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-03T23:08:27.091Z - LOG: undefined
+[90mundefined[39m
+2024-11-03T23:08:27.109Z - HTTP: ::1 - - [03/Nov/2024:23:08:27 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[90mundefined[39m
+2024-11-03T23:08:27.127Z - HTTP: ::1 - - [03/Nov/2024:23:08:27 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:28.242Z - HTTP: ::1 - - [03/Nov/2024:23:08:28 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:36.743Z - HTTP: ::1 - - [03/Nov/2024:23:08:36 +0000] "GET /api/auth/callback?ticket=ST-380327-VaX14CosxmHWbv1XguRs-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:37.947Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-380327-VaX14CosxmHWbv1XguRs-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-380327-VaX14CosxmHWbv1XguRs-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-03T23:08:37.997Z - HTTP: ::1 - - [03/Nov/2024:23:08:37 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-380327-VaX14CosxmHWbv1XguRs-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-03T23:08:38.009Z - HTTP: ::1 - - [03/Nov/2024:23:08:38 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:39.208Z - HTTP: ::1 - - [03/Nov/2024:23:08:39 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 200 15 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:39.284Z - HTTP: ::1 - - [03/Nov/2024:23:08:39 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:39.427Z - HTTP: ::1 - - [03/Nov/2024:23:08:39 +0000] "GET /api/cla-data HTTP/1.1" 200 3635 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:39.525Z - HTTP: ::1 - - [03/Nov/2024:23:08:39 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:39.648Z - HTTP: ::1 - - [03/Nov/2024:23:08:39 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:39.819Z - HTTP: ::1 - - [03/Nov/2024:23:08:39 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:08:59.679Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:08:59.945Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-03T23:09:00.250Z - LOG: Page loaded
+Page loaded
+2024-11-03T23:09:01.000Z - LOG: Credentials entered
+Credentials entered
+2024-11-03T23:09:05.256Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:09:05.526Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:09:05.531Z - LOG: PAGE LOG: Refused to execute script from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to execute script from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.
+2024-11-03T23:09:06.697Z - LOG: PAGE LOG: Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading
+PAGE LOG: Google Maps JavaScript API has been loaded directly without loading=async. This can result in suboptimal performance. For best-practice loading patterns please see https://goo.gle/js-api-loading
+2024-11-03T23:09:07.512Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-03T23:09:08.008Z - LOG: Logged in successfully
+Logged in successfully
+2024-11-03T23:09:08.279Z - LOG: Sidebar loaded
+Sidebar loaded
+2024-11-03T23:09:08.864Z - LOG: Clicked on the result element
+Clicked on the result element
+2024-11-03T23:09:11.009Z - LOG: Clicked on the iteem element
+Clicked on the iteem element
+2024-11-03T23:09:18.052Z - LOG: Clicked on the notes element
+Clicked on the notes element
+2024-11-03T23:09:19.449Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:09:20.031Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-03T23:09:20.372Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-03T23:09:20.547Z - LOG: Clicked on the export element
+Clicked on the export element
+2024-11-03T23:09:22.648Z - LOG: Clicked on the csv element
+Clicked on the csv element
+2024-11-03T23:09:27.663Z - LOG: CSV downloaded: Mes Notes aux épreuves.csv
+CSV downloaded: Mes Notes aux épreuves.csv
+2024-11-03T23:09:29.776Z - HTTP: ::1 - - [03/Nov/2024:23:09:29 +0000] "POST /api/download-csv HTTP/1.1" 200 110 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:09:30.139Z - HTTP: ::1 - - [03/Nov/2024:23:09:30 +0000] "GET /api/csv-data?path=C:\Code\centraliz\backend\src\utils\downloads\Mes%20Notes%20aux%20%C3%A9preuves.csv HTTP/1.1" 200 546 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:10:06.674Z - HTTP: ::1 - - [03/Nov/2024:23:10:06 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:10:06.879Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-03T23:10:06.891Z - HTTP: ::1 - - [03/Nov/2024:23:10:06 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-03T23:10:07.116Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+2024-11-03T23:10:07.119Z - LOG: [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-03T23:10:07.144Z - HTTP: ::1 - - [03/Nov/2024:23:10:07 +0000] "GET /api/zimbra/mails HTTP/1.1" 200 16441 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[Zimbra Route] Mails récupérés pour fwattinn: 50 emails

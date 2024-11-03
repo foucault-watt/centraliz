@@ -9,15 +9,27 @@ const csvRoutes = require("../routes/csv"); // Autres routes selon votre applica
 const claRoutes = require("../routes/cla");
 const hpRoutes = require("../routes/hp");
 const feedbackRoutes = require("../routes/feedback");
-const zimbraRoutes = require("../routes/zimbra"); // Importer les routes Zimbra
-const morgan = require("morgan");
+const zimbraRoutes = require("../routes/zimbra"); 
+const publicRoutes = require("../routes/publicData");
+const morgan = require('morgan');
+const logService = require('../services/logService');
 const app = express();
 
 // Utiliser Helmet pour sécuriser les en-têtes HTTP
 app.use(helmet());
 
 // Utiliser Morgan pour les logs détaillés des requêtes HTTP
-app.use(morgan("combined"));
+app.use(morgan('combined', {
+  skip: function (req, res) {
+    // Skip les logs Morgan qui seraient dupliqués
+    return req.url === '/healthcheck'; // exemple de filtre
+  },
+  stream: {
+    write: (message) => {
+      logService.log(`HTTP: ${message.trim()}`);
+    }
+  }
+}));
 
 app.use(
   cors({
@@ -48,11 +60,23 @@ app.use("/api", csvRoutes);
 app.use("/api", claRoutes);
 app.use("/api", hpRoutes);
 app.use("/api", feedbackRoutes);
+app.use("/api", publicRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use("/api/crashh", async (req, res) => {
   res.send("CRASH");
   process.exit(1);
+});
+
+// Ajouter un handler d'erreurs globales
+app.use((err, req, res, next) => {
+  logService.log(`ERROR: ${err.stack}`);
+  res.status(500).json({ error: 'Une erreur est survenue' });
+});
+
+// Ajouter un handler de promesses rejetées non gérées
+process.on('unhandledRejection', (reason, promise) => {
+  logService.log(`Unhandled Rejection at: ${promise} reason: ${reason}`);
 });
 
 module.exports = app;

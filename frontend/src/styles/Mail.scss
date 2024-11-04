@@ -91,6 +91,7 @@
     background-color: lighten($day, 8%);
     border-radius: 10px;
     border: 1px solid $day-border;
+    overflow: hidden;
     @include box-shadow();
     @include transition(transform);
 

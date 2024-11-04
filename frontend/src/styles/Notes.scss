@@ -314,3 +314,18 @@ $fade-duration: 0.3s;
     opacity: 0;
   }
 }
+
+.mail-item {
+  cursor: pointer;
+  // ...autres styles...
+  .mail-content {
+    display: none;
+    padding: 10px;
+    background-color: lighten($day, 5%);
+  }
+  &.expanded {
+    .mail-content {
+      display: block;
+    }
+  }
+}

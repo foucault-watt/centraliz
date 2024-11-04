@@ -8,6 +8,7 @@ function Mail() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedMailIndices, setExpandedMailIndices] = useState([]);
 
   const fetchMails = async () => {
     setIsLoading(true);
@@ -67,13 +68,27 @@ return (
         ) : (
             <ul className="mail-list">
               {mails.map((mail, index) => (
-                <li key={index} className="mail-item">
+                <li
+                  key={index}
+                  className={`mail-item ${expandedMailIndices.includes(index) ? 'expanded' : ''}`}
+                  onClick={() => {
+                    if (expandedMailIndices.includes(index)) {
+                      setExpandedMailIndices(expandedMailIndices.filter((i) => i !== index));
+                    } else {
+                      setExpandedMailIndices([...expandedMailIndices, index]);
+                    }
+                  }}
+                >
                   <h3>{mail.title}</h3>
-                  <p>{mail.description}</p>
                   <div className="mail-meta">
                     <span>De : {mail.author}</span>
                     <span>Le : {new Date(mail.pubDate).toLocaleString()}</span>
                   </div>
+                  {expandedMailIndices.includes(index) && (
+                    <div className="mail-content">
+                      <p>{mail.description}</p>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

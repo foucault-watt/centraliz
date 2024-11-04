@@ -1,16 +1,22 @@
 import requests
 from bs4 import BeautifulSoup
 import os
+import sys
+
+# Désactiver les avertissements SSL
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Variables de configuration
 BASE_URL = "https://webaurion.centralelille.fr"
 LOGIN_URL = f"{BASE_URL}/faces/Login.xhtml"
 MAIN_MENU_URL = f"{BASE_URL}/faces/MainMenuPage.xhtml"
 CHOIX_DONNEE_URL = f"{BASE_URL}/faces/ChoixDonnee.xhtml"
-CSV_DOWNLOAD_URL = f"{BASE_URL}/faces/ChoixDonnee.xhtml"
-USERNAME = "fwattinn"          # Remplacez par votre nom d'utilisateur
-PASSWORD = "ent-DOUDOU1"       # Remplacez par votre mot de passe
-DOWNLOAD_DIR = "downloads"     # Répertoire où le CSV sera enregistré
+DOWNLOAD_DIR = "downloads"
+
+# Demander les identifiants de l'utilisateur
+USERNAME = input("Entrez votre nom d'utilisateur : ")
+PASSWORD = input("Entrez votre mot de passe : ")
 
 # Créer le répertoire de téléchargement s'il n'existe pas
 if not os.path.exists(DOWNLOAD_DIR):
@@ -21,147 +27,151 @@ session = requests.Session()
 
 # En-têtes HTTP communs
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "User-Agent": "Mozilla/5.0",
     "Accept-Language": "fr",
     "Connection": "keep-alive"
 }
 
-def extract_viewstate(html_content):
-    """Extrait la valeur de ViewState depuis le contenu HTML."""
+def extract_form_data(html_content):
+    """Extrait tous les champs du formulaire depuis le contenu HTML."""
     soup = BeautifulSoup(html_content, "html.parser")
-    viewstate = soup.find("input", {"name": "javax.faces.ViewState"})
-    if viewstate:
-        return viewstate.get("value")
+    form = soup.find("form")
+    if not form:
+        return {}
+    data = {}
+    inputs = form.find_all("input")
+    for input in inputs:
+        name = input.get("name")
+        value = input.get("value", "")
+        if name:
+            data[name] = value
+    selects = form.find_all("select")
+    for select in selects:
+        name = select.get("name")
+        if name:
+            options = select.find_all("option")
+            for option in options:
+                if "selected" in option.attrs:
+                    data[name] = option.get("value", "")
+                    break
+    return data
+
+def get_form_action(html_content):
+    """Extrait l'action du formulaire."""
+    soup = BeautifulSoup(html_content, "html.parser")
+    form = soup.find("form")
+    if form:
+        action = form.get("action")
+        return action
     return None
 
-def get_page(url):
-    """Effectue une requête GET et retourne le contenu HTML."""
-    response = session.get(url, headers=headers)
-    response.raise_for_status()
-    return response.text
-
-def post_form(url, data):
-    """Effectue une requête POST avec les données du formulaire."""
-    response = session.post(url, data=data, headers=headers)
-    response.raise_for_status()
-    return response.text
-
 try:
-    # 1. Accéder à la page de connexion
+    # 1. Accéder à la page de connexion pour obtenir les champs initiaux
     print("1. Accès à la page de connexion...")
-    login_page = get_page(LOGIN_URL)
-    
-    # 2. Extraire le ViewState de la page de connexion
-    viewstate_login = extract_viewstate(login_page)
-    if not viewstate_login:
-        print("Erreur : ViewState non trouvé dans la page de connexion.")
+    response = session.get(LOGIN_URL, headers=headers, verify=False)
+    response.raise_for_status()
+    login_form_data = extract_form_data(response.text)
+    form_action = get_form_action(response.text)
+    if not login_form_data:
+        print("Erreur : Formulaire de connexion introuvable.")
         exit(1)
-    
-    # 3. Préparer les données du formulaire de connexion
-    login_data = {
-        "username": "fwattinn",
-        "password": "ent-DOUDOU1",
-        "j_idt27": "",
-        "form": "form",
-        "form:largeurDivCenter": "12",
-        "form:idInit": "webscolaapp.MainMenuPage_-2174809500206825303",
-        "form:sauvegarde": "",
-        "form:j_idt756_focus": "",
-        "form:j_idt756_input": "44323",
-        "javax.faces.ViewState": viewstate_login,
-        "form:sidebar": "form:sidebar",
-        "form:sidebar_menuid": "1_0_0"
-    }
-    
-    # 4. Soumettre le formulaire de connexion
-    print("2. Soumission des identifiants de connexion...")
-    response_login = post_form(LOGIN_URL, login_data)
-    
-    # 5. Extraire le ViewState de la réponse après connexion
-    viewstate_main = extract_viewstate(response_login)
-    if not viewstate_main:
-        print("Erreur : ViewState non trouvé après la connexion principale.")
+    if not form_action:
+        print("Erreur : Action du formulaire de connexion introuvable.")
         exit(1)
-    
-    # 6. Accéder à la page principale
-    print("3. Accès à la page principale...")
-    main_page = get_page(BASE_URL + "/")
-    
-    # 7. Accéder à la page de menu principal (si nécessaire)
-    print("4. Accès au menu principal...")
-    response_menu = post_form(MAIN_MENU_URL, {
-        "form": "form",
-        "form:largeurDivCenter": "12",
-        "form:idInit": "webscolaapp.MainMenuPage_-2174809500206825303",
-        "form:sauvegarde": "",
-        "form:j_idt756_focus": "",
-        "form:j_idt756_input": "44323",
-        "javax.faces.ViewState": viewstate_main,
-        "form:sidebar": "form:sidebar",
-        "form:sidebar_menuid": "1_0_0"
+    login_url = BASE_URL + form_action
+
+    # 2. Préparer les données du formulaire de connexion
+    print("2. Préparation des données de connexion...")
+    login_form_data.update({
+        "username": USERNAME,
+        "password": PASSWORD,
     })
-    
-    # 8. Extraire le ViewState pour le téléchargement du CSV
-    viewstate_choix = extract_viewstate(response_menu)
-    if not viewstate_choix:
-        print("Erreur : ViewState non trouvé pour le téléchargement.")
+
+    # 3. Soumettre le formulaire de connexion
+    print("3. Soumission du formulaire de connexion...")
+    response = session.post(login_url, data=login_form_data, headers=headers, allow_redirects=False, verify=False)
+    if response.status_code != 302 or 'Location' not in response.headers:
+        print("Erreur : échec de la connexion.")
         exit(1)
-    
-    # 9. Accéder à la page de sélection des données
-    print("5. Accès à la page de sélection des données...")
-    choix_donnee_page = get_page(CHOIX_DONNEE_URL)
-    
-    # 10. Préparer les données pour le téléchargement du CSV
-    download_data = {
-        "form": "form",
-        "form:largeurDivCenter": "443",
-        "form:idInit": "webscolaapp.ChoixDonnee_-7644945337518171913",
-        "form:messagesRubriqueInaccessible": "",
-        "form:search-texte": "",
-        "form:search-texte-avancer": "",
-        "form:input-expression-exacte": "",
-        "form:input-un-des-mots": "",
-        "form:input-aucun-des-mots": "",
-        "form:input-nombre-debut": "",
-        "form:input-nombre-fin": "",
-        "form:calendarDebut_input": "",
-        "form:calendarFin_input": "",
-        "form:j_idt193_reflowDD": "0_0",
-        "form:j_idt193:j_idt272:filter": "",
-        "form:j_idt193:j_idt274:filter": "",
-        "form:j_idt193:j_idt276:filter": "",
-        "form:j_idt193:j_idt278:filter": "",
-        "form:j_idt193:j_idt280:filter": "",
-        "form:j_idt193:j_idt282:filter": "",
-        "form:j_idt193:j_idt284:filter": "",
-        "form:j_idt193:j_idt286:filter": "",
-        "form:j_idt193:j_idt288:filter": "",
-        "form:j_idt259_focus": "",
-        "form:j_idt259_input": "44323",
-        "javax.faces.ViewState": viewstate_choix,
-        "form:j_idt180": "form:j_idt180"
-    }
-    
-    # 11. Télécharger le CSV
-    print("6. Téléchargement du CSV des Notes...")
-    response_csv = session.post(CSV_DOWNLOAD_URL, data=download_data, headers=headers, stream=True)
-    
-    if response_csv.status_code == 200:
-        content_disposition = response_csv.headers.get("Content-Disposition", "")
+
+    # 4. Suivre la redirection après connexion
+    print("4. Redirection après connexion...")
+    redirect_url = response.headers['Location']
+    if not redirect_url.startswith("http"):
+        redirect_url = BASE_URL + redirect_url
+    response = session.get(redirect_url, headers=headers, verify=False)
+    response.raise_for_status()
+
+    # 5. Accéder au menu principal et extraire les champs du formulaire
+    print("5. Accès au menu principal...")
+    response = session.get(MAIN_MENU_URL, headers=headers, verify=False)
+    response.raise_for_status()
+    menu_form_data = extract_form_data(response.text)
+    if not menu_form_data:
+        print("Erreur : Formulaire du menu principal introuvable.")
+        exit(1)
+    menu_form_action = get_form_action(response.text)
+    if not menu_form_action:
+        print("Erreur : Action du formulaire du menu principal introuvable.")
+        exit(1)
+    menu_url = BASE_URL + menu_form_action
+
+    # 6. Préparer les données pour naviguer vers la page de téléchargement
+    print("6. Préparation des données pour accéder à la page de téléchargement...")
+    # Mettre à jour les champs nécessaires du formulaire
+    menu_form_data.update({
+        "javax.faces.ViewState": menu_form_data.get("javax.faces.ViewState", ""),
+        "form:sidebar": "form:sidebar",
+        "form:sidebar_menuid": "1_0_0",  # Ajustez cet ID en fonction de la structure du menu
+    })
+
+    # 7. Soumettre le formulaire du menu principal
+    print("7. Navigation vers la page de téléchargement...")
+    response = session.post(menu_url, data=menu_form_data, headers=headers, verify=False)
+    response.raise_for_status()
+
+    # 8. Accéder à la page de choix des données et extraire les champs
+    print("8. Accès à la page de téléchargement...")
+    response = session.get(CHOIX_DONNEE_URL, headers=headers, verify=False)
+    response.raise_for_status()
+    download_form_data = extract_form_data(response.text)
+    if not download_form_data:
+        print("Erreur : Formulaire de téléchargement introuvable.")
+        exit(1)
+    download_form_action = get_form_action(response.text)
+    if not download_form_action:
+        print("Erreur : Action du formulaire de téléchargement introuvable.")
+        exit(1)
+    download_url = BASE_URL + download_form_action
+
+    # 9. Préparer les données pour le téléchargement du CSV
+    print("9. Préparation des données pour le téléchargement du CSV...")
+    download_form_data.update({
+        "javax.faces.ViewState": download_form_data.get("javax.faces.ViewState", ""),
+        "form:j_idt180": "form:j_idt180",
+    })
+
+    # 10. Téléchargement du CSV
+    print("10. Téléchargement du CSV...")
+    response = session.post(download_url, data=download_form_data, headers=headers, stream=True, verify=False)
+    if response.status_code == 200 and 'Content-Disposition' in response.headers:
         filename = "Mes_Notes_aux_epreuves.csv"
-        if 'filename="' in content_disposition:
-            filename = content_disposition.split('filename=')[1].strip('"')
-        
+        content_disposition = response.headers.get('Content-Disposition')
+        if content_disposition:
+            fname = content_disposition.split('filename=')[1].strip('"')
+            if fname:
+                filename = fname
         file_path = os.path.join(DOWNLOAD_DIR, filename)
         with open(file_path, "wb") as f:
-            for chunk in response_csv.iter_content(chunk_size=1024):
+            for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
         print(f"Téléchargement réussi : {file_path}")
     else:
-        print(f"Erreur : Le téléchargement du CSV a échoué avec le statut {response_csv.status_code}.")
-    
+        print("Erreur : échec du téléchargement du CSV.")
+        exit(1)
+
 except requests.exceptions.RequestException as e:
     print(f"Erreur de requête HTTP : {e}")
 except Exception as ex:
-    print(f"Une erreur est survenue : {ex}")
+    print(f"Une erreur est survenue : {ex}", file=sys.stderr)

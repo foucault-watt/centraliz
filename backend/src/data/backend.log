@@ -193,3 +193,331 @@ CSV downloaded: Mes Notes aux épreuves.csv
 [ZimbraService] Nombre d'emails récupérés: 50
 2024-11-03T23:10:07.144Z - HTTP: ::1 - - [03/Nov/2024:23:10:07 +0000] "GET /api/zimbra/mails HTTP/1.1" 200 16441 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
 [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:28:24.640Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T09:28:54.322Z - LOG: undefined
+[90mundefined[39m
+2024-11-04T09:28:54.335Z - HTTP: ::1 - - [04/Nov/2024:09:28:54 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[90mundefined[39m
+2024-11-04T09:28:54.353Z - HTTP: ::1 - - [04/Nov/2024:09:28:54 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:55.071Z - HTTP: ::1 - - [04/Nov/2024:09:28:55 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:55.640Z - HTTP: ::1 - - [04/Nov/2024:09:28:55 +0000] "GET /api/auth/callback?ticket=ST-433648-n0UearSVsIosHzzPd1ev-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:56.690Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-433648-n0UearSVsIosHzzPd1ev-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-433648-n0UearSVsIosHzzPd1ev-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:28:56.705Z - HTTP: ::1 - - [04/Nov/2024:09:28:56 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-433648-n0UearSVsIosHzzPd1ev-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:28:56.715Z - HTTP: ::1 - - [04/Nov/2024:09:28:56 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:57.241Z - HTTP: ::1 - - [04/Nov/2024:09:28:57 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:57.545Z - HTTP: ::1 - - [04/Nov/2024:09:28:57 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:57.684Z - HTTP: ::1 - - [04/Nov/2024:09:28:57 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:58.145Z - HTTP: ::1 - - [04/Nov/2024:09:28:58 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:28:58.283Z - HTTP: ::1 - - [04/Nov/2024:09:28:58 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:33:02.663Z - HTTP: ::1 - - [04/Nov/2024:09:33:02 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:33:02.991Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:33:03.053Z - HTTP: ::1 - - [04/Nov/2024:09:33:03 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:33:03.303Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:33:03.352Z - LOG: [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:33:03.359Z - HTTP: ::1 - - [04/Nov/2024:09:33:03 +0000] "GET /api/zimbra/mails HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:34:47.300Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T09:34:49.949Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T09:35:23.488Z - LOG: undefined
+[90mundefined[39m
+2024-11-04T09:35:23.502Z - HTTP: ::1 - - [04/Nov/2024:09:35:23 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[90mundefined[39m
+2024-11-04T09:35:23.517Z - HTTP: ::1 - - [04/Nov/2024:09:35:23 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:24.532Z - HTTP: ::1 - - [04/Nov/2024:09:35:24 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:24.930Z - HTTP: ::1 - - [04/Nov/2024:09:35:24 +0000] "GET /api/auth/callback?ticket=ST-435624-SGbxAy30jlX0kzESvPmJ-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:25.395Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-435624-SGbxAy30jlX0kzESvPmJ-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435624-SGbxAy30jlX0kzESvPmJ-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:35:25.402Z - HTTP: ::1 - - [04/Nov/2024:09:35:25 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435624-SGbxAy30jlX0kzESvPmJ-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:35:25.411Z - HTTP: ::1 - - [04/Nov/2024:09:35:25 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:26.018Z - HTTP: ::1 - - [04/Nov/2024:09:35:26 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:26.263Z - HTTP: ::1 - - [04/Nov/2024:09:35:26 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:26.330Z - HTTP: ::1 - - [04/Nov/2024:09:35:26 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:26.536Z - HTTP: ::1 - - [04/Nov/2024:09:35:26 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:30.277Z - HTTP: ::1 - - [04/Nov/2024:09:35:30 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:35:30.502Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:35:30.506Z - ERROR: [ZimbraService] Erreur lors du parsing du RSS: Cannot read properties of undefined (reading '0')
+2024-11-04T09:35:30.545Z - ERROR: [Zimbra Route] Échec de l'authentification Zimbra pour fwattinn: Erreur lors du parsing du RSS
+2024-11-04T09:35:30.565Z - HTTP: ::1 - - [04/Nov/2024:09:35:30 +0000] "POST /api/zimbra HTTP/1.1" 401 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[31m[ZimbraService] Erreur lors du parsing du RSS: Cannot read properties of undefined (reading '0')[39m
+[31m[Zimbra Route] Échec de l'authentification Zimbra pour fwattinn: Erreur lors du parsing du RSS[39m
+2024-11-04T09:35:32.087Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:35:32.096Z - ERROR: [ZimbraService] Erreur lors du parsing du RSS: Cannot read properties of undefined (reading '0')
+2024-11-04T09:35:32.110Z - ERROR: [Zimbra Route] Échec de l'authentification Zimbra pour fwattinn: Erreur lors du parsing du RSS
+2024-11-04T09:35:32.194Z - HTTP: ::1 - - [04/Nov/2024:09:35:32 +0000] "POST /api/zimbra HTTP/1.1" 401 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[31m[ZimbraService] Erreur lors du parsing du RSS: Cannot read properties of undefined (reading '0')[39m
+[31m[Zimbra Route] Échec de l'authentification Zimbra pour fwattinn: Erreur lors du parsing du RSS[39m
+2024-11-04T09:35:55.870Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T09:36:05.770Z - HTTP: ::1 - - [04/Nov/2024:09:36:05 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:05.804Z - WARN: [Auth Middleware] Accès non autorisé depuis IP: ::1
+[33m[Auth Middleware] Accès non autorisé depuis IP: ::1[39m
+2024-11-04T09:36:05.812Z - HTTP: ::1 - - [04/Nov/2024:09:36:05 +0000] "POST /api/zimbra HTTP/1.1" 401 28 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:54.081Z - HTTP: ::1 - - [04/Nov/2024:09:36:54 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:54.094Z - WARN: [Auth Middleware] Accès non autorisé depuis IP: ::1
+[33m[Auth Middleware] Accès non autorisé depuis IP: ::1[39m
+2024-11-04T09:36:54.101Z - HTTP: ::1 - - [04/Nov/2024:09:36:54 +0000] "POST /api/zimbra HTTP/1.1" 401 28 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:56.378Z - LOG: undefined
+[90mundefined[39m
+2024-11-04T09:36:56.384Z - HTTP: ::1 - - [04/Nov/2024:09:36:56 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:56.391Z - HTTP: ::1 - - [04/Nov/2024:09:36:56 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[90mundefined[39m
+2024-11-04T09:36:56.761Z - HTTP: ::1 - - [04/Nov/2024:09:36:56 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:57.190Z - HTTP: ::1 - - [04/Nov/2024:09:36:57 +0000] "GET /api/auth/callback?ticket=ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:57.663Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:36:57.674Z - HTTP: ::1 - - [04/Nov/2024:09:36:57 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:36:57.682Z - HTTP: ::1 - - [04/Nov/2024:09:36:57 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:58.287Z - HTTP: ::1 - - [04/Nov/2024:09:36:58 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:58.485Z - HTTP: ::1 - - [04/Nov/2024:09:36:58 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:58.587Z - HTTP: ::1 - - [04/Nov/2024:09:36:58 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:36:58.688Z - HTTP: ::1 - - [04/Nov/2024:09:36:58 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:01.939Z - HTTP: ::1 - - [04/Nov/2024:09:37:01 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:02.183Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:37:02.233Z - HTTP: ::1 - - [04/Nov/2024:09:37:02 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:02.379Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:37:02.387Z - LOG: [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:37:02.397Z - HTTP: ::1 - - [04/Nov/2024:09:37:02 +0000] "GET /api/zimbra/mails HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:37:20.520Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:37:20.525Z - HTTP: ::1 - - [04/Nov/2024:09:37:20 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:37:20.903Z - HTTP: ::1 - - [04/Nov/2024:09:37:20 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:21.081Z - HTTP: ::1 - - [04/Nov/2024:09:37:21 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:21.196Z - HTTP: ::1 - - [04/Nov/2024:09:37:21 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:21.268Z - HTTP: ::1 - - [04/Nov/2024:09:37:21 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:21.385Z - HTTP: ::1 - - [04/Nov/2024:09:37:21 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:25.125Z - HTTP: ::1 - - [04/Nov/2024:09:37:25 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:25.262Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:37:25.297Z - HTTP: ::1 - - [04/Nov/2024:09:37:25 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T09:37:25.501Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:37:25.504Z - LOG: [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:37:25.508Z - HTTP: ::1 - - [04/Nov/2024:09:37:25 +0000] "GET /api/zimbra/mails HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:52:39.224Z - LOG: undefined
+[90mundefined[39m
+2024-11-04T09:52:39.397Z - HTTP: ::1 - - [04/Nov/2024:09:52:39 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+[90mundefined[39m
+2024-11-04T09:52:39.983Z - HTTP: ::1 - - [04/Nov/2024:09:52:39 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+2024-11-04T09:52:44.261Z - HTTP: ::1 - - [04/Nov/2024:09:52:44 +0000] "GET /api/auth/callback?ticket=ST-439715-e0D93CQhfBHEP4e7YnXW-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+2024-11-04T09:52:45.306Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-439715-e0D93CQhfBHEP4e7YnXW-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-439715-e0D93CQhfBHEP4e7YnXW-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:52:45.320Z - HTTP: ::1 - - [04/Nov/2024:09:52:45 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-439715-e0D93CQhfBHEP4e7YnXW-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:52:46.460Z - HTTP: ::1 - - [04/Nov/2024:09:52:46 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 200 15 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+2024-11-04T09:52:46.756Z - HTTP: ::1 - - [04/Nov/2024:09:52:46 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+2024-11-04T09:52:47.745Z - HTTP: ::1 - - [04/Nov/2024:09:52:47 +0000] "GET /api/cla-data HTTP/1.1" 200 3635 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+2024-11-04T09:53:04.594Z - HTTP: ::1 - - [04/Nov/2024:09:53:04 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+2024-11-04T09:53:04.826Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:53:04.850Z - HTTP: ::1 - - [04/Nov/2024:09:53:04 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+2024-11-04T09:53:05.158Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T09:53:05.162Z - LOG: [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:53:05.176Z - HTTP: ::1 - - [04/Nov/2024:09:53:05 +0000] "GET /api/zimbra/mails HTTP/1.1" 200 16441 "http://localhost:3000/" "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.109 Safari/537.36 CrKey/1.54.248666 Edg/131.0.0.0"
+[Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T09:55:28.964Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-439715-e0D93CQhfBHEP4e7YnXW-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-439715-e0D93CQhfBHEP4e7YnXW-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:55:29.008Z - HTTP: ::1 - - [04/Nov/2024:09:55:29 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-439715-e0D93CQhfBHEP4e7YnXW-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T09:55:29.125Z - HTTP: ::1 - - [04/Nov/2024:09:55:29 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/131.0.0.0"
+2024-11-04T09:55:31.669Z - HTTP: ::1 - - [04/Nov/2024:09:55:31 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 200 15 "http://localhost:3000/" "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/131.0.0.0"
+2024-11-04T09:55:32.089Z - HTTP: ::1 - - [04/Nov/2024:09:55:32 +0000] "GET /api/cla-data HTTP/1.1" 200 3635 "http://localhost:3000/" "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/131.0.0.0"
+2024-11-04T09:55:33.243Z - HTTP: ::1 - - [04/Nov/2024:09:55:33 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/131.0.0.0"
+2024-11-04T10:14:49.903Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T10:14:49.940Z - HTTP: ::1 - - [04/Nov/2024:10:14:49 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-435946-OAdCWGKl4tGRnkxaxQTl-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T10:14:51.406Z - HTTP: ::1 - - [04/Nov/2024:10:14:51 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 200 15 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:14:51.692Z - HTTP: ::1 - - [04/Nov/2024:10:14:51 +0000] "GET /api/cla-data HTTP/1.1" 200 3635 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:14:51.724Z - HTTP: ::1 - - [04/Nov/2024:10:14:51 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:14:56.030Z - HTTP: ::1 - - [04/Nov/2024:10:14:56 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:14:56.172Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T10:14:56.175Z - HTTP: ::1 - - [04/Nov/2024:10:14:56 +0000] "POST /api/zimbra HTTP/1.1" 200 16456 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:14:56.313Z - LOG: [ZimbraService] Nombre d'emails récupérés: 50
+[ZimbraService] Nombre d'emails récupérés: 50
+2024-11-04T10:14:56.319Z - LOG: [Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T10:14:56.324Z - HTTP: ::1 - - [04/Nov/2024:10:14:56 +0000] "GET /api/zimbra/mails HTTP/1.1" 200 16441 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[Zimbra Route] Mails récupérés pour fwattinn: 50 emails
+2024-11-04T10:15:57.131Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T10:16:07.179Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T10:17:40.682Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T10:18:27.051Z - HTTP: ::1 - - [04/Nov/2024:10:18:27 +0000] "GET /api/public-data/backend.log HTTP/1.1" 200 55221 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:18:29.001Z - HTTP: ::1 - - [04/Nov/2024:10:18:29 +0000] "GET /favicon.ico HTTP/1.1" 404 150 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:18:55.224Z - LOG: Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+Serveur backend lancé sur localhost:3001 - Merci Rézoléo !
+2024-11-04T10:18:58.637Z - HTTP: ::1 - - [04/Nov/2024:10:18:58 +0000] "GET /api/public-data/backend.log HTTP/1.1" 200 55871 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:18.577Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-04T10:19:18.848Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/faces/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-04T10:19:19.044Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-04T10:19:19.724Z - LOG: Page loaded
+Page loaded
+2024-11-04T10:19:20.602Z - LOG: Credentials entered
+Credentials entered
+2024-11-04T10:19:21.616Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-04T10:19:21.749Z - LOG: PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+PAGE LOG: Refused to apply style from 'https://webaurion.centralelille.fr/RES_NOT_FOUND' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.
+2024-11-04T10:19:21.872Z - LOG: PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+PAGE LOG: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+2024-11-04T10:19:22.525Z - HTTP: ::1 - - [04/Nov/2024:10:19:22 +0000] "GET /api/public-data/backend.log HTTP/1.1" 200 58687 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:22.615Z - LOG: Logged in successfully
+Logged in successfully
+2024-11-04T10:19:32.641Z - ERROR: Error during process: TimeoutError: Waiting for selector `#form\:sidebar` failed: Waiting failed: 10000ms exceeded
+    at new WaitTask (C:\Code\centraliz\backend\node_modules\puppeteer-core\lib\cjs\puppeteer\common\WaitTask.js:50:34)
+    at IsolatedWorld.waitForFunction (C:\Code\centraliz\backend\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Realm.js:25:26)
+    at CSSQueryHandler.waitFor (C:\Code\centraliz\backend\node_modules\puppeteer-core\lib\cjs\puppeteer\common\QueryHandler.js:173:95)
+    at async CdpFrame.waitForSelector (C:\Code\centraliz\backend\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Frame.js:525:21)
+    at async CdpPage.waitForSelector (C:\Code\centraliz\backend\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:1369:20)
+    at async exports.downloadCSV (C:\Code\centraliz\backend\src\utils\puppeteer.js:40:9)
+    at async exports.downloadCSV (C:\Code\centraliz\backend\src\services\csvService.js:9:25)
+Error during process: TimeoutError: Waiting for selector `#form\:sidebar` failed: Waiting failed: 10000ms exceeded
+    at new WaitTask [90m(C:\Code\centraliz\backend\[39mnode_modules\[4mpuppeteer-core[24m\lib\cjs\puppeteer\common\WaitTask.js:50:34[90m)[39m
+    at IsolatedWorld.waitForFunction [90m(C:\Code\centraliz\backend\[39mnode_modules\[4mpuppeteer-core[24m\lib\cjs\puppeteer\api\Realm.js:25:26[90m)[39m
+    at CSSQueryHandler.waitFor [90m(C:\Code\centraliz\backend\[39mnode_modules\[4mpuppeteer-core[24m\lib\cjs\puppeteer\common\QueryHandler.js:173:95[90m)[39m
+    at async CdpFrame.waitForSelector [90m(C:\Code\centraliz\backend\[39mnode_modules\[4mpuppeteer-core[24m\lib\cjs\puppeteer\api\Frame.js:525:21[90m)[39m
+    at async CdpPage.waitForSelector [90m(C:\Code\centraliz\backend\[39mnode_modules\[4mpuppeteer-core[24m\lib\cjs\puppeteer\api\Page.js:1369:20[90m)[39m
+    at async exports.downloadCSV [90m(C:\Code\centraliz\backend\[39msrc\utils\puppeteer.js:40:9[90m)[39m
+    at async exports.downloadCSV [90m(C:\Code\centraliz\backend\[39msrc\services\csvService.js:9:25[90m)[39m
+2024-11-04T10:19:33.374Z - HTTP: ::1 - - [04/Nov/2024:10:19:33 +0000] "POST /api/download-csv HTTP/1.1" 500 107 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:56.066Z - LOG: undefined
+[90mundefined[39m
+2024-11-04T10:19:56.069Z - HTTP: ::1 - - [04/Nov/2024:10:19:56 +0000] "GET /api/auth/status HTTP/1.1" 200 35 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[90mundefined[39m
+2024-11-04T10:19:56.076Z - HTTP: ::1 - - [04/Nov/2024:10:19:56 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:56.952Z - HTTP: ::1 - - [04/Nov/2024:10:19:56 +0000] "GET /api/auth/login HTTP/1.1" 302 125 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:57.370Z - HTTP: ::1 - - [04/Nov/2024:10:19:57 +0000] "GET /api/auth/callback?ticket=ST-445159-5FX5GqxqMwihWThkZebr-cas51-standalone-l1 HTTP/1.1" 302 50 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:57.827Z - LOG: {
+  userName: 'fwattinn',
+  casTicket: 'ST-445159-5FX5GqxqMwihWThkZebr-cas51-standalone-l1',
+  displayName: 'Foucault Wattinne'
+}
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-445159-5FX5GqxqMwihWThkZebr-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T10:19:57.833Z - HTTP: ::1 - - [04/Nov/2024:10:19:57 +0000] "GET /api/auth/status HTTP/1.1" 200 152 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+{
+  userName: [32m'fwattinn'[39m,
+  casTicket: [32m'ST-445159-5FX5GqxqMwihWThkZebr-cas51-standalone-l1'[39m,
+  displayName: [32m'Foucault Wattinne'[39m
+}
+2024-11-04T10:19:57.842Z - HTTP: ::1 - - [04/Nov/2024:10:19:57 +0000] "GET /api/auth/status HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:58.602Z - HTTP: ::1 - - [04/Nov/2024:10:19:58 +0000] "GET /api/check-user/fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:58.866Z - HTTP: ::1 - - [04/Nov/2024:10:19:58 +0000] "GET /api/cla-data HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:58.925Z - HTTP: ::1 - - [04/Nov/2024:10:19:58 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 200 206005 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:19:59.038Z - HTTP: ::1 - - [04/Nov/2024:10:19:59 +0000] "GET /api/hp-data?userId=fwattinn HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:20:01.789Z - HTTP: ::1 - - [04/Nov/2024:10:20:01 +0000] "OPTIONS /api/zimbra HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+2024-11-04T10:20:01.890Z - ERROR: [ZimbraService] Réponse d'erreur de Zimbra: Status 401 - Unauthorized
+[31m[ZimbraService] Réponse d'erreur de Zimbra: Status 401 - Unauthorized[39m
+2024-11-04T10:20:01.910Z - ERROR: [Zimbra Route] Échec de l'authentification Zimbra pour fwattinn: Request failed with status code 401
+2024-11-04T10:20:01.954Z - HTTP: ::1 - - [04/Nov/2024:10:20:01 +0000] "POST /api/zimbra HTTP/1.1" 401 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+[31m[Zimbra Route] Échec de l'authentification Zimbra pour fwattinn: Request failed with status code 401[39m
+2024-11-04T10:20:19.654Z - HTTP: ::1 - - [04/Nov/2024:10:20:19 +0000] "GET /api/public-data/backend.log HTTP/1.1" 200 65597 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"

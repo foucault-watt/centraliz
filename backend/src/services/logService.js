@@ -1,11 +1,11 @@
 // backend/src/services/logService.js
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
+const fs = require("fs");
+const path = require("path");
+const util = require("util");
 
 class LogService {
   constructor() {
-    this.filePath = path.join(__dirname, '../data/backend.log');
+    this.filePath = path.join(__dirname, "../data/backend.log");
     this.recentLogs = new Set();
     this.dedupeWindow = 100; // ms
     this.ensureFileExists();
@@ -17,7 +17,7 @@ class LogService {
       fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
     }
     if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, '', 'utf8');
+      fs.writeFileSync(this.filePath, "", "utf8");
     }
   }
 
@@ -34,9 +34,15 @@ class LogService {
 
   log(message) {
     if (this.isDuplicate(message)) return;
-    
+
     const timestamp = new Date().toISOString();
     const logEntry = `${timestamp} - ${message}\n`;
+    fs.appendFileSync(this.filePath, logEntry);
+  }
+
+  logError(message) {
+    const timestamp = new Date().toISOString();
+    const logEntry = `${timestamp} - ERROR: ${message}\n`;
     fs.appendFileSync(this.filePath, logEntry);
   }
 
@@ -44,7 +50,7 @@ class LogService {
     const originalConsole = {
       log: console.log,
       warn: console.warn,
-      error: console.error
+      error: console.error,
     };
 
     console.log = (...args) => {
@@ -66,23 +72,35 @@ class LogService {
     };
 
     // Capture stdout/stderr
-    const writeStream = fs.createWriteStream(this.filePath, { flags: 'a' });
+    const writeStream = fs.createWriteStream(this.filePath, { flags: "a" });
     process.stdout.write = process.stdout.write.bind(process.stdout);
     process.stderr.write = process.stderr.write.bind(process.stderr);
 
     const oldStdoutWrite = process.stdout.write;
     const oldStderrWrite = process.stderr.write;
 
-    process.stdout.write = function(chunk, encoding, callback) {
+    process.stdout.write = function (chunk, encoding, callback) {
       writeStream.write(chunk);
       return oldStdoutWrite.apply(process.stdout, arguments);
     };
 
-    process.stderr.write = function(chunk, encoding, callback) {
+    process.stderr.write = function (chunk, encoding, callback) {
       writeStream.write(chunk);
       return oldStderrWrite.apply(process.stderr, arguments);
     };
   }
 }
 
-module.exports = new LogService();
+// Instancier le service de log
+const logService = new LogService();
+
+// Ajouter les handlers pour les erreurs non gérées
+process.on('uncaughtException', (err) => {
+  logService.logError(`Uncaught Exception: ${err.stack}`);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logService.logError(`Unhandled Rejection at: ${promise} reason: ${reason}`);
+});
+
+module.exports = logService;

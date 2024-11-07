@@ -47,6 +47,7 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
   return (
     <div className="zimbra-auth-container">
       <h2>Accès à vos mails</h2>
+      <span className="wendling">Merci à Maxime Wendling</span>
       <form onSubmit={handleSubmit}>
           <input
             type="password"

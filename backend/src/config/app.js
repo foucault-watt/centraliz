@@ -65,7 +65,7 @@ app.use("/api", feedbackRoutes);
 app.use("/api", publicRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
-app.use("/api/crashh", async (req, res) => {
+app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
   res.send("CRASH");
   process.exit(1);
 });

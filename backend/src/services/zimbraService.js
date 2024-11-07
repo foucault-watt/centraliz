@@ -11,7 +11,9 @@ class ZimbraService {
    * @returns {Promise<string>} - Contenu XML RSS des mails.
    */
   static async authenticate(username, password) {
-    const authString = Buffer.from(`${username}:${password}`).toString("base64");
+    const authString = Buffer.from(`${username}:${password}`).toString(
+      "base64"
+    );
     const url = "https://mail.centralelille.fr/home/~/inbox.rss?auth=ba";
 
     try {
@@ -30,16 +32,26 @@ class ZimbraService {
       if (response.status === 200) {
         return response.data; // Retourne le contenu RSS
       } else {
-        console.error(`[ZimbraService] Échec de l'accès aux mails pour ${username}: Status ${response.status}`);
+        console.error(
+          `[ZimbraService] Échec de l'accès aux mails pour ${username}: Status ${response.status}`
+        );
         throw new Error("Échec de l'accès aux mails");
       }
     } catch (error) {
       if (error.response) {
-        console.error(`[ZimbraService] Réponse d'erreur de Zimbra: Status ${error.response.status} - ${error.response.statusText}`);
+        console.error(
+          `[ZimbraService] Réponse d'erreur de Zimbra: Status ${error.response.status} - ${error.response.statusText}`
+        );
       } else if (error.request) {
-        console.error(`[ZimbraService] Aucun réponse reçue de Zimbra pour ${username}:`, error.message);
+        console.error(
+          `[ZimbraService] Aucun réponse reçue de Zimbra pour ${username}:`,
+          error.message
+        );
       } else {
-        console.error(`[ZimbraService] Erreur lors de la configuration de la requête Zimbra pour ${username}:`, error.message);
+        console.error(
+          `[ZimbraService] Erreur lors de la configuration de la requête Zimbra pour ${username}:`,
+          error.message
+        );
       }
       throw error;
     }
@@ -51,7 +63,6 @@ class ZimbraService {
    * @returns {Promise<Array>} - Liste des mails.
    */
   static async parseRSS(xmlData) {
-
     try {
       const parser = new xml2js.Parser();
       const result = await parser.parseStringPromise(xmlData);
@@ -66,7 +77,10 @@ class ZimbraService {
         pubDate: item.pubDate[0],
       }));
     } catch (error) {
-      console.error("[ZimbraService] Erreur lors du parsing du RSS:", error.message);
+      console.error(
+        "[ZimbraService] Erreur lors du parsing du RSS:",
+        error.message
+      );
       throw new Error("Erreur lors du parsing du RSS");
     }
   }
@@ -79,7 +93,6 @@ class ZimbraService {
   static async getMailsFromToken(zimbraToken) {
     const decoded = Buffer.from(zimbraToken, "base64").toString("ascii");
     const [username, password] = decoded.split(":");
-
 
     const xmlData = await this.authenticate(username, password);
     const mails = await this.parseRSS(xmlData);

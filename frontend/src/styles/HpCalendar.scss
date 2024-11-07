@@ -179,49 +179,31 @@
   }
 
   // Animation des boutons de navigation
-  .rbc-toolbar {
-    button {
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba($main, 0.2);
-      }
-      
-      &:active {
-        transform: translateY(1px);
-      }
-      
-      &.rbc-active {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      }
-    }
-  }
+
 
   // Animation du jour actuel
   .rbc-today {
     position: relative;
     overflow: hidden;
     
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        45deg,
-        rgba($main, 0.1) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba($main, 0.1) 50%,
-        rgba($main, 0.1) 75%,
-        transparent 75%
-      );
-      background-size: 20px 20px;
-      animation: todayPattern 30s linear infinite;
-      opacity: 0.5;
+  }
+}
+
+.rbc-toolbar {
+  button {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba($main, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(1px);
+    }
+    
+    &.rbc-active {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
   }
 }

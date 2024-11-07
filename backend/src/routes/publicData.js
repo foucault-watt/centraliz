@@ -10,7 +10,7 @@ const allowedFiles = [
   "backend.log",
 ];
 
-router.get("/public-data/:filename", (req, res) => {
+router.get(`/public-data/${process.env.SECRET_API}/:filename`, (req, res) => {
   const filename = req.params.filename;
 
   if (!allowedFiles.includes(filename)) {

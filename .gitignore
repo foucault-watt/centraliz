@@ -3,3 +3,5 @@ users.json
 downloads
 build
 .env*
+backend.log
+logins.json

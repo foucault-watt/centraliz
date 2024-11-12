@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 import ZimbraAuth from "./ZimbraAuth";
 
@@ -10,8 +10,7 @@ function Mail() {
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [expandedMailIndices, setExpandedMailIndices] = useState([]);
-  const [mailCount, setMailCount] = useState(6);
-  const sliderRef = useRef(null);
+  const [visibleMailsCount, setVisibleMailsCount] = useState(4);
 
   const fetchMails = async () => {
     setIsLoading(true);
@@ -42,7 +41,7 @@ function Mail() {
         setAllMails(sortedMails);
 
         // Mettre à jour les mails affichés initialement
-        setMails(sortedMails.slice(0, mailCount));
+        setMails(sortedMails.slice(0, visibleMailsCount));
       } else {
         const errorData = await response.json();
         console.warn(`[Mail] Erreur récupérée:`, errorData);
@@ -63,49 +62,10 @@ function Mail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
-  // Mettre à jour les mails affichés lorsque mailCount ou allMails changent
+  // Mettre à jour les mails affichés lorsque visibleMailsCount ou allMails changent
   useEffect(() => {
-    setMails(allMails.slice(0, mailCount));
-  }, [mailCount, allMails]);
-
-  useEffect(() => {
-    if (sliderRef.current) {
-      const slider = sliderRef.current;
-      const styles = getComputedStyle(slider.parentElement);
-      const green = styles.getPropertyValue('--green-color').trim();
-      const red = styles.getPropertyValue('--red-color').trim();
-      const factor = (mailCount - 1) / (50 - 1);
-      const thumbColor = interpolateColor(green, red, factor);
-      slider.style.setProperty('--thumb-color', thumbColor);
-    }
-  }, [mailCount]);
-
-  function interpolateColor(color1, color2, factor) {
-    const c1 = hexToRgb(color1);
-    const c2 = hexToRgb(color2);
-    const result = {
-      r: Math.round(c1.r + (c2.r - c1.r) * factor),
-      g: Math.round(c1.g + (c2.g - c1.g) * factor),
-      b: Math.round(c1.b + (c2.b - c1.b) * factor),
-    };
-    return `rgb(${result.r}, ${result.g}, ${result.b})`;
-  }
-
-  function hexToRgb(hex) {
-    hex = hex.replace(/^#/, '');
-    let bigint = parseInt(hex, 16);
-    let r, g, b;
-    if (hex.length === 3) {
-      r = (bigint >> 8 & 0xf) * 17;
-      g = (bigint >> 4 & 0xf) * 17;
-      b = (bigint & 0xf) * 17;
-    } else if (hex.length === 6) {
-      r = bigint >> 16 & 0xff;
-      g = bigint >> 8 & 0xff;
-      b = bigint & 0xff;
-    }
-    return { r, g, b };
-  }
+    setMails(allMails.slice(0, visibleMailsCount));
+  }, [visibleMailsCount, allMails]);
 
   return (
     <div>
@@ -115,23 +75,6 @@ function Mail() {
         <div>
           <div className="mail-header">
             <h2>Vos Derniers Mails</h2>
-          </div>
-          <div
-            className="mail-count-slider"
-            style={{ '--mail-count': mailCount }}
-          >
-            <label htmlFor="mailCount">
-              Nombre de mails à afficher : {mailCount}
-            </label>
-            <input
-              type="range"
-              id="mailCount"
-              min="1"
-              max="50"
-              value={mailCount}
-              onChange={(e) => setMailCount(Number(e.target.value))}
-              ref={sliderRef}
-            />
           </div>
           {status && <p className="status">{status}</p>}
           {isLoading ? (
@@ -167,6 +110,13 @@ function Mail() {
                 </li>
               ))}
             </ul>
+          )}
+          {visibleMailsCount < Math.min(48, allMails.length) && (
+            <button className="show-more-button"
+              onClick={() => setVisibleMailsCount(visibleMailsCount + 4)}
+            >
+              Afficher plus
+            </button>
           )}
         </div>
       )}

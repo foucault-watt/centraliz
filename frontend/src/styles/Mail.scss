@@ -170,57 +170,25 @@
 
 $mail-count-max: 50;
 
-.mail-count-slider {
-  margin: 20px 0;
-  text-align: center;
-
-  // Définir les variables CSS pour $green et $red
-  --green-color: #{$green};
-  --red-color: #{$red};
-
-  label {
-    display: block;
-    margin-bottom: 10px;
-    color: $second;
-    font-size: 1em;
-  }
-
-  input[type="range"] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 6px;
-    background: lighten($day, 10%);
-    border-radius: 5px;
-    outline: none;
-    cursor: pointer;
-    @include transition(background);
-
-    &::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      background: $main;
-      border-radius: 50%;
-      @include box-shadow(0, 2px, 5px, rgba(0, 0, 0, 0.2));
-      @include transition(background-color);
-      background-color: var(--thumb-color, $green);
-    }
-
-    &::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      background: $main;
-      border-radius: 50%;
-      border: none;
-      @include box-shadow(0, 2px, 5px, rgba(0, 0, 0, 0.2));
-      @include transition(background-color);
-      background-color: var(--thumb-color, $green);
-    }
-
-  }
-}
 
 .wendling {
   font-size: 1px;
   color:white;
+}
+
+.show-more-button {
+  margin: 20px auto;
+  display: block;
+  padding: 10px 20px;
+  background-color: $main;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  @include transition(background-color);
+
+  &:hover {
+    background-color: darken($main, 10%);
+  }
 }

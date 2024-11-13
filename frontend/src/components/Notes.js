@@ -173,7 +173,7 @@ const Notes = () => {
             
           </div>
           <span className="upload-message">WebAurion : Exporter vos notes CSV en UTF-8</span>
-
+          <img src={process.env.PUBLIC_URL + "/export-csv.png"} alt="tuto-export" className="tuto-export" />
           <form className="login-form" onSubmit={handleLogin} style={{ display: "none" }}>
             <input
               type="text"

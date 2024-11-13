@@ -150,11 +150,11 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     backface-visibility: hidden;
     transform-style: preserve-3d;
-    
+
     &:hover {
       transform: translateY(-2px) scale(1.02) rotateX(2deg);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 100;
+      z-index: 900; // Doit être inférieur au z-index du popup
     }
 
     // Animation d'apparition des événements
@@ -180,28 +180,26 @@
 
   // Animation des boutons de navigation
 
-
   // Animation du jour actuel
   .rbc-today {
     position: relative;
     overflow: hidden;
-    
   }
 }
 
 .rbc-toolbar {
   button {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     &:hover {
       transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba($main, 0.2);
     }
-    
+
     &:active {
       transform: translateY(1px);
     }
-    
+
     &.rbc-active {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
@@ -235,7 +233,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba($main, 0.4);
   }
   50% {
@@ -254,7 +253,8 @@
 
 // Animation pour le changement de vue
 .rbc-calendar {
-  .rbc-time-view, .rbc-month-view {
+  .rbc-time-view,
+  .rbc-month-view {
     animation: fadeScale 0.3s ease-out;
   }
 }
@@ -274,7 +274,7 @@
 .rbc-events-container {
   .rbc-event {
     transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     &:not(:hover) {
       .rbc-event-content {
         transition: color 0.3s ease;
@@ -287,9 +287,9 @@
 .rbc-calendar {
   &.loading {
     position: relative;
-    
+
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: 0;
@@ -299,9 +299,9 @@
       z-index: 1000;
       animation: fadeIn 0.3s ease-out;
     }
-    
+
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       top: 50%;
       left: 50%;
@@ -321,4 +321,66 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Styles pour le popup personnalisé */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease-out;
+  z-index: 1000; // Assure que le popup est au-dessus des autres éléments
+  border-radius: 22px;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  position: relative;
+  max-width: 500px;
+  width: 80%;
+  animation: slideDown 0.3s ease-out;
+
+  h2 {
+    margin-top: 0;
+    color: $second;
+  }
+
+  p {
+    color: $second;
+    white-space: pre-wrap;
+  }
+
+  button {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: $main;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: darken($main, 10%);
+    }
+  }
+}
+
+/* Animations pour le popup */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); }
+  to { transform: translateY(0); }
 }

@@ -2,7 +2,7 @@ import ICAL from "ical.js";
 import { ArrowLeft, ArrowRight, Undo2 } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { UserContext } from "../App";
@@ -48,46 +48,10 @@ const HpCalendar = () => {
   const [linkError, setLinkError] = useState("");
   const [currentDate, setCurrentDate] = useState(getInitialDate());
   const { userName } = useContext(UserContext);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
-  useEffect(() => {
-    if (userName) {
-      checkExistingCalendar();
-    }
-  }, [userName]);
-
-  useEffect(() => {
-    if (icalData) {
-      try {
-        const parsedEvents = parseICal(icalData);
-        setEvents(parsedEvents);
-      } catch (error) {
-        console.error("Erreur lors du parsing des données iCal:", error);
-        setEvents([]);
-      }
-    }
-  }, [icalData]);
-
-  const checkExistingCalendar = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/check-user/${userName}`
-      );
-      const data = await response.json();
-
-      if (data.exists) {
-        // User has already registered their calendar, fetch iCal data
-        setIsAuthenticated(true);
-        fetchCalendarData(userName);
-      } else {
-        // First-time user, show the input form for iCal link
-        setShowLinkInput(true);
-      }
-    } catch (error) {
-      console.error("Erreur lors de la vérification de l'utilisateur:", error);
-    }
-  };
-
-  const fetchCalendarData = async () => {
+  const fetchCalendarData = useCallback(async () => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_URL_BACK}/api/hp-data?userId=${userName}`
@@ -102,7 +66,45 @@ const HpCalendar = () => {
       setIsAuthenticated(false);
       setShowLinkInput(true);
     }
-  };
+  }, [userName]);
+
+  useEffect(() => {
+    const checkExistingCalendar = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_URL_BACK}/api/check-user/${userName}`
+        );
+        const data = await response.json();
+
+        if (data.exists) {
+          // User has already registered their calendar, fetch iCal data
+          setIsAuthenticated(true);
+          fetchCalendarData();
+        } else {
+          // First-time user, show the input form for iCal link
+          setShowLinkInput(true);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification de l'utilisateur:", error);
+      }
+    };
+
+    if (userName) {
+      checkExistingCalendar();
+    }
+  }, [userName, fetchCalendarData]);
+
+  useEffect(() => {
+    if (icalData) {
+      try {
+        const parsedEvents = parseICal(icalData);
+        setEvents(parsedEvents);
+      } catch (error) {
+        console.error("Erreur lors du parsing des données iCal:", error);
+        setEvents([]);
+      }
+    }
+  }, [icalData]);
 
   const handleSubmitLink = async (e) => {
     e.preventDefault();
@@ -245,6 +247,16 @@ const HpCalendar = () => {
     }
   };
 
+  const handleSelectEvent = (event) => {
+    setSelectedEvent(event);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedEvent(null);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="auth-container">
@@ -311,13 +323,22 @@ const HpCalendar = () => {
         max={new Date(1970, 1, 1, 17, 45)}
         defaultView={window.innerWidth < 768 ? "day" : "work_week"}
         views={[window.innerWidth < 768 ? "day" : "work_week"]}
-        onSelectEvent={(event) => window.alert(event.title.props.children)}
+        onSelectEvent={handleSelectEvent}
         eventPropGetter={(event) => ({
           className: event.className,
         })}
         date={currentDate}
         onNavigate={handleNavigate}
       />
+      {showModal && selectedEvent && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Détails de l'événement</h2>
+            <p>{selectedEvent.title.props.children}</p>
+            <button onClick={closeModal}>Fermer</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

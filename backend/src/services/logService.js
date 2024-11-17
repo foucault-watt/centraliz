@@ -1,7 +1,6 @@
 // backend/src/services/logService.js
 const fs = require("fs");
 const path = require("path");
-const util = require("util");
 
 class LogService {
   constructor() {
@@ -47,6 +46,15 @@ class LogService {
   }
 
   setupConsoleOverride() {
+    // Fonction de formatage alternative
+    const formatMessage = (...args) => args.map(arg => {
+      if (typeof arg === 'object') {
+        return JSON.stringify(arg);
+      } else {
+        return String(arg);
+      }
+    }).join(' ');
+
     const originalConsole = {
       log: console.log,
       warn: console.warn,
@@ -54,19 +62,19 @@ class LogService {
     };
 
     console.log = (...args) => {
-      const message = util.format(...args);
+      const message = formatMessage(...args);
       this.log(`LOG: ${message}`);
       originalConsole.log(...args);
     };
 
     console.warn = (...args) => {
-      const message = util.format(...args);
+      const message = formatMessage(...args);
       this.log(`WARN: ${message}`);
       originalConsole.warn(...args);
     };
 
     console.error = (...args) => {
-      const message = util.format(...args);
+      const message = formatMessage(...args);
       this.log(`ERROR: ${message}`);
       originalConsole.error(...args);
     };

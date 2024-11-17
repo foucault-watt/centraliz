@@ -84,7 +84,7 @@
 
   .mail-item {
     margin-bottom: 15px;
-    padding: 20px;
+    padding: 20px 20px 20px 20px;
     background-color: lighten($day, 8%);
     border-radius: 10px;
     border: 1px solid $day-border;
@@ -94,6 +94,27 @@
 
     .mail-item :last-child {
       margin-bottom: 0;
+    }
+
+    .mail-content {
+      padding-bottom: 0 !important;
+    }
+
+    .view-on-zimbra {
+      text-decoration: none !important;
+      margin-top: 8px;
+      padding: 8px 15px;
+      background-color: $main;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      @include transition(background-color);
+    
+      &:hover {
+        background-color: darken($main, 10%);
+      }
     }
 
     &:hover {
@@ -109,8 +130,8 @@
 
     p {
       color: $second;
-      margin: 0 0 15px 0;
-      line-height: 1.5;
+       line-height: 1.5;
+       margin-bottom: 10px;
     }
 
     .mail-meta {

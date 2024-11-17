@@ -11,6 +11,7 @@ const hpRoutes = require("../routes/hp");
 const feedbackRoutes = require("../routes/feedback");
 const zimbraRoutes = require("../routes/zimbra");
 const publicRoutes = require("../routes/publicData");
+const evaRoutes = require("../routes/eva");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -63,6 +64,7 @@ app.use("/api", claRoutes);
 app.use("/api", hpRoutes);
 app.use("/api", feedbackRoutes);
 app.use("/api", publicRoutes);
+app.use("/api/eva", evaRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {

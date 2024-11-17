@@ -105,6 +105,9 @@ function Mail() {
                   {expandedMailIndices.includes(index) && (
                     <div className="mail-content">
                       <p>{mail.description}</p>
+                      <a href="https://mail.centralelille.fr" target="_blank" rel="noreferrer">
+                        <span className="view-on-zimbra">Voir sur Zimbra</span>
+                      </a>
                     </div>
                   )}
                 </li>

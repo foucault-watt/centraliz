@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "axios": "^1.7.7",
+    "client": "file:",
     "ical.js": "^2.1.0",
     "lucide-react": "^0.453.0",
     "moment": "^2.30.1",

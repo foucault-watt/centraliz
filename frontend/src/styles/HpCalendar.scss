@@ -2,6 +2,7 @@
   white-space: pre-wrap;
   word-break: break-word;
   font-size: smaller;
+  margin: auto;
 }
 
 .rbc-event-label {
@@ -11,24 +12,43 @@
 .rbc-event {
   background-color: $main !important;
   text-align: center;
-}
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px !important;
+  padding: 6px !important;
+  border: none !important;
 
-.rbc-event-content {
-  margin: auto;
+  &:hover {
+    transform: translateY(-3px) scale(1.03) rotateX(2deg);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    z-index: 900;
+  }
+
+  &.tne-event {
+    background-color: $green !important;
+    border-color: #399252 !important;
+    background: linear-gradient(135deg, $green, darken($green, 10%)) !important;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba($green, 0.3);
+    }
+  }
+
+  &.cb-event {
+    background-color: $red !important;
+    border-color: #913838 !important;
+    background: linear-gradient(135deg, $red, darken($red, 10%)) !important;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba($red, 0.3);
+    }
+  }
 }
 
 .rbc-allday-cell {
   display: none;
-}
-
-.rbc-event.tne-event {
-  background-color: $green !important;
-  border-color: #399252 !important;
-}
-
-.rbc-event.cb-event {
-  background-color: $red !important;
-  border-color: #913838 !important;
 }
 
 .hp-calendar .rbc-toolbar {
@@ -58,6 +78,17 @@
 
 .rbc-today {
   background-color: #f8e5e8 !important;
+  background: linear-gradient(45deg, 
+    rgba($main, 0.05) 25%, 
+    rgba($main, 0.08) 25%, 
+    rgba($main, 0.08) 50%, 
+    rgba($main, 0.05) 50%, 
+    rgba($main, 0.05) 75%, 
+    rgba($main, 0.08) 75%, 
+    rgba($main, 0.08)
+  ) !important;
+  background-size: 20px 20px !important;
+  animation: todayPattern 30s linear infinite !important;
 }
 
 // Nouveaux styles pour l'authentification
@@ -82,6 +113,9 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1),
+              0 5px 15px rgba(0, 0, 0, 0.05);
 
   .ical-destock {
     max-width: 100%;
@@ -109,10 +143,15 @@
       border-radius: 4px;
       font-size: 1rem;
       color: $second;
+      backdrop-filter: blur(4px);
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.3s ease;
 
       &:focus {
         outline: none;
         border-color: $main;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($main, 0.1);
       }
     }
   }
@@ -194,10 +233,17 @@
 .rbc-toolbar {
   button {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    border: 2px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover {
       transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba($main, 0.2);
+      background-color: rgba($main, 0.1);
+      border-color: $main;
     }
 
     &:active {
@@ -206,6 +252,9 @@
 
     &.rbc-active {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      background-color: $main;
+      color: white;
+      box-shadow: 0 4px 12px rgba($main, 0.2);
     }
   }
 }
@@ -261,6 +310,24 @@
   .rbc-month-view {
     animation: fadeScale 0.3s ease-out;
   }
+  .rbc-time-view {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+.rbc-time-header {
+  background-color: rgba($main, 0.03);
+}
+
+.rbc-header {
+  padding: 10px !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
 }
 
 @keyframes fadeScale {
@@ -353,6 +420,11 @@
   width: 90%;
   animation: slideDown 0.3s ease-out;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15),
+              0 5px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
 
   h2 {
     margin-top: 0;
@@ -399,14 +471,19 @@
     margin-top: 1.5rem;
     padding: 0.75rem 1.5rem;
     background-color: $main;
-    color: white;
+    color: white !important;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
+    background: linear-gradient(135deg, $main, darken($main, 15%));
+    font-weight: 500;
+    letter-spacing: 0.5px;
 
     &:hover {
       background-color: darken($main, 10%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba($main, 0.3);
     }
 
     &:disabled {
@@ -525,6 +602,7 @@
     height: 32px;
     margin: 0 5px;
     transition: fill 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 
     &:hover {
       fill: #FFD700;
@@ -548,6 +626,7 @@
 
     &.active {
       animation: starPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.4));
     }
   }
 }

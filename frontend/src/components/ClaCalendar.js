@@ -22,7 +22,7 @@ const messages = {
   date: "Date",
   time: "Heure",
   event: "Événement",
-  noEventsInRange: "Aucun événement dans cette plage biloute - Merci Jean Sion",
+  noEventsInRange: "Aucun événement biloute",
   showMore: (total) => `+ ${total} plus`,
 };
 

@@ -273,19 +273,18 @@ const HpCalendar = () => {
 
   const handleSelectEvent = async (event) => {
     setSelectedEvent(event);
-    if (event.className.includes("cb-event")) {
-      try {
-        const cleanTitle = event.title.split('\n')[0];  // Prendre uniquement la première partie
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/eva/check?userName=${displayName}&eventTitle=${encodeURIComponent(
-            cleanTitle
-          )}`
-        );
-        const data = await response.json();
-        setHasEvaluated(data.hasEvaluated);
-      } catch (error) {
-        console.error("Erreur lors de la vérification:", error);
-      }
+    // Supprimer la condition pour tous les événements
+    try {
+      const cleanTitle = event.title.split('\n')[0];  // Prendre uniquement la première partie
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/eva/check?userName=${displayName}&eventTitle=${encodeURIComponent(
+          cleanTitle
+        )}`
+      );
+      const data = await response.json();
+      setHasEvaluated(data.hasEvaluated);
+    } catch (error) {
+      console.error("Erreur lors de la vérification:", error);
     }
     setShowModal(true);
   };
@@ -380,7 +379,7 @@ const HpCalendar = () => {
               >
                 ici
               </a>{" "}
-              pour accéder à votre planning, puis copiez le lien ical.
+              pour accéder à votre planning, puis copiez collez le lien ical
             </h3>
             <div className="ical-container">
               <img
@@ -405,7 +404,7 @@ const HpCalendar = () => {
                 type="text"
                 value={icalLink}
                 onChange={(e) => setIcalLink(e.target.value)}
-                placeholder="Entrez le lien de votre calendrier"
+                placeholder="Collez le lien iCal ici"
                 required
               />
               {linkError && <div className="error-message">{linkError}</div>}
@@ -455,11 +454,9 @@ const HpCalendar = () => {
             {hasEvaluated && (
               <div>Vous avez déjà évalué cet enseignement.</div>
             )}
-            {selectedEvent.className.includes("cb-event") && (
-              <button onClick={handleEvaluate}>
-                {hasEvaluated ? "Modifier votre évaluation" : "Évaluer"}
-              </button>
-            )}
+            <button onClick={handleEvaluate}>
+              {hasEvaluated ? "Modifier votre évaluation" : "Évaluer"}
+            </button>
             <button onClick={closeModal}>Fermer</button>
           </div>
         </div>

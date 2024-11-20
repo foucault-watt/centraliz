@@ -5,3 +5,4 @@ build
 .env*
 backend.log
 logins.json
+evaluations.json

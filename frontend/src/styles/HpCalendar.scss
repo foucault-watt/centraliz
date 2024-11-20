@@ -468,7 +468,8 @@
   }
 
   button {
-    margin-top: 1.5rem;
+    margin-top: 0.65rem;
+    margin-right: 1rem;
     padding: 0.75rem 1.5rem;
     background-color: $main;
     color: white !important;
@@ -681,4 +682,9 @@ textarea {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+.rbc-time-content {
+  overflow: visible;
+  height: auto;
 }

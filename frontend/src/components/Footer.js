@@ -34,13 +34,14 @@ const Footer = () => {
       if (response.ok) {
         setSubmitStatus("Merci pour votre feedback!");
         setFeedback("");
-        setTimeout(() => setSubmitStatus(""), 3000);
       } else {
         setSubmitStatus("Une erreur est survenue");
       }
     } catch (error) {
       console.error("Erreur:", error);
       setSubmitStatus("Une erreur est survenue");
+    } finally {
+      setTimeout(() => setSubmitStatus(""), 3000);
     }
   };
 

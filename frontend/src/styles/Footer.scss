@@ -17,16 +17,17 @@
   
       @media (max-width: 968px) {
         grid-template-columns: 1fr 1fr;
-        
-        .footer__section:last-child {
-          grid-column: span 2;
-        }
       }
   
       @media (max-width: 576px) {
         grid-template-columns: 1fr;
+      }
   
-        .footer__section:last-child {
+      .footer__section:last-child {
+        @media (max-width: 968px) {
+          grid-column: span 2;
+        }
+        @media (max-width: 576px) {
           grid-column: span 1;
         }
       }

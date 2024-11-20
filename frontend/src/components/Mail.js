@@ -5,7 +5,6 @@ import ZimbraAuth from "./ZimbraAuth";
 function Mail() {
   const { userName } = useContext(UserContext);
   const [allMails, setAllMails] = useState([]);
-  const [mails, setMails] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,9 +38,6 @@ function Mail() {
 
         // Stocker tous les mails reçus
         setAllMails(sortedMails);
-
-        // Mettre à jour les mails affichés initialement
-        setMails(sortedMails.slice(0, visibleMailsCount));
       } else {
         const errorData = await response.json();
         console.warn(`[Mail] Erreur récupérée:`, errorData);
@@ -62,11 +58,6 @@ function Mail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
-  // Mettre à jour les mails affichés lorsque visibleMailsCount ou allMails changent
-  useEffect(() => {
-    setMails(allMails.slice(0, visibleMailsCount));
-  }, [visibleMailsCount, allMails]);
-
   return (
     <div>
       {!isAuthenticated ? (
@@ -81,7 +72,7 @@ function Mail() {
             <p className="loading">Chargement des mails...</p>
           ) : (
             <ul className="mail-list">
-              {mails.map((mail, index) => (
+              {allMails.slice(0, visibleMailsCount).map((mail, index) => (
                 <li
                   key={index}
                   className={`mail-item ${

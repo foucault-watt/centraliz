@@ -103,7 +103,7 @@ const HpCalendar = () => {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkError, setLinkError] = useState("");
   const [currentDate, setCurrentDate] = useState(getInitialDate());
-  const { userName } = useContext(UserContext);
+  const { userName, displayName } = useContext(UserContext);
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
@@ -277,7 +277,7 @@ const HpCalendar = () => {
       try {
         const cleanTitle = event.title.split('\n')[0];  // Prendre uniquement la première partie
         const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/eva/check?userName=${userName}&eventTitle=${encodeURIComponent(
+          `${process.env.REACT_APP_URL_BACK}/api/eva/check?userName=${displayName}&eventTitle=${encodeURIComponent(
             cleanTitle
           )}`
         );
@@ -300,7 +300,7 @@ const HpCalendar = () => {
       try {
         const cleanTitle = selectedEvent.title.split('\n')[0];
         const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/eva/get?userName=${userName}&eventTitle=${encodeURIComponent(
+          `${process.env.REACT_APP_URL_BACK}/api/eva/get?userName=${displayName}&eventTitle=${encodeURIComponent(
             cleanTitle
           )}`
         );
@@ -333,7 +333,7 @@ const HpCalendar = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userName,
+          userName: displayName,
           eventTitle: cleanTitle,
           rating,
           comment,

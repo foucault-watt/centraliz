@@ -65,15 +65,19 @@ const services = [
   },
 ];
 
+const ServiceItem = ({ service }) => (
+  <li>
+    <a href={service.link} target="_blank" rel="noreferrer">
+      <img src={service.image} alt={`Icône ${service.name}`} />
+    </a>
+  </li>
+);
+
 const Links = () => {
   return (
     <ul className="liste-services">
       {services.map((service, index) => (
-        <li key={index}>
-          <a href={service.link} target="_blank" rel="noreferrer">
-            <img src={service.image} alt={`Icône ${service.name}`} />
-          </a>
-        </li>
+        <ServiceItem key={index} service={service} />
       ))}
     </ul>
   );

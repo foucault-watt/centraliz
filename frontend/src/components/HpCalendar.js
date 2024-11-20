@@ -393,11 +393,16 @@ const HpCalendar = () => {
                 alt="Lien de votre calendrier"
               />
             </div>
-            <img
-              src={process.env.PUBLIC_URL + "/ical-destock.jpg"}
-              className="ical-destock"
-              alt="Lien de votre calendrier"
+            <a href="https://planning.centralelille.fr/" target="_blank" rel="noopener noreferrer">
+            <video
+              src={process.env.PUBLIC_URL + "/export-hp.mp4"}
+              className="tuto-export-hp"
+              autoPlay
+              loop
+              muted
+              playsInline
             />
+          </a>
 
             <div className="input-group">
               <input

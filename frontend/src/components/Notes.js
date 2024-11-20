@@ -1,7 +1,7 @@
 import axios from "axios";
+import { Upload } from "lucide-react";
 import Papa from "papaparse";
 import React, { useCallback, useEffect, useState } from "react";
-import { Upload } from "lucide-react";
 
 const Notes = () => {
   const [modules, setModules] = useState({});
@@ -107,7 +107,9 @@ const Notes = () => {
             setIsLoading(false);
           },
           error: () => {
-            setError("CSV invalide. Veuillez vérifier le fichier et réessayer.");
+            setError(
+              "CSV invalide. Veuillez vérifier le fichier et réessayer."
+            );
           },
         });
       };
@@ -170,11 +172,25 @@ const Notes = () => {
                 style={{ display: "none" }}
               />
             </label>
-            
           </div>
-          <span className="upload-message">WebAurion : Exporter vos notes CSV en UTF-8</span>
-          <img src={process.env.PUBLIC_URL + "/export-csv.png"} alt="tuto-export" className="tuto-export" />
-          <form className="login-form" onSubmit={handleLogin} style={{ display: "none" }}>
+          <span className="upload-message">
+            WebAurion : Exporter vos notes CSV en UTF-8
+          </span>
+          <a href="https://webaurion.centralelille.fr/" target="_blank" rel="noopener noreferrer">
+            <video
+              src={process.env.PUBLIC_URL + "/export-webaurion.mp4"}
+              className="tuto-export-webaurion"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </a>
+          <form
+            className="login-form"
+            onSubmit={handleLogin}
+            style={{ display: "none" }}
+          >
             <input
               type="text"
               placeholder="Nom d'utilisateur ENT"
@@ -239,7 +255,9 @@ const Notes = () => {
                           <p>{epreuve["Type de contrôle"]}</p>
                           <p>{epreuve["Début"]}</p>
                           <p>
-                            Coeff {epreuve["Coefficient de l'Épreuve dans le Module"]} - <b>{epreuve["Notes"]}</b>
+                            Coeff{" "}
+                            {epreuve["Coefficient de l'Épreuve dans le Module"]}{" "}
+                            - <b>{epreuve["Notes"]}</b>
                           </p>
                         </div>
                       ))}

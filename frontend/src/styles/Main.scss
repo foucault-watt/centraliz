@@ -52,35 +52,35 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .div-hp-calendar {
   @extend %card;
   grid-column: span 8;
-  background: linear-gradient(135deg, #fff0f0 0%, #fed7d7 100%);
-  border-color: rgba(239, 154, 154, 0.5);
+  background: linear-gradient(135deg, #fff0e0 0%, rgb(255, 215, 155) 100%);
+  border-color: #ffb84e80;
 }
 
 .div-cla-calendar {
   @extend %card;
   grid-column: span 4;
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-  border-color: rgba(255, 204, 128, 0.5);
+  background: linear-gradient(135deg, #ffe5e5 0%, #ffcfcf 100%);
+  border-color: rgba(239, 154, 154, 0.5);
 }
 
 .div-notes {
   @extend %card;
   grid-column: span 4;
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  background: linear-gradient(135deg, #e8f5e9 0%, #c2e6c3 100%);
   border-color: rgba(165, 214, 167, 0.5);
 }
 
 .div-mail {
   @extend %card;
   grid-column: span 6;
-  background: linear-gradient(135deg, #e0f7fa 0%, #ace9f1 100%);
+  background: linear-gradient(135deg, #e7f8fa 0%, #ace9f1 100%);
   border-color: rgba(128, 222, 234, 0.5);
 }
 
 .div-links {
   @extend %card;
   grid-column: span 2;
-  background: linear-gradient(135deg, #faeefc 0%, #e1bee7 100%);
+  background: linear-gradient(135deg, #faeefc 0%, #e0bae7 100%);
   border-color: rgba(206, 147, 216, 0.5);
   padding: 15px !important;
 }

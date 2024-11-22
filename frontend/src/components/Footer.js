@@ -13,8 +13,17 @@ const Footer = () => {
   const [submitStatus, setSubmitStatus] = useState("");
   const { userName } = useContext(UserContext);
 
+  // Fonction pour sanitiser le feedback
+  const sanitizeFeedback = (text) => {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const sanitizedFeedback = sanitizeFeedback(feedback); // Sanitisation du feedback
 
     try {
       const response = await fetch(
@@ -26,7 +35,7 @@ const Footer = () => {
           },
           body: JSON.stringify({
             username: userName, // Assurez-vous d'avoir accès à l'utilisateur connecté
-            text: feedback,
+            text: sanitizedFeedback, // Utilisation du feedback sanitizé
           }),
         }
       );
@@ -129,6 +138,7 @@ const Footer = () => {
                 placeholder="Partagez vos suggestions..."
                 className="footer__textarea"
                 required
+                maxLength={800} // Limitation à 800 caractères
               />
               <button type="submit" className="footer__submit">
                 <Send size={14} />

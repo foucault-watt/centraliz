@@ -32,26 +32,24 @@ const services = [
     image: process.env.PUBLIC_URL + "/links/print.png",
   },
   {
+    name: "Facebook",
+    link: "https://www.facebook.com/groups/admis2024centralelille/",
+    image: process.env.PUBLIC_URL + "/links/facebook.png",
+  },
+  {
     name: "CLA",
     link: "https://centralelilleassos.fr/",
     image: process.env.PUBLIC_URL + "/links/cla.png",
-  },
-
-  {
-    name: "BDS",
-    link: "https://bds-centralelille.fr/",
-    image: process.env.PUBLIC_URL + "/links/bds.png",
-  },
-
-  {
-    name: "Eclosion",
-    link: "https://eclosion.rezoleo.fr/",
-    image: process.env.PUBLIC_URL + "/links/eclosion.png",
   },
   {
     name: "Pain'Gouin",
     link: "https://paingouin.rezoleo.fr/",
     image: process.env.PUBLIC_URL + "/links/paingouin.png",
+  },
+  {
+    name: "Eclosion",
+    link: "https://eclosion.rezoleo.fr/",
+    image: process.env.PUBLIC_URL + "/links/eclosion.png",
   },
   {
     name: "My'Iteem",

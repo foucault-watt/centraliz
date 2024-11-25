@@ -116,7 +116,7 @@ const ClaCalendar = () => {
       </div>
       {events.length > visibleEvents && (
         <button onClick={handleLoadMore} className="show-more-button-cla">
-          Voir plus d'événements
+          Voir plus d'évents
         </button>
       )}
     </div>

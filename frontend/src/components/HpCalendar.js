@@ -40,7 +40,6 @@ const getInitialDate = () => {
 };
 
 const parseICal = (icalData) => {
-  console.log(icalData);
   const jcalData = ICAL.parse(icalData);
   const comp = new ICAL.Component(jcalData);
   const vevents = comp.getAllSubcomponents("vevent");

@@ -25,11 +25,9 @@ function Mail() {
         }
       );
 
-      console.log(`[Mail] Statut de la réponse: ${response.status}`);
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`[Mail] Mails reçus:`, data.mails);
 
         // Trier les mails par date décroissante
         const sortedMails = data.mails.sort(

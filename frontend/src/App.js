@@ -20,7 +20,6 @@ const App = () => {
           }
         );
         const data = await response.json();
-        console.log(data);
         setIsAuthenticated(data.authenticated);
 
         setUserName(data.user.userName);

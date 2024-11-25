@@ -106,7 +106,7 @@ function Mail() {
             </ul>
           )}
           {visibleMailsCount < Math.min(48, allMails.length) && (
-            <button className="show-more-button"
+            <button className="show-more-button-mail"
               onClick={() => setVisibleMailsCount(visibleMailsCount + 4)}
             >
               Afficher plus

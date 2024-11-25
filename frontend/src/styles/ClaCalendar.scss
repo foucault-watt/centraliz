@@ -1,56 +1,58 @@
-.cla-calendar .rbc-toolbar-label {
-  display: none !important;
+@mixin transition($property: all, $duration: 0.3s, $timing: ease) {
+  transition: $property $duration $timing;
 }
 
-.rbc-toolbar{
-  margin: 0 !important;
-}
+  .events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
 
-.cla-calendar *{
-  color: #2c3e50 !important;
-}
+  .event-item {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+    
+    .event-date {
+      font-weight: 500;
+      color: $second;
+      margin-bottom: 5px;
 
-
-.rbc-current-time-indicator{
-  display: none !important; 
-}
-
-.rbc-agenda-view table.rbc-agenda-table .rbc-agenda-time-cell {
-  display: none !important;
-}
-
-.cla-calendar{
-  .rbc-agenda-table {
-    thead tr {
-      th:nth-child(2) {
-        // Styles pour l'élément "Heure"
-        display: none !important; // Exemple
+      .event-time {
+        margin-left: 10px;
+        color: $main !important;
       }
     }
+    
+    .event-title {
+      font-size: 1.1em;
+      font-weight: bold;
+    }
   }
-}
-
-.rbc-agenda-table{
-  margin-bottom: 4px;
-}
-
-.rbc-agenda-view table.rbc-agenda-table{
-  border-collapse: separate;
-  border-radius: 6px;
-}
-
-.rbc-agenda-view table.rbc-agenda-table tbody > tr > td + td{
-  padding-bottom: 5px;
-}
-
-.cla-calendar .rbc-btn-group {
-  button:first-child {
-    display: none;
+  .show-more-button-cla {
+    margin: 20px auto;
+    display: block;
+    padding: 10px 20px;
+    background-color: $main;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    @include transition(background-color);
+  
+    &:hover {
+      background-color: darken($main, 10%);
+    }
   }
+
+.torch-tot {
+  color: $green;
+  font-weight: bold;
 }
 
-.cla-calendar .rbc-btn-group button:nth-child(2) {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-
+.torcho {
+  color: $red;
+  font-weight: bold;
 }
+

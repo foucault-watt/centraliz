@@ -1,33 +1,13 @@
 import ICAL from "ical.js";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
 import React, { useEffect, useState } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import "../styles/ClaCalendar.scss";
 
 moment.locale("fr");
 
-const localizer = momentLocalizer(moment);
-
-const messages = {
-  next: <ArrowRight />,
-  previous: <ArrowLeft />,
-  today: "Aujourd'hui",
-  month: "Mois",
-  week: "Semaine",
-  day: "Jour",
-  agenda: "Agenda",
-  date: "Date",
-  time: "Heure",
-  event: "Événement",
-  noEventsInRange: "Aucun événement biloute",
-  showMore: (total) => `+ ${total} plus`,
-};
-
 const ClaCalendar = () => {
   const [events, setEvents] = useState([]);
+  const [visibleEvents, setVisibleEvents] = useState(5);
 
   useEffect(() => {
     const fetchICalData = async () => {
@@ -87,15 +67,58 @@ const ClaCalendar = () => {
     }
   };
 
+  const getFutureEvents = () => {
+    const now = new Date();
+    return events
+      .filter(event => event.start >= now)
+      .sort((a, b) => a.start - b.start)
+      .slice(0, visibleEvents);
+  };
+
+  const handleLoadMore = () => {
+    setVisibleEvents(prev => prev + 6);
+  };
+
+  const getEventType = (start, end) => {
+    const startHour = moment(start).hours();
+    const endHour = moment(end).hours();
+    
+    if (startHour === 20 && endHour === 0) {
+      return { type: "Torch'Tôt", className: "torch-tot" };
+    }
+    if (startHour === 22 && endHour === 3) {
+      return { type: "Torcho", className: "torcho" };
+    }
+    return null;
+  };
+
   return (
     <div className="cla-calendar">
-      <Calendar
-        localizer={localizer}
-        events={events}
-        messages={messages}
-        defaultView="agenda"
-        views={["agenda"]}
-      />
+      <div className="events-list">
+        {getFutureEvents().map((event, index) => {
+          const eventType = getEventType(event.start, event.end);
+          return (
+            <div key={index} className="event-item">
+              <div className="event-date">
+                {moment(event.start).format('dddd').charAt(0).toUpperCase() + moment(event.start).format('dddd').slice(1)} {moment(event.start).format('DD MMMM')}
+                <span className="event-time">
+                  {eventType ? (
+                    <span className={eventType.className}>{eventType.type}</span>
+                  ) : (
+                    `${moment(event.start).format('HH:mm')} - ${moment(event.end).format('HH:mm')}`
+                  )}
+                </span>
+              </div>
+              <div className="event-title">{event.title}</div>
+            </div>
+          );
+        })}
+      </div>
+      {events.length > visibleEvents && (
+        <button onClick={handleLoadMore} className="show-more-button-cla">
+          Voir plus d'événements
+        </button>
+      )}
     </div>
   );
 };

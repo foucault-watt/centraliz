@@ -45,7 +45,7 @@ const App = () => {
   if (isLoading) {
     return (
       <div className="loading-container">
-        <img src={"logo-title.png"} className="logo-loading" alt="logo" />
+        <img src={"logo-title.svg"} className="logo-loading" alt="logo" rel="preload" />
         <span className="title-loading">
           <b>Centraliz</b>
         </span>

@@ -70,7 +70,7 @@ const Notes = () => {
       const coeff =
         parseFloat(grade["Coefficient de l'Épreuve dans le Module"]) || 0;
 
-      if (grade["Notes"] !== ("V" || "NV") && coeff !== 0) {
+      if (grade["Notes"] !== ("V" || "NV") && !== 0) {
         processedModules[moduleName].totalPoints += note * coeff;
         processedModules[moduleName].totalCoeff += coeff;
       } else if (grade["Notes"] === "V") {

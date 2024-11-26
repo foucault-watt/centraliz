@@ -67,6 +67,7 @@ const ServiceItem = ({ service }) => (
   <li>
     <a href={service.link} target="_blank" rel="noreferrer">
       <img src={service.image} alt={`Icône ${service.name}`} />
+      <span>{service.name}</span>
     </a>
   </li>
 );

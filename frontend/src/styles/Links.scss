@@ -10,8 +10,10 @@
   margin: 10px;
   text-align: center;
   transition: transform 0.2s ease-in-out;
+  position: relative;
 
   &:hover {
+    z-index: 9999;  // Augmente le z-index du li au survol
     transform: scale(1.1);
   }
 }
@@ -22,6 +24,7 @@
   align-items: center;
   text-decoration: none;
   color: #333;
+  position: relative;
 }
 
 .liste-services img {
@@ -36,13 +39,25 @@
 }
 
 .liste-services span {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  margin-top: 5px;
   font-size: 14px;
+  color: #000;
   opacity: 0;
-  transform: translateY(10px);
   transition: all 0.3s ease;
+  white-space: nowrap;
+  z-index: 99999; // Z-index très élevé pour être sûr
+  background-color: rgba(255, 255, 255, 0.98); // Augmente légèrement l'opacité
+  padding: 4px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  pointer-events: none; // Empêche le texte d'interférer avec les clics
+}
 
-  .liste-services li:hover & {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.liste-services li:hover span {
+  opacity: 1;
+  transform: translateX(-50%) translateY(5px);
 }

@@ -5,11 +5,43 @@ const ZimbraService = require("../services/zimbraService");
 const authMiddleware = require("../middlewares/auth");
 
 /**
+ * Route pour vérifier si un mot de passe est stocké pour l'utilisateur.
+ * GET /api/zimbra/check
+ */
+router.get("/check", authMiddleware, async (req, res) => {
+  const username = req.session.user.userName;
+  try {
+    const hasPassword = await ZimbraService.hasStoredPassword(username);
+    res.json({ hasPassword });
+  } catch (error) {
+    console.error(`[Zimbra Route] Erreur lors de la vérification du mot de passe stocké pour ${username}:`, error.message);
+    res.status(500).json({ error: "Erreur lors de la vérification du mot de passe stocké" });
+  }
+});
+
+/**
+ * Route pour authentifier l'utilisateur en utilisant le mot de passe stocké.
+ * POST /api/zimbra/auto-auth
+ */
+router.post("/auto-auth", authMiddleware, async (req, res) => {
+  const username = req.session.user.userName;
+  try {
+    const xmlData = await ZimbraService.authenticateWithStoredPassword(username);
+    const mails = await ZimbraService.parseRSS(xmlData);
+    req.session.zimbraToken = ZimbraService.getTokenFromUsername(username);
+    res.json({ success: true, mails });
+  } catch (error) {
+    console.error(`[Zimbra Route] Échec de l'authentification automatique pour ${username}:`, error.message);
+    res.status(401).json({ error: "Authentification automatique échouée" });
+  }
+});
+
+/**
  * Route pour authentifier l'utilisateur Zimbra et récupérer les mails.
  * POST /api/zimbra
  */
 router.post("/", authMiddleware, async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, rememberMe } = req.body;
   
   if (!username || !password) {
     console.warn("[Zimbra Route] Nom d'utilisateur ou mot de passe manquant");
@@ -19,7 +51,11 @@ router.post("/", authMiddleware, async (req, res) => {
   try {
     const xmlData = await ZimbraService.authenticate(username, password);
     const mails = await ZimbraService.parseRSS(xmlData);
-    req.session.zimbraToken = Buffer.from(`${username}:${password}`).toString("base64"); // Stocker l'authHeader encodé
+    req.session.zimbraToken = Buffer.from(`${username}:${password}`).toString("base64");
+
+    if (rememberMe) {
+      await ZimbraService.storeEncryptedPassword(username, password);
+    }
 
     res.json({ success: true, mails });
   } catch (error) {

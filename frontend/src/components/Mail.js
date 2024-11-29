@@ -9,7 +9,6 @@ function Mail() {
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [expandedMailIndices, setExpandedMailIndices] = useState([]);
-  const [visibleMailsCount, setVisibleMailsCount] = useState(4);
 
   const fetchMails = async () => {
     setIsLoading(true);
@@ -61,7 +60,7 @@ function Mail() {
       {!isAuthenticated ? (
         <ZimbraAuth setIsAuthenticated={setIsAuthenticated} />
       ) : (
-        <div>
+        <div className="mail-list">
           <div className="mail-header">
             <h2>Vos Derniers Mails</h2>
           </div>
@@ -69,8 +68,8 @@ function Mail() {
           {isLoading ? (
             <p className="loading">Chargement des mails...</p>
           ) : (
-            <ul className="mail-list">
-              {allMails.slice(0, visibleMailsCount).map((mail, index) => (
+            <ul>
+              {allMails.map((mail, index) => (
                 <li
                   key={index}
                   className={`mail-item ${
@@ -102,13 +101,6 @@ function Mail() {
                 </li>
               ))}
             </ul>
-          )}
-          {visibleMailsCount < Math.min(48, allMails.length) && (
-            <button className="show-more-button-mail"
-              onClick={() => setVisibleMailsCount(visibleMailsCount + 4)}
-            >
-              Afficher plus
-            </button>
           )}
         </div>
       )}

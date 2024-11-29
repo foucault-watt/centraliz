@@ -2,49 +2,57 @@
   transition: $property $duration $timing;
 }
 
-  .events-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .event-item {
-    padding: 15px;
-    border-radius: 8px;
-    background-color: $day;
-    
-    .event-date {
-      font-weight: 500;
-      color: $second;
-      margin-bottom: 5px;
-
-      .event-time {
-        margin-left: 10px;
-        color: $main !important;
-      }
-    }
-    
-    .event-title {
-      font-size: 1.1em;
-      font-weight: bold;
-    }
-  }
-  .show-more-button-cla {
-    margin: 20px auto 0;
-    display: block;
-    padding: 10px 20px;
-    background-color: $main;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1em;
-    cursor: pointer;
-    @include transition(background-color);
+.cla-calendar {
+  height: 500px;
+  overflow-y: auto;
   
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $main;
+    border-radius: 4px;
+    
     &:hover {
-      background-color: darken($main, 10%);
+      background: darken($main, 10%);
     }
   }
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-right: 10px;
+}
+
+.event-item {
+  padding: 15px;
+  border-radius: 8px;
+  background-color: $day;
+  
+  .event-date {
+    font-weight: 500;
+    color: $second;
+    margin-bottom: 5px;
+
+    .event-time {
+      margin-left: 10px;
+      color: $main !important;
+    }
+  }
+  
+  .event-title {
+    font-size: 1.1em;
+    font-weight: bold;
+  }
+}
 
 .torch-tot {
   color: $green;

@@ -77,10 +77,40 @@
 
 // Styles pour la liste des emails
 .mail-list {
+  height: 400px;
+  overflow-y: auto;
   max-width: 800px;
-  margin: 20px auto;
-  padding: 0;
+  padding: 0 10px 0 0;
   list-style: none;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $main;
+    border-radius: 4px;
+
+    &:hover {
+      background: darken($main, 10%);
+    }
+  }
+
+  .mail-header {
+    padding-bottom: 15px;
+    border-bottom: 2px solid $second;
+
+    h2 {
+      color: $second;
+      margin: 0;
+      font-size: 1.8em;
+    }
+  }
 
   .mail-item {
     margin-bottom: 15px;
@@ -111,7 +141,7 @@
       font-size: 1em;
       cursor: pointer;
       @include transition(background-color);
-    
+
       &:hover {
         background-color: darken($main, 10%);
       }
@@ -130,8 +160,8 @@
 
     p {
       color: $second;
-       line-height: 1.5;
-       margin-bottom: 10px;
+      line-height: 1.5;
+      margin-bottom: 10px;
     }
 
     .mail-meta {
@@ -191,25 +221,7 @@
 
 $mail-count-max: 50;
 
-
 .wendling {
   font-size: 1px;
-  color:white;
-}
-
-.show-more-button-mail {
-  margin: 20px auto 0;
-  display: block;
-  padding: 10px 20px;
-  background-color: $main;
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1em;
-  cursor: pointer;
-  @include transition(background-color);
-
-  &:hover {
-    background-color: darken($main, 10%);
-  }
 }

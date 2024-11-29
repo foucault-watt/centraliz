@@ -7,7 +7,6 @@ moment.locale("fr");
 
 const ClaCalendar = () => {
   const [events, setEvents] = useState([]);
-  const [visibleEvents, setVisibleEvents] = useState(5);
 
   useEffect(() => {
     const fetchICalData = async () => {
@@ -71,12 +70,7 @@ const ClaCalendar = () => {
     const now = new Date();
     return events
       .filter(event => event.start >= now)
-      .sort((a, b) => a.start - b.start)
-      .slice(0, visibleEvents);
-  };
-
-  const handleLoadMore = () => {
-    setVisibleEvents(prev => prev + 6);
+      .sort((a, b) => a.start - b.start);
   };
 
   const getEventType = (start, end) => {
@@ -114,11 +108,6 @@ const ClaCalendar = () => {
           );
         })}
       </div>
-      {events.length > visibleEvents && (
-        <button onClick={handleLoadMore} className="show-more-button-cla">
-          Voir plus d'évents
-        </button>
-      )}
     </div>
   );
 };

@@ -4,6 +4,12 @@ import Main from "./components/Main.js";
 
 export const UserContext = createContext();
 
+const isBot = () => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const botPattern = /bot|crawl|slurp|spider|mediapartners|google|bing|inspection/i;
+  return botPattern.test(userAgent);
+};
+
 const App = () => {
   const [userName, setUserName] = useState(null);
   const [displayName, setDisplayName] = useState(null);
@@ -11,6 +17,11 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (isBot()) {
+      window.location.href = "/bot-index.html";
+      return;
+    }
+
     const checkAuthStatus = async () => {
       try {
         const response = await fetch(

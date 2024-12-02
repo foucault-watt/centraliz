@@ -14,8 +14,6 @@ const publicRoutes = require("../routes/publicData");
 const evaRoutes = require("../routes/eva");
 const morgan = require("morgan");
 const logService = require("../services/logService");
-const path = require('path');
-const fs = require('fs');
 const app = express();
 
 // Utiliser Helmet pour sécuriser les en-têtes HTTP
@@ -57,27 +55,6 @@ app.use(
 );
 
 app.use(express.json());
-
-// Middleware pour détecter les bots
-app.use((req, res, next) => {
-  const userAgent = req.headers['user-agent'] || '';
-  const botUserAgents = [/Googlebot/i, /Bingbot/i, /Slurp/i, /DuckDuckBot/i, /Baiduspider/i, /YandexBot/i];
-
-  const isBot = botUserAgents.some(bot => bot.test(userAgent));
-
-  if (isBot) {
-    // Servir la page statique pour les bots
-    const staticPagePath = path.join(__dirname, '../../public/bot-index.html');
-    fs.readFile(staticPagePath, 'utf8', (err, data) => {
-      if (err) {
-        return next(err);
-      }
-      res.send(data);
-    });
-  } else {
-    next();
-  }
-});
 
 // Utiliser les routes
 app.use("/api/auth", authRoutes);

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef, useCallback } from "react";
 import { UserContext } from "../App";
 import ZimbraAuth from "./ZimbraAuth";
 
@@ -9,6 +9,8 @@ function Mail() {
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [expandedMailIndices, setExpandedMailIndices] = useState([]);
+  const [visibleMails, setVisibleMails] = useState(10); // Ajouter un état pour les mails visibles
+  const loader = useRef(null);
 
   const fetchMails = async () => {
     setIsLoading(true);
@@ -48,12 +50,39 @@ function Mail() {
     }
   };
 
+  const loadMoreMails = useCallback(() => {
+    if (visibleMails < allMails.length) {
+      setVisibleMails((prev) => prev + 10); // Charger 10 mails supplémentaires
+    }
+  }, [visibleMails, allMails.length]);
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchMails();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreMails();
+        }
+      },
+      { threshold: 0.1 } // Ajuster le seuil pour déclencher plus tôt
+    );
+
+    if (loader.current) {
+      observer.observe(loader.current);
+    }
+
+    return () => {
+      if (loader.current) {
+        observer.unobserve(loader.current);
+      }
+    };
+  }, [loadMoreMails]); // Ajouter loadMoreMails comme dépendance
 
   return (
     <div>
@@ -66,7 +95,7 @@ function Mail() {
             <p className="loading">Chargement des mails...</p>
           ) : (
             <ul>
-              {allMails.map((mail, index) => (
+              {allMails.slice(0, visibleMails).map((mail, index) => (
                 <li
                   key={index}
                   className={`mail-item ${
@@ -99,6 +128,8 @@ function Mail() {
               ))}
             </ul>
           )}
+          <div ref={loader} />
+          {visibleMails < allMails.length && <p>Chargement...</p>}
         </div>
       )}
     </div>

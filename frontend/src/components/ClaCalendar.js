@@ -1,12 +1,14 @@
 import ICAL from "ical.js";
 import moment from "moment";
 import "moment/locale/fr";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 
 moment.locale("fr");
 
 const ClaCalendar = () => {
   const [events, setEvents] = useState([]);
+  const [visibleEvents, setVisibleEvents] = useState(10); // Ajouter un état pour les événements visibles
+  const loader = useRef(null);
 
   useEffect(() => {
     const fetchICalData = async () => {
@@ -66,11 +68,39 @@ const ClaCalendar = () => {
     }
   };
 
+  const loadMoreEvents = useCallback(() => {
+    if (visibleEvents < events.length) {
+      setVisibleEvents((prev) => prev + 10); // Charger 10 événements supplémentaires
+    }
+  }, [visibleEvents, events.length]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreEvents();
+        }
+      },
+      { threshold: 0.1 } // Ajuster le seuil pour déclencher plus tôt
+    );
+
+    if (loader.current) {
+      observer.observe(loader.current);
+    }
+
+    return () => {
+      if (loader.current) {
+        observer.unobserve(loader.current);
+      }
+    };
+  }, [loadMoreEvents]);
+
   const getFutureEvents = () => {
     const now = new Date();
     return events
       .filter(event => event.start >= now)
-      .sort((a, b) => a.start - b.start);
+      .sort((a, b) => a.start - b.start)
+      .slice(0, visibleEvents); // Limiter aux événements visibles
   };
 
   const getEventType = (start, end) => {
@@ -108,6 +138,8 @@ const ClaCalendar = () => {
           );
         })}
       </div>
+      <div ref={loader} />
+      {visibleEvents < events.length && <p>Chargement...</p>}
     </div>
   );
 };

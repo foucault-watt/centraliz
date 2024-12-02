@@ -1,6 +1,5 @@
 import React from "react";
 import ClaCalendar from "./ClaCalendar";
-import Footer from "./Footer";
 import HpCalendar from "./HpCalendar";
 import Links from "./Links";
 import Mail from "./Mail";
@@ -30,7 +29,6 @@ function Main() {
           <Links />
         </div>
       </div>
-      <Footer />
     </>
   );
 }

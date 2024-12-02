@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import Header from "./components/Header.js";
 import Main from "./components/Main.js";
+import Footer from "./components/Footer.js";
 
 export const UserContext = createContext();
 
@@ -73,6 +74,7 @@ const App = () => {
       <div className="App">
         <Header />
         <Main />
+        <Footer />
       </div>
     </UserContext.Provider>
   );

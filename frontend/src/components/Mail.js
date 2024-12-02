@@ -61,9 +61,6 @@ function Mail() {
         <ZimbraAuth setIsAuthenticated={setIsAuthenticated} />
       ) : (
         <div className="mail-list">
-          <div className="mail-header">
-            <h2>Vos Derniers Mails</h2>
-          </div>
           {status && <p className="status">{status}</p>}
           {isLoading ? (
             <p className="loading">Chargement des mails...</p>

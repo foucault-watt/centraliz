@@ -3,6 +3,24 @@
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.scrolled {
+    padding: 0.2rem 0;
+
+    .header-link {
+      height: 3.5rem;
+    }
+
+    .header-logo {
+      height: 3rem;
+    }
+
+    .header-title {
+      font-size: 2.2rem;
+    }
+  }
 
   &-link {
     color: white;
@@ -11,7 +29,7 @@
     justify-content: center;
     align-items: center;
     height: 5rem;
-    transition: transform 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover {
       transform: scale(1.02);
@@ -21,13 +39,14 @@
   &-logo {
     height: 4.3rem;
     padding-right: 0.5rem;
-    transition: transform 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &-title {
     font-size: 3rem;
     font-weight: 600;
     letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   // Grand écran

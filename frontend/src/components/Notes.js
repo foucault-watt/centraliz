@@ -174,7 +174,7 @@ const Notes = () => {
             </label>
           </div>
           <span className="upload-message">
-            WebAurion : Exporter vos notes CSV en UTF-8
+            Sur WebAurion, allez dans "Notes" → "Exporter" → "CSV en UTF-8" et importez le ici
           </span>
           <a href="https://webaurion.centralelille.fr/" target="_blank" rel="noopener noreferrer">
             <video

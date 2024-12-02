@@ -259,6 +259,11 @@
   }
 }
 
+.rbc-current-time-indicator{
+  height: 2px !important;
+  background-color: $main-dark !important;
+}
+
 // Définition des animations
 @keyframes slideInFromBottom {
   from {

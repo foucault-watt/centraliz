@@ -125,3 +125,21 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
     grid-column: span 4;
   }
 }
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  
+  input[type="checkbox"] {
+    margin-right: 3px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  label {
+    color: #5a6776;
+    cursor: pointer;
+  }
+}

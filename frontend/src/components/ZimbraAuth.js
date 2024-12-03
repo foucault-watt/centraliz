@@ -67,7 +67,7 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
       console.log(`[ZimbraAuth] Statut de la réponse: ${response.status}`);
 
       const data = await response.json();
-      console.log(`[ZimbraAuth] Données reçues:`, data);
+      console.log(`[ZimbraAuth] Données reçues:`);
 
       if (response.ok && data.success) {
         setStatus("Authentification réussie !");

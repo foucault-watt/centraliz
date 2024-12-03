@@ -111,7 +111,7 @@ function Mail() {
                     }
                   }}
                 >
-                  <h3>{mail.title}</h3>
+                  <h2>{mail.title}</h2>
                   <div className="mail-meta">
                     <span>De : {mail.author}</span>
                     <span>Le : {new Date(mail.pubDate).toLocaleString()}</span>

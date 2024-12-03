@@ -2,7 +2,7 @@ import ICAL from "ical.js";
 import { ArrowLeft, ArrowRight, Undo2, Star } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { UserContext } from "../App";
@@ -52,8 +52,6 @@ const parseICal = (icalData) => {
 
     const eventDetails = [summary, location].filter(Boolean);
 
-    console.log(eventDetails);
-
     const eventTitle = eventDetails
       .join(" ")
       .replace(/\s*-\s*/g, (match, offset, string) => {
@@ -95,7 +93,6 @@ const CustomEvent = ({ event }) => (
 );
 
 const HpCalendar = () => {
-  const [events, setEvents] = useState([]);
   const [icalData, setIcalData] = useState("");
   const [icalLink, setIcalLink] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -154,16 +151,16 @@ const HpCalendar = () => {
     }
   }, [userName, fetchCalendarData]);
 
-  useEffect(() => {
+  const events = useMemo(() => {
     if (icalData) {
       try {
-        const parsedEvents = parseICal(icalData);
-        setEvents(parsedEvents);
+        return parseICal(icalData);
       } catch (error) {
         console.error("Erreur lors du parsing des données iCal:", error);
-        setEvents([]);
+        return [];
       }
     }
+    return [];
   }, [icalData]);
 
   const handleSubmitLink = async (e) => {

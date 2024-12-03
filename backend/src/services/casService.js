@@ -22,7 +22,6 @@ exports.callback = async (req, res) => {
     const validateUrl = `${casBaseURL}/p3/serviceValidate?service=${encodeURIComponent(serviceURL)}&ticket=${ticket}`;
     const response = await axios.get(validateUrl);
 
-
     const usernameMatch = /<cas:user>(.*?)<\/cas:user>/.exec(response.data);
     const displayNameMatch = /<cas:displayName>(.*?)<\/cas:displayName>/.exec(response.data);
 

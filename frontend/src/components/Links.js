@@ -61,6 +61,21 @@ const services = [
     link: "https://le-clap.fr/",
     image: process.env.PUBLIC_URL + "/links/clap.png",
   },
+  {
+    name: "BDS",
+    link: "https://bds-centralelille.fr/",
+    image: process.env.PUBLIC_URL + "/links/bds.png",
+  },
+  {
+    name: "Sans Trash 2027",
+    link: "https://www.facebook.com/groups/1931896207233319/",
+    image: process.env.PUBLIC_URL + "/links/sans-trash.svg",
+  },
+  {
+    name: "Black-Out 2027",
+    link: "https://www.facebook.com/groups/536028622198593/",
+    image: process.env.PUBLIC_URL + "/links/black-out.png",
+  },
 ];
 
 const ServiceItem = ({ service }) => (

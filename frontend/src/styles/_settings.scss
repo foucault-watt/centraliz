@@ -21,3 +21,12 @@ body {
 li {
   list-style-type: none;
 }
+
+.module-title {
+  font-size: 1.5em;
+  color: $second;
+  margin-bottom: 5px;
+  text-align: center;
+  border-bottom: 2px solid $second;
+  padding-bottom: 5px;
+}

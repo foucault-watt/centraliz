@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Calendar, Mail } from 'lucide-react'; // Importer les icônes spécifiques
 
 const NavBar = ({ currentPosition, handleNavigation, isTyping }) => {
   return (
@@ -9,8 +9,8 @@ const NavBar = ({ currentPosition, handleNavigation, isTyping }) => {
         className={currentPosition === 'left' ? 'active' : ''}
         disabled={isTyping} // Désactiver lorsque isTyping est true
       >
-        <ChevronLeft size={24} />
-        Notes
+        <FileText size={24} /> {/* Icône pour Notes */}
+        <span className="nav-text">Notes</span>
       </button>
       
       <button 
@@ -18,7 +18,8 @@ const NavBar = ({ currentPosition, handleNavigation, isTyping }) => {
         className={currentPosition === 'center' ? 'active' : ''}
         disabled={isTyping} // Désactiver lorsque isTyping est true
       >
-        Calendriers
+        <Calendar size={24} /> {/* Icône pour Calendriers */}
+        <span className="nav-text">Calendriers</span>
       </button>
       
       <button 
@@ -26,8 +27,8 @@ const NavBar = ({ currentPosition, handleNavigation, isTyping }) => {
         className={currentPosition === 'right' ? 'active' : ''}
         disabled={isTyping} // Désactiver lorsque isTyping est true
       >
-        Mails & Liens
-        <ChevronRight size={24} />
+        <Mail size={24} /> {/* Icône pour Mails & Liens */}
+        <span className="nav-text">Mails & Liens</span>
       </button>
     </nav>
   );

@@ -137,7 +137,6 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   padding: 25px;
   box-shadow: $shadow-default;
   transition: $transition;
-  backdrop-filter: blur(10px);
   border: 3px solid rgba(255, 255, 255, 0.2);
 
   &:hover {
@@ -177,7 +176,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   @extend %card;
   grid-column: span 4;
   background: linear-gradient(135deg, #e8f5e9 0%, #c2e6c3 100%);
-  border-color: rgba(165, 214, 167, 0.5);
+  border-color: rgba(120, 210, 123, 0.5);
 }
 
 .div-mail {
@@ -260,6 +259,21 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   .div-mail,
   .div-links {
     width: 100% !important;
+  }
+  
+  .floating-nav .nav-text {
+    display: none;
+  }
+
+  .floating-nav button {
+    display: flex;
+    flex-direction: column; // Optionnel: aligner les icônes verticalement
+    justify-content: center;
+    align-items: center;
+  }
+
+  .floating-nav button .lucide-icon { // Assurez-vous que les icônes ont une classe appropriée
+    margin-bottom: 4px;
   }
 }
 

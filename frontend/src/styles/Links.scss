@@ -18,6 +18,16 @@
   }
 }
 
+.liste-services li.active {
+  z-index: 9999;
+  transform: scale(1.1);
+
+  span {
+    opacity: 1;
+    transform: translateX(-50%) translateY(5px);
+  }
+}
+
 .liste-services a {
   display: flex;
   flex-direction: column;
@@ -28,8 +38,8 @@
 }
 
 .liste-services img {
-  width: 50px;
-  height: 50px;
+  width: 65px;
+  height: 65px;
   transition: all 0.3s ease;
 
   &:hover {

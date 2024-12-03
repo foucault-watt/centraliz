@@ -161,7 +161,9 @@ const Notes = () => {
     <div className="container">
       {!isLoggedIn && (
         <>
+          <h2 className="module-title">Calcul des notes</h2>
           <div className="upload-section">
+            
             <label className="upload-button">
               <Upload className="upload-icon" />
               Importer un CSV

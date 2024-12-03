@@ -117,30 +117,33 @@ const ClaCalendar = () => {
   };
 
   return (
-    <div className="cla-calendar">
-      <div className="events-list">
-        {getFutureEvents().map((event, index) => {
-          const eventType = getEventType(event.start, event.end);
-          return (
-            <div key={index} className="event-item">
-              <div className="event-date">
-                {moment(event.start).format('dddd').charAt(0).toUpperCase() + moment(event.start).format('dddd').slice(1)} {moment(event.start).format('DD MMMM')}
-                <span className="event-time">
-                  {eventType ? (
-                    <span className={eventType.className}>{eventType.type}</span>
-                  ) : (
-                    `${moment(event.start).format('HH:mm')} - ${moment(event.end).format('HH:mm')}`
-                  )}
-                </span>
+    <>
+      <h2 className="module-title">Les prochains events</h2>
+      <div className="cla-calendar">
+        <div className="events-list">
+          {getFutureEvents().map((event, index) => {
+            const eventType = getEventType(event.start, event.end);
+            return (
+              <div key={index} className="event-item">
+                <div className="event-date">
+                  {moment(event.start).format('dddd').charAt(0).toUpperCase() + moment(event.start).format('dddd').slice(1)} {moment(event.start).format('DD MMMM')}
+                  <span className="event-time">
+                    {eventType ? (
+                      <span className={eventType.className}>{eventType.type}</span>
+                    ) : (
+                      `${moment(event.start).format('HH:mm')} - ${moment(event.end).format('HH:mm')}`
+                    )}
+                  </span>
+                </div>
+                <div className="event-title">{event.title}</div>
               </div>
-              <div className="event-title">{event.title}</div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        <div ref={loader} />
+        {visibleEvents < events.length && <p>Chargement...</p>}
       </div>
-      <div ref={loader} />
-      {visibleEvents < events.length && <p>Chargement...</p>}
-    </div>
+    </>
   );
 };
 

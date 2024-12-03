@@ -14,7 +14,6 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   max-width: 1600px;
   margin: 0 auto;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #f8f9fa 100%);
 
   > div {
     animation: fadeIn 0.6s ease-out forwards;
@@ -73,9 +72,6 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   gap: $gap;
   // Supprimer 'overflow-y: auto;' pour éviter les scrolls internes
 
-  &.notes-section {
-    background: linear-gradient(135deg, #e8f5e9 0%, #c2e6c3 100%);
-  }
 
   &.calendars-section,
   &.mail-links-section {
@@ -119,25 +115,12 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   }
 }
 
-// Styles spécifiques pour chaque page
-.notes-page {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c2e6c3 100%);
-}
-
-.calendars-page {
-  background: linear-gradient(135deg, #fff0e0 0%, rgb(255, 215, 155) 100%);
-}
-
-.mail-links-page {
-  background: linear-gradient(135deg, #e7f8fa 0%, #ace9f1 100%);
-}
 
 %card {
   border-radius: $border-radius;
   padding: 25px;
   box-shadow: $shadow-default;
   transition: $transition;
-  border: 3px solid rgba(255, 255, 255, 0.2);
 
   &:hover {
     transform: translateY(-8px) scale(1.01);
@@ -161,36 +144,31 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .div-hp-calendar {
   @extend %card;
   grid-column: span 8;
-  background: linear-gradient(135deg, #fff0e0 0%, rgb(255, 215, 155) 100%);
-  border-color: #ffb84e80;
+  background: $background-module;
 }
 
 .div-cla-calendar {
   @extend %card;
   grid-column: span 4;
-  background: linear-gradient(135deg, #ffe5e5 0%, #ffcfcf 100%);
-  border-color: rgba(239, 154, 154, 0.5);
+  background: $background-module;
 }
 
 .div-notes {
   @extend %card;
   grid-column: span 4;
-  background: linear-gradient(135deg, #e8f5e9 0%, #c2e6c3 100%);
-  border-color: rgba(120, 210, 123, 0.5);
+  background: $background-module;
 }
 
 .div-mail {
   @extend %card;
   grid-column: span 6;
-  background: linear-gradient(135deg, #e7f8fa 0%, #ace9f1 100%);
-  border-color: rgba(128, 222, 234, 0.5);
+  background: $background-module;
 }
 
 .div-links {
   @extend %card;
   grid-column: span 2;
-  background: linear-gradient(135deg, #faeefc 0%, #e0bae7 100%);
-  border-color: rgba(206, 147, 216, 0.5);
+  background: $background-module;
   padding: 15px !important;
 }
 
@@ -414,19 +392,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .page-section {
   flex: 0 0 33.33%;
   width: 33.33%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #f8f9fa 100%);
-
-  &.notes-section {
-    background: linear-gradient(135deg, #e8f5e9 0%, #c2e6c3 100%);
-  }
-
-  &.calendars-section {
-    background: linear-gradient(135deg, #fff0e0 0%, rgb(255, 215, 155) 100%);
-  }
-
-  &.mail-links-section {
-    background: linear-gradient(135deg, #e7f8fa 0%, #ace9f1 100%);
-  }
+  background: $background;
 }
 
 // ...existing code...
@@ -476,15 +442,3 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
     }
   }
 }
-
-// ...existing code...
-
-// Supprimer les propriétés grid-column qui interfèrent
-.div-hp-calendar,
-.div-cla-calendar,
-.div-mail,
-.div-links {
-  // grid-column: span X; // Supprimer ou commenter cette ligne
-}
-
-// ...existing code...

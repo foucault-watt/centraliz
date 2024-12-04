@@ -45,6 +45,18 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   &.position-right {
     transform: translateX(-66.66%);
   }
+
+  &.blocked {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+
+    &.position-right {
+      animation: shake-right 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    
+    &.position-left {
+      animation: shake-left 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+  }
 }
 
 .page {
@@ -184,6 +196,38 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   }
 }
 
+@keyframes shake {
+  10%, 90% {
+    transform: translateX(-66.66%) translateX(-2px);
+  }
+  
+  20%, 80% {
+    transform: translateX(-66.66%) translateX(4px);
+  }
+
+  30%, 50%, 70% {
+    transform: translateX(-66.66%) translateX(-6px);
+  }
+
+  40%, 60% {
+    transform: translateX(-66.66%) translateX(6px);
+  }
+}
+
+@keyframes shake-right {
+  10%, 90% { transform: translateX(-66.66%) translateX(-2px); }
+  20%, 80% { transform: translateX(-66.66%) translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-66.66%) translateX(-6px); }
+  40%, 60% { transform: translateX(-66.66%) translateX(6px); }
+}
+
+@keyframes shake-left {
+  10%, 90% { transform: translateX(0) translateX(-2px); }
+  20%, 80% { transform: translateX(0) translateX(4px); }
+  30%, 50%, 70% { transform: translateX(0) translateX(-6px); }
+  40%, 60% { transform: translateX(0) translateX(6px); }
+}
+
 // Media Queries
 @media (max-width: 1024px) {
   .main {
@@ -313,6 +357,11 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   border-radius: 50px;
   box-shadow: $shadow-default;
   z-index: 1000;
+  transition: transform 0.3s ease-out;
+
+  &:hover {
+    transform: translateX(-50%) scale(1.02);
+  }
 
   button {
     display: flex;
@@ -324,21 +373,59 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
     background: transparent;
     color: $second;
     cursor: pointer;
-    transition: $transition;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba($main, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.4s ease-out, height 0.4s ease-out;
+      z-index: -1;
+    }
+
+    &:hover::before {
+      width: 150%;
+      height: 150%;
+    }
 
     &.active {
       background: $main;
       color: white;
+      transform: scale(1.05);
+
+      &:hover {
+        transform: scale(1.08);
+      }
     }
 
-    &:hover:not(.active) {
-      background: rgba($main, 0.1);
+    .nav-text {
+      opacity: 1;
+      transform: translateX(0);
+      transition: all 0.3s ease-out;
+    }
+
+    svg {
+      transition: transform 0.3s ease-out;
+    }
+
+    &:hover:not(.active) svg {
+      transform: scale(1.1);
     }
   }
 
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  @media (max-width: 768px) {
+    button .nav-text {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
   }
 }
 

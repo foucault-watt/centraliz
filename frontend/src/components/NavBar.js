@@ -5,7 +5,7 @@ const NavBar = ({ currentPosition, handleNavigation, isTyping }) => {
   return (
     <nav className="floating-nav">
       <button 
-        onClick={() => handleNavigation('left')}
+        onClick={() => handleNavigation('left', true)}
         className={currentPosition === 'left' ? 'active' : ''}
         disabled={isTyping} // Désactiver lorsque isTyping est true
       >
@@ -14,7 +14,7 @@ const NavBar = ({ currentPosition, handleNavigation, isTyping }) => {
       </button>
       
       <button 
-        onClick={() => handleNavigation('center')}
+        onClick={() => handleNavigation('center', true)}
         className={currentPosition === 'center' ? 'active' : ''}
         disabled={isTyping} // Désactiver lorsque isTyping est true
       >
@@ -23,7 +23,7 @@ const NavBar = ({ currentPosition, handleNavigation, isTyping }) => {
       </button>
       
       <button 
-        onClick={() => handleNavigation('right')}
+        onClick={() => handleNavigation('right', true)}
         className={currentPosition === 'right' ? 'active' : ''}
         disabled={isTyping} // Désactiver lorsque isTyping est true
       >

@@ -11,32 +11,43 @@ function Main() {
   const [currentPosition, setCurrentPosition] = useState('center');
   const [pageHistory, setPageHistory] = useState(['center']);
   const [isTyping, setIsTyping] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const isInputFocused = () => {
     const activeElement = document.activeElement;
     return activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
   };
 
-  const handleNavigation = (direction) => {
-    if (isTyping) {
+  const handleNavigation = (direction, isButton = false) => {
+    if (isTyping || isBlocked) {
       return;
     }
 
-    if (direction === 'center') {
-      setCurrentPosition('center');
-      setPageHistory(prev => [...prev, 'center']);
-    } else {
-      const newPosition = getNewPosition(direction);
-      setCurrentPosition(newPosition);
-      setPageHistory(prev => [...prev, newPosition]);
+    if (isButton) {
+      // Navigation directe pour les boutons
+      setCurrentPosition(direction);
+      setPageHistory(prev => [...prev, direction]);
+      return;
     }
+
+    // Navigation progressive pour les flèches
+    if ((currentPosition === 'right' && direction === 'right') ||
+        (currentPosition === 'left' && direction === 'left')) {
+      setIsBlocked(true);
+      setTimeout(() => setIsBlocked(false), 400);
+      return;
+    }
+
+    const newPosition = getNewPosition(direction);
+    setCurrentPosition(newPosition);
+    setPageHistory(prev => [...prev, newPosition]);
   };
 
   const getNewPosition = (direction) => {
     const positions = {
-      left: { right: 'center', left: 'right' },
+      left: { right: 'center', left: 'center' }, // Modification ici
       center: { right: 'right', left: 'left' },
-      right: { right: 'left', left: 'center' }
+      right: { right: 'center', left: 'center' } // Modification ici
     };
     return positions[currentPosition][direction];
   };
@@ -55,8 +66,8 @@ function Main() {
         return;
       }
       setIsTyping(false);
-      if (e.key === 'ArrowLeft') handleNavigation('left');
-      if (e.key === 'ArrowRight') handleNavigation('right');
+      if (e.key === 'ArrowLeft') handleNavigation('left', false);
+      if (e.key === 'ArrowRight') handleNavigation('right', false);
     };
     
     window.addEventListener('keydown', handleKeyPress);
@@ -71,7 +82,7 @@ function Main() {
         isTyping={isTyping}
       />
       <div className="pages-container" {...handlers}>
-        <div className={`pages-wrapper position-${currentPosition}`}>
+        <div className={`pages-wrapper position-${currentPosition} ${isBlocked ? 'blocked' : ''}`}>
           <div className="page-section notes-section">
             <div className="section-content">
               <div className="div-notes">

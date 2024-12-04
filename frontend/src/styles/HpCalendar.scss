@@ -28,7 +28,7 @@
 
   &.tne-event {
     background-color: $green !important;
-    border-color: #399252 !important;
+    border-color: #308749 !important;
     background: linear-gradient(135deg, $green, darken($green, 10%)) !important;
 
     &:hover {
@@ -60,7 +60,7 @@
 }
 
 .hp-calendar .rbc-events-container * {
-  color: white !important;
+  color: $day !important;
 }
 
 .rbc-events-container {
@@ -107,7 +107,7 @@
 }
 
 .auth-form {
-  background-color: white;
+  background-color: $day;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);

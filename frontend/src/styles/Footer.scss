@@ -1,7 +1,7 @@
 .footer {
     background-color: $main-dark;
     background-image: linear-gradient(to bottom, lighten($main-dark, 3%), $main-dark);
-    color: white;
+    color: $day;
     box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
   
     &__main {
@@ -94,7 +94,7 @@
     }
   
     &__link {
-      color: white;
+      color: $day;
       text-decoration: none;
       transition: all 0.3s ease;
       position: relative;
@@ -106,7 +106,7 @@
         height: 1px;
         bottom: -1px;
         left: 0;
-        background-color: white;
+        background-color: $day;
         transform: scaleX(0);
         transition: transform 0.3s ease;
       }
@@ -123,7 +123,7 @@
     }
   
     &__social-link {
-      color: white;
+      color: $day;
       transition: all 0.3s ease;
       padding: 0.4rem;
       border-radius: 50%;
@@ -153,7 +153,7 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 4px;
       background-color: rgba(255, 255, 255, 0.1);
-      color: white;
+      color: $day;
       min-height: 80px;
       font-size: 0.85rem;
       resize: vertical;
@@ -179,7 +179,7 @@
       background-color: rgba(255, 255, 255, 0.2);
       border: none;
       border-radius: 4px;
-      color: white;
+      color: $day;
       font-size: 0.85rem;
       font-weight: 500;
       cursor: pointer;

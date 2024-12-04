@@ -11,7 +11,7 @@
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: $background;
     border-radius: 4px;
   }
   
@@ -35,7 +35,7 @@
 .event-item {
   padding: 15px;
   border-radius: 8px;
-  background-color: $day;
+  background-color: white;
   
   .event-date {
     font-weight: 500;
@@ -63,4 +63,3 @@
   color: $red;
   font-weight: bold;
 }
-

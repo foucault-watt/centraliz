@@ -12,6 +12,7 @@ const feedbackRoutes = require("../routes/feedback");
 const zimbraRoutes = require("../routes/zimbra");
 const publicRoutes = require("../routes/publicData");
 const evaRoutes = require("../routes/eva");
+const statsRoutes = require("../routes/stats");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -65,6 +66,7 @@ app.use("/api", hpRoutes);
 app.use("/api", feedbackRoutes);
 app.use("/api", publicRoutes);
 app.use("/api/eva", evaRoutes);
+app.use("/api", statsRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
@@ -72,7 +74,7 @@ app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
   process.exit(1);
 });
 
-// Ajouter un handler d'erreurs globales
+// Assurez-vous que ce middleware est placé après les routes pour éviter les conflits
 app.use((err, req, res, next) => {
   logService.log(`ERROR: ${err.stack}`);
   res.status(500).json({ error: "Une erreur est survenue" });

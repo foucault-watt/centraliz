@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSwipeable } from 'react-swipeable';
 import NavBar from "./NavBar";
 import Notes from "./Notes";
@@ -9,7 +9,6 @@ import Links from "./Links";
 
 function Main() {
   const [currentPosition, setCurrentPosition] = useState('center');
-  const [pageHistory, setPageHistory] = useState(['center']);
   const [isTyping, setIsTyping] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
 
@@ -18,7 +17,16 @@ function Main() {
     return activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
   };
 
-  const handleNavigation = (direction, isButton = false) => {
+  const getNewPosition = useCallback((direction) => {
+    const positions = {
+      left: { right: 'center', left: 'center' },
+      center: { right: 'right', left: 'left' },
+      right: { right: 'center', left: 'center' }
+    };
+    return positions[currentPosition][direction];
+  }, [currentPosition]);
+
+  const handleNavigation = useCallback((direction, isButton = false) => {
     if (isTyping || isBlocked) {
       return;
     }
@@ -26,13 +34,14 @@ function Main() {
     if (isButton) {
       // Navigation directe pour les boutons
       setCurrentPosition(direction);
-      setPageHistory(prev => [...prev, direction]);
       return;
     }
 
     // Navigation progressive pour les flèches
-    if ((currentPosition === 'right' && direction === 'right') ||
-        (currentPosition === 'left' && direction === 'left')) {
+    if (
+      (currentPosition === 'right' && direction === 'right') ||
+      (currentPosition === 'left' && direction === 'left')
+    ) {
       setIsBlocked(true);
       setTimeout(() => setIsBlocked(false), 400);
       return;
@@ -40,17 +49,7 @@ function Main() {
 
     const newPosition = getNewPosition(direction);
     setCurrentPosition(newPosition);
-    setPageHistory(prev => [...prev, newPosition]);
-  };
-
-  const getNewPosition = (direction) => {
-    const positions = {
-      left: { right: 'center', left: 'center' }, // Modification ici
-      center: { right: 'right', left: 'left' },
-      right: { right: 'center', left: 'center' } // Modification ici
-    };
-    return positions[currentPosition][direction];
-  };
+  }, [currentPosition, isTyping, isBlocked, getNewPosition]); // Ajout de getNewPosition
 
   const handlers = useSwipeable({
     onSwipedLeft: () => handleNavigation('right'),
@@ -72,7 +71,7 @@ function Main() {
     
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentPosition]);
+  }, [handleNavigation]); // Mise à jour des dépendances
 
   return (
     <div className="main-container">

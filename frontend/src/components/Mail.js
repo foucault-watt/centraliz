@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useState, useRef, useCallback } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { UserContext } from "../App";
 import ZimbraAuth from "./ZimbraAuth";
 
@@ -25,7 +31,6 @@ function Mail() {
           credentials: "include",
         }
       );
-
 
       if (response.ok) {
         const data = await response.json();
@@ -64,6 +69,7 @@ function Mail() {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    const currentLoader = loader.current; // Copier loader.current
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
@@ -73,19 +79,20 @@ function Mail() {
       { threshold: 0.1 } // Ajuster le seuil pour déclencher plus tôt
     );
 
-    if (loader.current) {
-      observer.observe(loader.current);
+    if (currentLoader) {
+      observer.observe(currentLoader);
     }
 
     return () => {
-      if (loader.current) {
-        observer.unobserve(loader.current);
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
       }
     };
-  }, [loadMoreMails]); // Ajouter loadMoreMails comme dépendance
+  }, [loadMoreMails]); // Assurez-vous que 'loadMoreMails' est bien dans les dépendances
 
   return (
     <div>
+      <h2 className="module-title">Vos derniers mails</h2>
       {!isAuthenticated ? (
         <ZimbraAuth setIsAuthenticated={setIsAuthenticated} />
       ) : (
@@ -119,7 +126,11 @@ function Mail() {
                   {expandedMailIndices.includes(index) && (
                     <div className="mail-content">
                       <p>{mail.description}</p>
-                      <a href="https://mail.centralelille.fr" target="_blank" rel="noreferrer">
+                      <a
+                        href="https://mail.centralelille.fr"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         <span className="view-on-zimbra">Voir sur Zimbra</span>
                       </a>
                     </div>

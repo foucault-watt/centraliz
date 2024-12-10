@@ -125,7 +125,7 @@ function Mail() {
                   </div>
                   {expandedMailIndices.includes(index) && (
                     <div className="mail-content">
-                      <p>{mail.description}</p>
+                      <p>{mail.content}</p>
                       <a
                         href="https://mail.centralelille.fr"
                         target="_blank"

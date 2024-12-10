@@ -17,7 +17,7 @@ class ZimbraService {
     const authString = Buffer.from(`${username}:${password}`).toString(
       "base64"
     );
-    const url = "https://mail.centralelille.fr/home/~/inbox.rss?auth=ba";
+    const url = "https://mail.centralelille.fr/home/~/inbox.json?auth=ba";
 
     try {
       const httpsAgent = new https.Agent({
@@ -33,7 +33,7 @@ class ZimbraService {
       });
 
       if (response.status === 200) {
-        return response.data; // Retourne le contenu RSS
+        return response.data; // Retourne le contenu JSON
       } else {
         console.error(
           `[ZimbraService] Échec de l'accès aux mails pour ${username}: Status ${response.status}`
@@ -65,27 +65,17 @@ class ZimbraService {
    * @param {string} xmlData - Données XML RSS des mails.
    * @returns {Promise<Array>} - Liste des mails.
    */
-  static async parseRSS(xmlData) {
-    try {
-      const parser = new xml2js.Parser();
-      const result = await parser.parseStringPromise(xmlData);
-      const items = result.rss.channel[0].item;
-
-      console.log(`[ZimbraService] Nombre d'emails récupérés: ${items.length}`);
-
-      return items.map((item) => ({
-        title: item.title[0],
-        description: item.description[0],
-        author: item.author[0],
-        pubDate: item.pubDate[0],
-      }));
-    } catch (error) {
-      console.error(
-        "[ZimbraService] Erreur lors du parsing du RSS:",
-        error.message
-      );
-      throw new Error("Erreur lors du parsing du RSS");
-    }
+  static async parseMails(jsonData) {
+    const mails = jsonData.m; // Récupérer le tableau de mails
+    return mails.map((mail) => ({
+      id: mail.id,
+      title: mail.su || "(Pas de sujet)",
+      description: mail.fr || "",
+      author: mail.e.find((e) => e.t === "f")?.p || "Inconnu",
+      pubDate: new Date(mail.d).toISOString(),
+      content: mail.fr || "",
+      // Ajouter d'autres champs si nécessaire
+    }));
   }
 
   /**
@@ -97,8 +87,8 @@ class ZimbraService {
     const decoded = Buffer.from(zimbraToken, "base64").toString("ascii");
     const [username, password] = decoded.split(":");
 
-    const xmlData = await this.authenticate(username, password);
-    const mails = await this.parseRSS(xmlData);
+    const jsonData = await this.authenticate(username, password);
+    const mails = await this.parseMails(jsonData);
     return mails;
   }
 

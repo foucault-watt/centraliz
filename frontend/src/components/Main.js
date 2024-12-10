@@ -11,6 +11,7 @@ function Main() {
   const [currentPosition, setCurrentPosition] = useState('center');
   const [isTyping, setIsTyping] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const isInputFocused = () => {
     const activeElement = document.activeElement;
@@ -51,12 +52,23 @@ function Main() {
     setCurrentPosition(newPosition);
   }, [currentPosition, isTyping, isBlocked, getNewPosition]); // Ajout de getNewPosition
 
-  const handlers = useSwipeable({
+  useEffect(() => {
+    const updateMedia = () => {
+      setIsDesktop(window.innerWidth > 768);
+    };
+    updateMedia();
+    window.addEventListener('resize', updateMedia);
+    return () => window.removeEventListener('resize', updateMedia);
+  }, []);
+
+  const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleNavigation('right'),
     onSwipedRight: () => handleNavigation('left'),
     preventDefaultTouchmoveEvent: true,
     trackMouse: true
   });
+
+  const handlers = isDesktop ? {} : swipeHandlers;
 
   useEffect(() => {
     const handleKeyPress = (e) => {

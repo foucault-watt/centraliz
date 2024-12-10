@@ -26,8 +26,8 @@ router.get("/check", authMiddleware, async (req, res) => {
 router.post("/auto-auth", authMiddleware, async (req, res) => {
   const username = req.session.user.userName;
   try {
-    const xmlData = await ZimbraService.authenticateWithStoredPassword(username);
-    const mails = await ZimbraService.parseRSS(xmlData);
+    const jsonData = await ZimbraService.authenticateWithStoredPassword(username);
+    const mails = await ZimbraService.parseMails(jsonData);
     req.session.zimbraToken = ZimbraService.getTokenFromUsername(username);
     res.json({ success: true, mails });
   } catch (error) {
@@ -49,8 +49,8 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 
   try {
-    const xmlData = await ZimbraService.authenticate(username, password);
-    const mails = await ZimbraService.parseRSS(xmlData);
+    const jsonData = await ZimbraService.authenticate(username, password);
+    const mails = await ZimbraService.parseMails(jsonData);
     req.session.zimbraToken = Buffer.from(`${username}:${password}`).toString("base64");
 
     if (rememberMe) {

@@ -6,7 +6,7 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
   const { userName } = useContext(UserContext);
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   useEffect(() => {
     const checkStoredPassword = async () => {

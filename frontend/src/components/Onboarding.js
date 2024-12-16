@@ -12,24 +12,24 @@ const Onboarding = ({ userName, onComplete }) => {
       icon: "👋",
     },
     {
+      title: "L'ENT c'est terminé !",
+      content: "Centraliz te permet de centraliser les outils de l'ENT au même endroit. Au revoir les interfaces veillotes et compliquées !",
+      icon: "🤦‍♂️",
+    },
+    {
       title: "Ton emploi du temps",
       content: "Fini Hyperplanning ! Visualise ton planning de cours dans une interface moderne et intuitive.",
       icon: "📅",
     },
     {
-      title: "Les événements du CLA",
-      content: "Ne rate plus aucun événement ! Retrouve tous les torchtôts, soirées et activités organisés par le CLA.",
+      title: "Les événements associatifs",
+      content: "Ne rate plus aucun événement ! Retrouve tous les torchtôts, soirées et activités organisés par les assos.",
       icon: "🎉",
     },
     {
       title: "Tes mails Zimbra",
-      content: "Consulte facilement tes mails importants de l'administration sans passer par Zimbra.",
+      content: "Consulte facilement et rapidement tes mails sans devoir passer par Zimbra.",
       icon: "📧",
-    },
-    {
-      title: "Progressive Web App",
-      content: "Tu peux installer Centraliz sur ton téléphone pour y accéder encore plus rapidement !",
-      icon: "📱",
     },
     {
       title: "Qui suis-je ?",

@@ -94,10 +94,6 @@ const CustomEvent = ({ event }) => (
 
 const HpCalendar = () => {
   const [icalData, setIcalData] = useState("");
-  const [icalLink, setIcalLink] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showLinkInput, setShowLinkInput] = useState(false);
-  const [linkError, setLinkError] = useState("");
   const [currentDate, setCurrentDate] = useState(getInitialDate());
   const { userName, displayName } = useContext(UserContext);
   const [showModal, setShowModal] = useState(false);
@@ -120,8 +116,6 @@ const HpCalendar = () => {
       setIcalData(data);
     } catch (error) {
       console.error("Erreur lors de la récupération du fichier iCal :", error);
-      setIsAuthenticated(false);
-      setShowLinkInput(true);
     }
   }, [userName]);
 
@@ -134,12 +128,7 @@ const HpCalendar = () => {
         const data = await response.json();
 
         if (data.exists) {
-          // User has already registered their calendar, fetch iCal data
-          setIsAuthenticated(true);
           fetchCalendarData();
-        } else {
-          // First-time user, show the input form for iCal link
-          setShowLinkInput(true);
         }
       } catch (error) {
         console.error("Erreur lors de la vérification de l'utilisateur:", error);
@@ -162,48 +151,6 @@ const HpCalendar = () => {
     }
     return [];
   }, [icalData]);
-
-  const handleSubmitLink = async (e) => {
-    e.preventDefault();
-    setLinkError("");
-
-    try {
-      const validationResponse = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/validate-ical`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ icalLink }),
-        }
-      );
-
-      const validationData = await validationResponse.json();
-
-      if (!validationData.isValid) {
-        setLinkError(
-          "Le lien fourni n'est pas un calendrier iCal valide. Veuillez réessayer."
-        );
-        return;
-      }
-
-      // Save the user's iCal link
-      await fetch(`${process.env.REACT_APP_URL_BACK}/api/save-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: userName, icalLink }),
-      });
-
-      setIsAuthenticated(true);
-      fetchCalendarData();
-    } catch (error) {
-      console.error("Erreur lors de l'enregistrement du lien:", error);
-      setLinkError("Une erreur est survenue. Veuillez réessayer.");
-    }
-  };
 
   const getNextWorkday = (date) => {
     const nextDay = moment(date).add(1, "days");
@@ -358,66 +305,6 @@ const HpCalendar = () => {
     }
     return stars;
   };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="auth-container">
-        {showLinkInput ? (
-          <form onSubmit={handleSubmitLink} className="auth-form">
-            <h2>C'est votre première visite !</h2>
-            <h3>
-              Cliquez{" "}
-              <a
-                href="https://planning.centralelille.fr"
-                target="_blank"
-                rel="noreferrer"
-                style={{ fontSize: "1.6rem" }}
-              >
-                ici
-              </a>{" "}
-              pour accéder à votre planning, puis copiez collez le lien ical
-            </h3>
-            <div className="ical-container">
-              <img
-                src={process.env.PUBLIC_URL + "/ical-link-mobile.png"}
-                className="ical-ico"
-                alt="Lien de votre calendrier"
-              />
-              <img
-                src={process.env.PUBLIC_URL + "/ical-link-destock.png"}
-                className="ical-ico"
-                alt="Lien de votre calendrier"
-              />
-            </div>
-            <a href="https://planning.centralelille.fr/" target="_blank" rel="noopener noreferrer">
-            <video
-              src={process.env.PUBLIC_URL + "/export-hp.mp4"}
-              className="tuto-export-hp"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </a>
-
-            <div className="input-group">
-              <input
-                type="text"
-                value={icalLink}
-                onChange={(e) => setIcalLink(e.target.value)}
-                placeholder="Collez le lien iCal ici"
-                required
-              />
-              {linkError && <div className="error-message">{linkError}</div>}
-            </div>
-            <button type="submit">Enregistrer</button>
-          </form>
-        ) : (
-          <div>Chargement...</div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="hp-calendar">

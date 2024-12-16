@@ -13,6 +13,10 @@
 
 Centraliz, le site indispensable pour que tu te concentres sur l’essentiel : apprendre et profiter de la vie étudiante. 🎓🎉
 
+## 📱 PWA
+
+Centraliz est maintenant une Progressive Web App (PWA). Tu peux l'installer sur ton appareil pour un accès rapide et une expérience utilisateur améliorée.
+
 ## 👤 Auteur
 
 - **Foucault Wattinne**  

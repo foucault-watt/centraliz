@@ -5,7 +5,7 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 0);  // Changé de 50 à 0
     };
 
     window.addEventListener('scroll', handleScroll);

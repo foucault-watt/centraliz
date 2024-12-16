@@ -1,0 +1,174 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  align-items: flex-start; // Changé de center à flex-start
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+  overflow-y: auto; // Ajout du scroll vertical
+  -webkit-overflow-scrolling: touch; // Meilleur scroll sur iOS
+}
+
+.onboarding-content {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  text-align: center;
+  animation: slideUp 0.5s ease-out;
+  margin: 2rem auto; // Ajoute une marge en haut et en bas
+
+  @media (min-width: 768px) {
+    padding: 2.5rem;
+  }
+}
+
+.onboarding-step {
+  .step-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: bounce 1s ease infinite;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    color: $main;
+    margin-bottom: 1rem;
+    
+    @media (min-width: 768px) {
+      font-size: 2rem;
+    }
+  }
+
+  p {
+    color: $second;
+    line-height: 1.6;
+    font-size: 1rem;
+    
+    @media (min-width: 768px) {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.tutorial-container {
+  margin: 1.5rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+
+  .tutorial-video {
+    width: 100%;
+    height: auto;
+    max-height: 70vh; // Limite la hauteur de la vidéo
+    object-fit: contain;
+    display: block;
+  }
+}
+
+.input-group {
+  margin-bottom: 1rem;
+
+  input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid rgba($main, 0.2);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: $main;
+      box-shadow: 0 0 0 4px rgba($main, 0.1);
+    }
+
+    &::placeholder {
+      color: rgba($second, 0.5);
+    }
+  }
+}
+
+.error-message {
+  color: $red;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: rgba($red, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  animation: shake 0.5s ease-in-out;
+}
+
+.submit-button, .next-button {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 12px;
+  background: $main;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba($main, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.steps-indicator {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+
+  .step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba($second, 0.2);
+    transition: all 0.3s ease;
+
+    &.active {
+      background: $main;
+      transform: scale(1.2);
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}

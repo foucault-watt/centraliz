@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from "react";
 import Header from "./components/Header.js";
 import Main from "./components/Main.js";
 import Footer from "./components/Footer.js";
+import Onboarding from "./components/Onboarding.js"; // Ajoutez cette ligne
 
 export const UserContext = createContext();
 
@@ -16,6 +17,7 @@ const App = () => {
   const [displayName, setDisplayName] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
     if (isBot()) {
@@ -36,6 +38,15 @@ const App = () => {
 
         setUserName(data.user.userName);
         setDisplayName(data.user.displayName);
+
+        // Vérifier si l'utilisateur a besoin de l'onboarding
+        if (data.authenticated) {
+          const calendarResponse = await fetch(
+            `${process.env.REACT_APP_URL_BACK}/api/check-user/${data.user.userName}`
+          );
+          const calendarData = await calendarResponse.json();
+          setNeedsOnboarding(!calendarData.exists);
+        }
 
       } catch (error) {
         console.error("Error checking auth status:", error);
@@ -71,11 +82,18 @@ const App = () => {
 
   return (
     <UserContext.Provider value={{ userName, displayName }}>
-      <div className="App">
-        <Header />
-        <Main />
-        <Footer />
-      </div>
+      {needsOnboarding ? (
+        <Onboarding 
+          userName={userName} 
+          onComplete={() => setNeedsOnboarding(false)} 
+        />
+      ) : (
+        <div className="App">
+          <Header />
+          <Main />
+          <Footer />
+        </div>
+      )}
     </UserContext.Provider>
   );
 };

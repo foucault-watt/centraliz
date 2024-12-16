@@ -12,16 +12,13 @@
 .rbc-event {
   background-color: $main !important;
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
   border-radius: 8px !important;
   padding: 6px !important;
   border: none !important;
 
   &:hover {
-    transform: translateY(-3px) scale(1.03) rotateX(2deg);
+    transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     z-index: 900;
   }
@@ -93,17 +90,16 @@
 
 // Ajout des animations pour les différents éléments du calendrier
 .hp-calendar {
+  position: relative; // Ajout de cette ligne
   // Animation d'entrée du calendrier
   animation: slideInFromBottom 0.6s ease-out;
 
   // Effet de survol sur les événements avec perspective
   .rbc-event {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backface-visibility: hidden;
-    transform-style: preserve-3d;
+    transition: all 0.3s ease;
 
     &:hover {
-      transform: translateY(-2px) scale(1.02) rotateX(2deg);
+      transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       z-index: 900; // Doit être inférieur au z-index du popup
     }
@@ -309,7 +305,7 @@
 
 /* Styles pour le popup personnalisé */
 .modal-overlay {
-  position: fixed;
+  position: absolute; // Changé de fixed à absolute
   top: 0;
   left: 0;
   width: 100%;

@@ -43,6 +43,12 @@ const Onboarding = ({ userName, onComplete }) => {
       icon: "👨‍💻",
     },
     {
+      title: "Centraliz en tant qu'app",
+      content:
+        "A tous moments tu peux cliquer sur le titre Centraliz pour installer l'application sur ton téléphone !",
+      icon: "📲",
+    },
+    {
       title: "Commençons !",
       content:
         "Pour commencer, va sur ton hyperplanning et copie le lien iCal en suivant le guide ci-dessous",

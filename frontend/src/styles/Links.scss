@@ -82,4 +82,10 @@
     width: 80%;
     height: auto;
   }
+
+  .liste-services span {
+    background-color: rgba($day, 0.95); // Fond plus opaque sur mobile
+    font-size: 12px; // Texte légèrement plus petit
+    padding: 3px 6px;
+  }
 }

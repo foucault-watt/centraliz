@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const services = [
   {
@@ -94,13 +94,36 @@ const ServiceItem = ({ service, active, onClick }) => (
 
 const Links = () => {
   const [activeIndex, setActiveIndex] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleClick = (index) => (e) => {
-    if (activeIndex === index) {
-      // ...existing code...
+    e.preventDefault(); // Empêche toujours la redirection par défaut
+    
+    if (isMobile) {
+      if (activeIndex === index) {
+        // Si déjà actif, ouvre dans un nouvel onglet
+        window.open(services[index].link, '_blank', 'noopener,noreferrer');
+      } else {
+        // Première fois qu'on clique, afficher le nom
+        setActiveIndex(index);
+        setTimeout(() => {
+          setActiveIndex(null);
+        }, 3000);
+      }
     } else {
-      e.preventDefault();
-      setActiveIndex(index);
+      // Sur PC, ouvre directement dans un nouvel onglet
+      window.open(services[index].link, '_blank', 'noopener,noreferrer');
     }
   };
 

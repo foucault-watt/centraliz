@@ -8,8 +8,37 @@ export const UserContext = createContext();
 
 const isBot = () => {
   const userAgent = navigator.userAgent.toLowerCase();
-  const botPattern = /bot|crawl|slurp|spider|mediapartners|google|bing|inspection/i;
-  return botPattern.test(userAgent);
+  console.log('Current UserAgent:', userAgent); // Aide au débogage
+  
+  const bingBotPatterns = [
+    'bingbot',
+    'msnbot',
+    'adidxbot',
+    'bingpreview'
+  ];
+  
+  const otherBotPatterns = [
+    'bot',
+    'crawl',
+    'spider',
+    'slurp',
+    'mediapartners',
+    'google'
+  ];
+  
+  // Vérifie d'abord spécifiquement les bots Bing
+  if (bingBotPatterns.some(pattern => userAgent.includes(pattern))) {
+    console.log('Bing bot detected');
+    return true;
+  }
+  
+  // Vérifie ensuite les autres patterns de bots
+  if (otherBotPatterns.some(pattern => userAgent.includes(pattern))) {
+    console.log('Other bot detected');
+    return true;
+  }
+  
+  return false;
 };
 
 const App = () => {

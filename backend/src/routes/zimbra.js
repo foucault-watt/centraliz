@@ -87,4 +87,26 @@ router.get("/mails", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * Route pour récupérer le contenu brut d'un mail
+ * GET /api/zimbra/mail/:id
+ */
+router.get("/mail/:id", authMiddleware, async (req, res) => {
+  const { zimbraToken } = req.session;
+  const username = req.session.user.userName;
+  const mailId = req.params.id;
+
+  if (!zimbraToken) {
+    return res.status(401).json({ error: "Accès au mail non autorisé" });
+  }
+
+  try {
+    const content = await ZimbraService.getRawMailContent(zimbraToken, mailId);
+    res.json({ content });
+  } catch (error) {
+    console.error(`[Zimbra Route] Erreur lors de la récupération du mail ${mailId}:`, error.message);
+    res.status(500).json({ error: "Erreur lors de la récupération du mail" });
+  }
+});
+
 module.exports = router;

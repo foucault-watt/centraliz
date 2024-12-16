@@ -5,6 +5,7 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const QuotedPrintable = require('quoted-printable'); // Importer le module
 
 class ZimbraService {
   /**
@@ -190,6 +191,37 @@ class ZimbraService {
     const encryptedPassword = this.getStoredPassword(email);
     const password = this.decryptPassword(email, encryptedPassword);
     return Buffer.from(`${username}:${password}`).toString("base64");
+  }
+
+  static async getRawMailContent(zimbraToken, mailId) {
+    const decoded = Buffer.from(zimbraToken, "base64").toString("ascii");
+    const [username, password] = decoded.split(":");
+    const url = `https://mail.centralelille.fr/home/~/inbox?id=${mailId}&fmt=raw`;
+
+    try {
+      const httpsAgent = new https.Agent({
+        rejectUnauthorized: false,
+      });
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Basic ${zimbraToken}`,
+        },
+        httpsAgent,
+        timeout: 10000,
+      });
+
+      if (response.status === 200) {
+        // Décoder le contenu quoted-printable
+        const decodedContent = QuotedPrintable.decode(response.data);
+        return decodedContent.toString('utf-8');
+      } else {
+        throw new Error("Échec de la récupération du contenu du mail");
+      }
+    } catch (error) {
+      console.error("[ZimbraService] Erreur lors de la récupération du contenu brut:", error.message);
+      throw error;
+    }
   }
 }
 

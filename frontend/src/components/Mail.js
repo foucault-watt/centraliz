@@ -16,6 +16,7 @@ function Mail() {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedMailIndices, setExpandedMailIndices] = useState([]);
   const [visibleMails, setVisibleMails] = useState(10); // Ajouter un état pour les mails visibles
+  const [mailContents, setMailContents] = useState({});
   const loader = useRef(null);
 
   const fetchMails = async () => {
@@ -55,6 +56,27 @@ function Mail() {
     }
   };
 
+  const fetchMailContent = async (mailId) => {
+    try {
+      console.log(`[Mail] Récupération du contenu du mail: ${mailId}`);
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/zimbra/mail/${mailId}`,
+        {
+          credentials: "include",
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setMailContents(prev => ({
+          ...prev,
+          [mailId]: data.content
+        }));
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du contenu du mail:", error);
+    }
+  };
+
   const loadMoreMails = useCallback(() => {
     if (visibleMails < allMails.length) {
       setVisibleMails((prev) => prev + 10); // Charger 10 mails supplémentaires
@@ -90,6 +112,26 @@ function Mail() {
     };
   }, [loadMoreMails]); // Assurez-vous que 'loadMoreMails' est bien dans les dépendances
 
+  const extractHtmlContent = (rawContent) => {
+    // Extrait le contenu entre les balises HTML
+    const match = rawContent.match(/<html[^>]*>([\s\S]*?)<\/html>/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+    // Si pas de balises HTML, retourner le contenu tel quel
+    return rawContent;
+  };
+
+  const extractHtmlFragment = (rawContent) => {
+    // Extrait le contenu entre <!--StartFragment--> et <!--EndFragment-->
+    const match = rawContent.match(/<!--StartFragment-->([\s\S]*?)<!--EndFragment-->/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+    // Si pas de fragments spécifiques, retourner le contenu entre les balises HTML
+    return extractHtmlContent(rawContent);
+  };
+
   return (
     <div>
       <h2 className="module-title">Vos derniers mails</h2>
@@ -115,6 +157,9 @@ function Mail() {
                       );
                     } else {
                       setExpandedMailIndices([...expandedMailIndices, index]);
+                      if (!mailContents[mail.id]) {
+                        fetchMailContent(mail.id);
+                      }
                     }
                   }}
                 >
@@ -125,9 +170,17 @@ function Mail() {
                   </div>
                   {expandedMailIndices.includes(index) && (
                     <div className="mail-content">
-                      <p>{mail.content}</p>
+                      {mailContents[mail.id] ? (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: extractHtmlFragment(mailContents[mail.id])
+                          }}
+                        />
+                      ) : (
+                        <p>Chargement du contenu...</p>
+                      )}
                       <a
-                        href="https://mail.centralelille.fr"
+                        href={`https://mail.centralelille.fr/h/search?action=view&id=${mail.id}`}
                         target="_blank"
                         rel="noreferrer"
                       >

@@ -18,7 +18,7 @@ const services = [
   },
   {
     name: "Moodle",
-    link: "https://moodle2425.centralelille.fr/",
+    link: "https://moodle2425.centralelille.fr/login/index.php?authCAS=CAS",
     image: process.env.PUBLIC_URL + "/links/moodle.png",
   },
   {

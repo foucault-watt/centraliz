@@ -177,14 +177,15 @@ function Mail() {
                           }}
                         />
                       ) : (
-                        <p>Chargement du contenu...</p>
+                        <div className="content-loading" />
                       )}
                       <a
-                        href={`https://mail.centralelille.fr/h/search?action=view&id=${mail.id}`}
+                        href={`https://mail.centralelille.fr/modern/email/Inbox/conversation/-${mail.id}`}
                         target="_blank"
                         rel="noreferrer"
+                        className="view-on-zimbra"
                       >
-                        <span className="view-on-zimbra">Voir sur Zimbra</span>
+                        Répondre sur Zimbra
                       </a>
                     </div>
                   )}

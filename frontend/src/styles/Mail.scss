@@ -132,7 +132,7 @@
 
     .view-on-zimbra {
       text-decoration: none !important;
-      margin-top: 8px;
+      margin-top: 12px;
       padding: 8px 15px;
       background-color: $main;
       color: white;
@@ -140,6 +140,7 @@
       border-radius: 6px;
       font-size: 1em;
       cursor: pointer;
+      display: inline-block;
       @include transition(background-color);
 
       &:hover {
@@ -187,6 +188,31 @@
   color: $second;
   padding: 20px;
   font-style: italic;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+// Animation pour le chargement du contenu
+.content-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+
+  &::after {
+    content: "";
+    width: 20px;
+    height: 20px;
+    border: 2px solid $main;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.6s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // En-tête des mails
@@ -213,10 +239,6 @@
   100% {
     opacity: 0.6;
   }
-}
-
-.loading {
-  animation: pulse 1.5s infinite ease-in-out;
 }
 
 $mail-count-max: 50;

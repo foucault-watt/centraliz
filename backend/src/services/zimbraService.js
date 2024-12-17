@@ -5,7 +5,7 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const QuotedPrintable = require('quoted-printable'); // Importer le module
+const { simpleParser } = require('mailparser'); // Importer le module mailparser
 
 class ZimbraService {
   /**
@@ -209,12 +209,14 @@ class ZimbraService {
         },
         httpsAgent,
         timeout: 10000,
+        responseType: 'stream', // Récupérer la réponse en tant que flux
       });
 
       if (response.status === 200) {
-        // Décoder le contenu quoted-printable
-        const decodedContent = QuotedPrintable.decode(response.data);
-        return decodedContent.toString('utf-8');
+        // Parser le mail pour extraire le contenu HTML
+        const parsedMail = await simpleParser(response.data);
+        const htmlContent = parsedMail.html || parsedMail.textAsHtml || parsedMail.text;
+        return htmlContent;
       } else {
         throw new Error("Échec de la récupération du contenu du mail");
       }

@@ -8,7 +8,7 @@
     "client": "file:",
     "crypto-js": "^4.2.0",
     "ical.js": "^2.1.0",
-    "lucide-react": "^0.453.0",
+    "lucide-react": "^0.454.0",
     "moment": "^2.30.1",
     "node-cas-authentication": "^0.0.15",
     "papaparse": "^5.4.1",

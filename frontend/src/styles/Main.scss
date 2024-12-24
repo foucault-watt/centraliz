@@ -1,6 +1,6 @@
 // Variables
 $border-radius: 25px;
-$gap: 25px;
+$gap: 20px;
 $transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 $shadow-default: 0 8px 20px rgba(0, 0, 0, 0.08);
 $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
@@ -428,7 +428,6 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ...existing code...
 
 .section-content {
   width: 100%;

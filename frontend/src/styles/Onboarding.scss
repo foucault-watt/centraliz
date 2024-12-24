@@ -3,7 +3,7 @@
   inset: 0;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
-  align-items: flex-start; // Changé de center à flex-start
+  align-items: center; // Changé de flex-start à center
   justify-content: center;
   padding: 1rem;
   z-index: 1000;
@@ -23,10 +23,18 @@
   gap: 2rem;
   text-align: center;
   animation: slideUp 0.5s ease-out;
-  margin: 2rem auto; // Ajoute une marge en haut et en bas
+  margin: auto; // Changé de '2rem auto' à 'auto' pour un centrage parfait
+  max-height: 90vh; // Ajout d'une hauteur maximale
+  overflow-y: auto; // Permet le défilement si le contenu est trop grand
 
   @media (min-width: 768px) {
     padding: 2.5rem;
+  }
+
+  @media (max-width: 768px) {
+    width: 90%; // Réduit légèrement la largeur sur mobile
+    margin: auto; // Assure le centrage sur mobile
+    padding: 1.5rem; // Réduit le padding sur mobile
   }
 }
 
@@ -67,7 +75,7 @@
   .tutorial-video {
     width: 100%;
     height: auto;
-    max-height: 70vh; // Limite la hauteur de la vidéo
+    max-height: 50vh; // Réduit la hauteur maximale de la vidéo pour éviter les problèmes sur mobile
     object-fit: contain;
     display: block;
   }

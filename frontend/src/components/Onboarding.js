@@ -37,16 +37,22 @@ const Onboarding = ({ userName, onComplete }) => {
       icon: "📧",
     },
     {
-      title: "Qui suis-je ?",
-      content:
-        "Je suis Foucault Wattinne, étudiant à l'ITEEM. J'ai créé Centraliz pour faciliter notre vie étudiante. Des suggestions ? Contacte-moi !",
-      icon: "👨‍💻",
-    },
-    {
       title: "Centraliz en tant qu'app",
       content:
         "A tous moments tu peux cliquer sur le titre Centraliz pour installer l'application sur ton téléphone !",
       icon: "📲",
+    },
+    {
+      title: "Qui suis-je ?",
+      content:
+        "Je suis Foucault Wattinne, étudiant à l'ITEEM. J'ai créé Centraliz pour nous faciliter la vie à centrale. ",
+      icon: "👨‍💻",
+    },
+    {
+      title: "Donne moi ton avis !",
+      content:
+        "Tu peux me laisser un feedback à tous moments en bas de la page !",
+      icon: "🫵",
     },
     {
       title: "Commençons !",

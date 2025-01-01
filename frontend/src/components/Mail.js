@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { UserContext } from "../App";
 import ZimbraAuth from "./ZimbraAuth";
+import DOMPurify from 'dompurify'; // Ajouter l'importation de DOMPurify
 
 function Mail() {
   const { userName } = useContext(UserContext);
@@ -112,24 +113,11 @@ function Mail() {
     };
   }, [loadMoreMails]); // Assurez-vous que 'loadMoreMails' est bien dans les dépendances
 
-  const extractHtmlContent = (rawContent) => {
-    // Extrait le contenu entre les balises HTML
-    const match = rawContent.match(/<html[^>]*>([\s\S]*?)<\/html>/i);
-    if (match && match[1]) {
-      return match[1];
-    }
-    // Si pas de balises HTML, retourner le contenu tel quel
-    return rawContent;
-  };
-
   const extractHtmlFragment = (rawContent) => {
     // Extrait le contenu entre <!--StartFragment--> et <!--EndFragment-->
     const match = rawContent.match(/<!--StartFragment-->([\s\S]*?)<!--EndFragment-->/i);
-    if (match && match[1]) {
-      return match[1];
-    }
-    // Si pas de fragments spécifiques, retourner le contenu entre les balises HTML
-    return extractHtmlContent(rawContent);
+    const fragment = match ? match[1] : rawContent;
+    return DOMPurify.sanitize(fragment, { FORBID_STYLE: true }); // Sanitiser le contenu
   };
 
   return (

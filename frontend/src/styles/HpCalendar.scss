@@ -316,7 +316,6 @@
   align-items: center;
   animation: fadeIn 0.3s ease-out;
   z-index: 1000; // Assure que le popup est au-dessus des autres éléments
-  backdrop-filter: blur(3px);
   border-radius: 22px;
 }
 
@@ -451,12 +450,318 @@
   .evaluation-notice {
     margin-top: 1rem;
     padding: 0.75rem;
+    background-color: rgba($second, 0.1);
+    border-left: 4px solid $second;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.95rem;
+    color: $second;
+  }
+
+  .evaluation-notice {
+    margin-top: 1rem;
+    padding: 0.75rem;
     background-color: rgba($green, 0.1);
     border-left: 4px solid $green;
     border-radius: 0 8px 8px 0;
     font-size: 0.95rem;
     color: darken($green, 10%);
   }
+
+  .required-notice {
+    color: $second;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+
+  .question {
+    animation: slideInUp 0.3s ease-out;
+    animation-fill-mode: both;
+    margin-bottom: 1.5rem;
+    
+    @for $i from 1 through 10 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.1}s;
+      }
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+      color: $second;
+
+      &.required {
+        color: $main;
+        font-weight: 600;
+      }
+    }
+
+    .likert-scale {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      
+      label {
+        flex: 1;
+        min-width: 120px;
+        padding: 0.75rem;
+        background: rgba($main, 0.05);
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: normal;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        &:hover {
+          background: rgba($main, 0.1);
+          transform: translateY(-2px);
+        }
+
+        input {
+          margin: 0;
+        }
+        
+        &:has(input:checked) {
+          background: $main;
+          color: white;
+          transform: scale(1.02);
+          box-shadow: 0 2px 8px rgba($main, 0.2);
+          animation: selectFade 0.2s ease-out;
+        }
+      }
+
+      &.horizontal {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0.5rem;
+        margin: 0 -0.5rem;
+        
+        &::-webkit-scrollbar {
+          height: 4px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: rgba($main, 0.05);
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: rgba($main, 0.2);
+          border-radius: 4px;
+        }
+
+        label {
+          flex: 0 0 auto;
+          margin: 0 0.25rem;
+          white-space: nowrap;
+          min-width: auto;
+          padding: 0.5rem 1rem;
+          
+          &:first-child {
+            margin-left: 0;
+          }
+          
+          &:last-child {
+            margin-right: 0;
+          }
+        }
+      }
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 1rem;
+      border: 2px solid rgba($second, 0.1);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      resize: vertical;
+      transition: all 0.3s ease;
+      
+      &:focus {
+        border-color: $main;
+        box-shadow: 0 0 0 3px rgba($main, 0.1);
+        outline: none;
+      }
+    }
+  }
+
+  .success-message {
+    background: rgba($green, 0.1);
+    color: $green;
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    margin: 1rem 0;
+    animation: fadeInScale 0.3s ease-out;
+  }
+
+  button.success {
+    background: $green;
+    pointer-events: none;
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-content.evaluation {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  
+  // Style du scroll
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba($main, 0.05);
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba($main, 0.2);
+    border-radius: 10px;
+    
+    &:hover {
+      background: rgba($main, 0.3);
+    }
+  }
+
+  .question {
+    animation: slideInUp 0.3s ease-out;
+    animation-fill-mode: both;
+    margin-bottom: 1.5rem;
+    
+    @for $i from 1 through 10 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.1}s;
+      }
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+      color: $second;
+    }
+
+    .likert-scale {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      
+      label {
+        flex: 1;
+        min-width: 120px;
+        padding: 0.75rem;
+        background: rgba($main, 0.05);
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: normal;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        &:hover {
+          background: rgba($main, 0.1);
+          transform: translateY(-2px);
+        }
+
+        input {
+          margin: 0;
+        }
+        
+        &:has(input:checked) {
+          background: $main;
+          color: white;
+          transform: scale(1.02);
+          box-shadow: 0 2px 8px rgba($main, 0.2);
+          animation: selectFade 0.2s ease-out;
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes selectFade {
+  from {
+    background: rgba($main, 0.1);
+    transform: scale(1);
+  }
+  to {
+    background: $main;
+    transform: scale(1.02);
+  }
+}
+
+// Mise à jour du style du bouton d'envoi
+.modal-content.evaluation button {
+  margin-top: 1.5rem;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, $main, darken($main, 10%));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba($main, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Style pour les messages d'erreur
+.error-message {
+  background: rgba($red, 0.1);
+  color: $red;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 .error-message {
@@ -475,11 +780,9 @@
 @keyframes fadeIn {
   from { 
     opacity: 0; 
-    backdrop-filter: blur(0);
   }
   to { 
     opacity: 1; 
-    backdrop-filter: blur(3px);
   }
 }
 

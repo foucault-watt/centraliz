@@ -1,0 +1,45 @@
+{
+  "groups": {
+    "IE1": {
+      "questions": [
+        {
+          "id": 1,
+          "type": "likert",
+          "required": true,
+          "text": "IE1 - Comment évaluez-vous la qualité globale de cet enseignement ?",
+          "options": [
+            "Très insatisfait",
+            "Insatisfait",
+            "Neutre",
+            "Satisfait",
+            "Très satisfait"
+          ]
+        }
+      ]
+    },
+    "IE2": {
+      "questions": [
+        {
+          "id": 1,
+          "type": "likert",
+          "required": true,
+          "text": "IE2 - Comment évaluez-vous la qualité globale de cet enseignement ?",
+          "options": [
+            "Très insatisfait",
+            "Insatisfait",
+            "Neutre",
+            "Satisfait",
+            "Très satisfait"
+          ]
+        },
+        {
+          "id": 2,
+          "type": "text",
+          "required": false,
+          "text": "Avez-vous des commentaires à ajouter ?",
+          "maxLength": 500
+        }
+      ]
+    }
+  }
+}

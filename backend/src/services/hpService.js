@@ -35,16 +35,15 @@ async function validateIcal(icalLink) {
 async function fetchHpData(userId) {
     try {
         const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
-        const userIcalLink = users[userId];
+        const user = users[userId];
         
-        if (!userIcalLink) {
-            throw new Error('Utilisateur non trouvé');
+        if (!user || !user.icalLink) {
+            throw new Error('Utilisateur non trouvé ou lien iCal manquant');
         }
 
-        const response = await axios.get(userIcalLink);
+        const response = await axios.get(user.icalLink);
         const data = response.data;
         
-        // Vérifie si les données ressemblent à un iCal
         if (typeof data === 'string' && 
             data.includes('BEGIN:VCALENDAR') && 
             data.includes('BEGIN:VEVENT')) {
@@ -68,6 +67,30 @@ function checkUser(userId) {
     }
 }
 
+function extractUserInfoFromIcal(icalData) {
+    try {
+        // Recherche la ligne X-WR-CALNAME qui contient les informations
+        const calNameLine = icalData.split('\n').find(line => line.startsWith('X-WR-CALNAME'));
+        if (!calNameLine) return null;
+
+        // Extrait la date de naissance (format: DD/MM/YYYY)
+        const birthDateMatch = calNameLine.match(/\d{2}\/\d{2}\/\d{4}/);
+        const birthDate = birthDateMatch ? birthDateMatch[0] : null;
+
+        // Extrait le groupe principal (premier groupe entre parenthèses)
+        const groupMatch = calNameLine.match(/\((.*?)(?:\s*-|,)/);
+        const group = groupMatch ? groupMatch[1].trim() : null;
+
+        return {
+            birthDate,
+            group
+        };
+    } catch (error) {
+        console.error("Erreur lors de l'extraction des informations:", error);
+        return null;
+    }
+}
+
 async function saveUser(userId, icalLink) {
     try {
         // Vérifie d'abord si le lien est valide
@@ -76,8 +99,28 @@ async function saveUser(userId, icalLink) {
             throw new Error('Lien iCal invalide');
         }
 
+        // Récupère le contenu du fichier iCal pour extraire les informations
+        const response = await axios.get(icalLink);
+        const icalData = response.data;
+        const userInfo = extractUserInfoFromIcal(icalData);
+
         const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
-        users[userId] = icalLink;
+        if (!users[userId]) {
+            users[userId] = {
+                userName: userId,
+                displayName: null,
+                icalLink: null,
+                birthDate: null,
+                group: null
+            };
+        }
+        
+        users[userId].icalLink = icalLink;
+        if (userInfo) {
+            users[userId].birthDate = userInfo.birthDate;
+            users[userId].group = userInfo.group;
+        }
+
         fs.writeFileSync(USER_DATA_FILE, JSON.stringify(users, null, 2));
         return { success: true };
     } catch (error) {

@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { ArrowLeft, ArrowRight, Undo2, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Undo2} from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
 import React, { useContext, useEffect, useState, useCallback, useMemo } from "react";
@@ -99,10 +99,20 @@ const HpCalendar = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
   const [hasEvaluated, setHasEvaluated] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [evaluationConfig, setEvaluationConfig] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedEvent(null);
+    setShowEvaluationModal(false);
+    setAnswers({});
+    setErrorMessage("");
+    setSubmitSuccess(false);
+  };
 
   const fetchCalendarData = useCallback(async () => {
     try {
@@ -139,6 +149,28 @@ const HpCalendar = () => {
       checkExistingCalendar();
     }
   }, [userName, fetchCalendarData]);
+
+  useEffect(() => {
+    const fetchEvaluationConfig = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_URL_BACK}/api/eva/config?userName=${userName}`
+        );
+        if (!response.ok) {
+          throw new Error("Configuration non disponible");
+        }
+        const data = await response.json();
+        setEvaluationConfig(data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la configuration:", error);
+        setErrorMessage("Configuration d'évaluation non disponible");
+      }
+    };
+
+    if (userName) {
+      fetchEvaluationConfig();
+    }
+  }, [userName]);
 
   const events = useMemo(() => {
     if (icalData) {
@@ -215,10 +247,13 @@ const HpCalendar = () => {
   };
 
   const handleSelectEvent = async (event) => {
+    setAnswers({});
+    setErrorMessage("");
+    setSubmitSuccess(false);
+    
     setSelectedEvent(event);
-    // Supprimer la condition pour tous les événements
     try {
-      const cleanTitle = event.title.split('\n')[0];  // Prendre uniquement la première partie
+      const cleanTitle = event.title.split('\n')[0];
       const response = await fetch(
         `${process.env.REACT_APP_URL_BACK}/api/eva/check?userName=${displayName}&eventTitle=${encodeURIComponent(
           cleanTitle
@@ -232,78 +267,85 @@ const HpCalendar = () => {
     setShowModal(true);
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedEvent(null);
+  const handleEvaluate = () => {
+    if (!hasEvaluated) {
+      // Vérifier d'abord si une configuration existe pour le groupe
+      fetch(`${process.env.REACT_APP_URL_BACK}/api/eva/config?userName=${userName}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Pas de configuration disponible pour votre groupe');
+          }
+          return response.json();
+        })
+        .then(config => {
+          if (config && config.questions && config.questions.length > 0) {
+            setAnswers({});
+            setErrorMessage("");
+            setSubmitSuccess(false);
+            setShowEvaluationModal(true);
+            setShowModal(false);
+          } else {
+            setErrorMessage("L'évaluation n'est pas disponible pour votre groupe");
+          }
+        })
+        .catch(error => {
+          setErrorMessage(error.message);
+        });
+    }
   };
 
-  const handleEvaluate = async () => {
-    if (hasEvaluated) {
-      try {
-        const cleanTitle = selectedEvent.title.split('\n')[0];
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/eva/get?userName=${displayName}&eventTitle=${encodeURIComponent(
-            cleanTitle
-          )}`
-        );
-        const data = await response.json();
-        setRating(data.rating);
-        setComment(data.comment);
-      } catch (error) {
-        console.error("Erreur lors de la récupération:", error);
-      }
-    } else {
-      setRating(0);
-      setComment("");
+  const handleAnswerChange = (questionId, value, maxLength) => {
+    if (typeof value === 'string' && maxLength) {
+      value = value.substring(0, maxLength);
     }
-    setShowEvaluationModal(true);
-    setShowModal(false);
+    
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
   };
 
   const submitEvaluation = async () => {
-    if (rating === 0) {
-      setErrorMessage("Veuillez sélectionner au moins une étoile.");
+    const missingRequired = evaluationConfig.questions
+      .filter(q => q.required)
+      .some(q => !answers[q.id]);
+
+    if (missingRequired) {
+      setErrorMessage("Les questions marquées d'un * sont obligatoires");
       return;
     }
 
     const cleanTitle = selectedEvent.title.split('\n')[0];
   
     try {
-      await fetch(`${process.env.REACT_APP_URL_BACK}/api/eva`, {
+      const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/eva`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userName: displayName,
+          userName: displayName, // On envoie le displayName
           eventTitle: cleanTitle,
-          rating,
-          comment,
+          answers
         }),
       });
-      setShowEvaluationModal(false);
-      setErrorMessage("");
-    } catch (error) {
-      console.error("Erreur lors de l'envoi de l'évaluation:", error);
-      setErrorMessage("Une erreur est survenue. Veuillez réessayer.");
-    }
-  };
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erreur lors de l'envoi");
+      }
 
-  const renderStars = () => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <Star
-          key={i}
-          onClick={() => setRating(i)}
-          className={i <= rating ? 'active' : ''}
-          fill={i <= rating ? "#FFD700" : "none"}
-          stroke={i <= rating ? "#FFD700" : "#000"}
-          style={{ cursor: "pointer" }}
-        />
-      );
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        setShowEvaluationModal(false);
+        setErrorMessage("");
+        setAnswers({});
+        setSubmitSuccess(false);
+      }, 1500);
+
+    } catch (error) {
+      setErrorMessage(error.message || "Une erreur est survenue. Veuillez réessayer.");
     }
-    return stars;
   };
 
   return (
@@ -339,30 +381,67 @@ const HpCalendar = () => {
                 <b>{selectedEvent.location}</b>
               </div>
             )}
-            {hasEvaluated && (
-              <div>Vous avez déjà évalué cet enseignement.</div>
+            {errorMessage ? (
+              <div className="error-message">{errorMessage}</div>
+            ) : hasEvaluated ? (
+              <div className="evaluation-notice">
+                Vous avez déjà évalué cet enseignement
+              </div>
+            ) : (
+              <button onClick={handleEvaluate}>Évaluer</button>
             )}
-            <button onClick={handleEvaluate}>
-              {hasEvaluated ? "Modifier votre évaluation" : "Évaluer"}
-            </button>
             <button onClick={closeModal}>Fermer</button>
           </div>
         </div>
       )}
-      {showEvaluationModal && (
-        <div className="modal-overlay" onClick={() => setShowEvaluationModal(false)}>
+      {showEvaluationModal && evaluationConfig && (
+        <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content evaluation" onClick={(e) => e.stopPropagation()}>
-            <h2>Noter l'enseignement</h2>
-            <div className="rating">
-              {renderStars()}
-            </div>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Laisser un commentaire"
-            />
+            <h2>Évaluation de l'enseignement</h2>
+            <div className="required-notice">* Questions obligatoires</div>
+            {evaluationConfig.questions.map(question => (
+              <div key={question.id} className="question">
+                <label className={question.required ? 'required' : ''}>
+                  {question.text}
+                  {question.required && ' *'}
+                </label>
+                {question.type === 'likert' ? (
+                  <div className="likert-scale horizontal">
+                    {question.options.map((option, index) => (
+                      <label key={index}>
+                        <input
+                          type="radio"
+                          name={`question_${question.id}`}
+                          value={index}
+                          onChange={() => handleAnswerChange(question.id, index)}
+                          checked={answers[question.id] === index}
+                        />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <textarea
+                    maxLength={question.maxLength}
+                    value={answers[question.id] || ''}
+                    onChange={(e) => handleAnswerChange(question.id, e.target.value, question.maxLength)}
+                    placeholder={`Votre réponse... ${question.required ? '(obligatoire)' : '(optionnel)'} (${question.maxLength} caractères max)`}
+                  />
+                )}
+              </div>
+            ))}
             {errorMessage && <div className="error-message">{errorMessage}</div>}
-            <button onClick={submitEvaluation}>Envoyer</button>
+            {submitSuccess && (
+              <div className="success-message">
+                ✓ Évaluation enregistrée avec succès !
+              </div>
+            )}
+            <button 
+              onClick={submitEvaluation}
+              className={submitSuccess ? 'success' : ''}
+            >
+              {submitSuccess ? '✓ Envoyé' : 'Envoyer'}
+            </button>
           </div>
         </div>
       )}

@@ -1,0 +1,233 @@
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%);
+  
+  .login-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center; // Centrer les éléments horizontalement
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    
+    .login-logo {
+      width: 180px;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: $main;
+      margin-bottom: 1rem;
+    }
+
+    .lead {
+      font-size: 1.2rem;
+      color: $second;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+  }
+
+  .login-button {
+    padding: 1.5rem 3rem; // Augmentation des paddings
+    font-size: 1.4rem; // Augmentation de la taille de la police
+    background: linear-gradient(135deg, $main, lighten($main, 10%)); // Dégradé de fond
+    color: white;
+    border: none;
+    border-radius: 30px; // Arrondir davantage les coins
+    cursor: pointer;
+    transition: $transition;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); // Ombre plus prononcée
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    min-width: 320px; // Augmentation de la largeur minimale
+    justify-content: center;
+
+    &:hover {
+      transform: translateY(-4px); // Effet de surélévation
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2); // Ombre plus forte au survol
+      background: linear-gradient(135deg, darken($main, 5%), lighten($main, 15%)); // Dégradé modifié au survol
+    }
+  }
+
+  .login-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+
+    .features {
+      margin-bottom: 4rem;
+
+      h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: $main;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+
+      .feature-card {
+        @extend %card;
+        padding: 2rem;
+        text-align: center;
+
+        h3 {
+          color: $main;
+          margin-bottom: 1rem;
+        }
+
+        p {
+          color: $second;
+        }
+      }
+    }
+
+    .benefits {
+      margin: 4rem 0;
+      
+      .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+      }
+    
+      .benefit-card {
+        @extend %card;
+        padding: 2rem;
+        text-align: center;
+        background: white;
+      }
+    }
+
+    .latest-features {
+      background: linear-gradient(135deg, rgba($main, 0.05) 0%, rgba($main, 0.1) 100%);
+      padding: 4rem 2rem;
+      margin: 4rem -2rem;
+    
+      .latest-features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+    
+      .latest-feature-card {
+        @extend %card;
+        background: white;
+        padding: 2rem;
+        text-align: center;
+      }
+    }
+
+    .community {
+      text-align: center;
+      padding: 4rem 0;
+    
+      .community-text {
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        color: $second;
+      }
+    
+      .community-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        
+        .github-link {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0.8rem 1.5rem;
+          background: #24292e;
+          color: white;
+          border-radius: $border-radius;
+          text-decoration: none;
+          transition: $transition;
+    
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: $shadow-hover;
+          }
+        }
+      }
+    }
+  }
+
+  .login-footer {
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    color: $second;
+    
+    .heart-icon {
+      color: #ff4d4d;
+      animation: heartbeat 1.5s ease infinite;
+    }
+  
+    .footer-links {
+      margin-top: 1rem;
+      
+      a {
+        color: $second;
+        text-decoration: none;
+        transition: color 0.3s ease;
+  
+        &:hover {
+          color: $main;
+        }
+      }
+  
+      .separator {
+        margin: 0 10px;
+        color: $second;
+      }
+    }
+  }
+}
+
+.feature-icon, .benefit-icon {
+  color: $main;
+  margin-bottom: 1rem;
+  width: 32px;
+  height: 32px;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    .login-header {
+      padding: 2rem 1rem;
+
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .latest-features {
+      padding: 2rem 1rem;
+      margin: 2rem -1rem;
+    }
+
+    .community {
+      padding: 2rem 0;
+    }
+  }
+}

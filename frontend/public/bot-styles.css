@@ -1,0 +1,35 @@
+:root {
+  --primary-color: #1a73e8;
+  --text-color: #333;
+  --background-color: #fff;
+}
+
+body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Mobile first */
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  .social-buttons {
+    flex-direction: column;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .features-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}

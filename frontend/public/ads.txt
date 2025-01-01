@@ -1,0 +1,2 @@
+# Centraliz Ads.txt
+contact=support@centraliz.rezoleo.fr

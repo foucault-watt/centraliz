@@ -6,7 +6,6 @@
   "dependencies": {
     "axios": "^1.7.8",
     "client": "file:",
-    "crypto-js": "^4.2.0",
     "dompurify": "^3.2.3",
     "ical.js": "^2.1.0",
     "lucide-react": "^0.453.0",
@@ -14,8 +13,6 @@
     "node-cas-authentication": "^0.0.15",
     "papaparse": "^5.4.1",
     "react": "^18.3.1",
-    "react-big-calendar": "^1.15.0",
-    "react-calendar": "^5.1.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.1",
     "react-scripts": "^5.0.1",
@@ -24,8 +21,8 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "set REACT_APP_URL_BACK=http://localhost:3001&& react-scripts start",
+    "build": "set REACT_APP_URL_BACK=https://centraliz.rezoleo.fr&& react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

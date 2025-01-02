@@ -130,7 +130,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
 %card {
   border-radius: $border-radius;
-  padding: 25px;
+  padding: 15px;
   box-shadow: $shadow-default;
   transition: $transition;
 
@@ -433,6 +433,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  padding-top: 30px !important;
   padding: $gap;
 }
 

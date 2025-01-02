@@ -122,13 +122,14 @@
 
   // Colonne des heures
   .time-column {
-    min-width: 60px;
+    min-width: 60px; // Augmenter la largeur pour mieux afficher les heures
     border-right: 1px solid rgba($second, 0.1);
     background: rgba($main, 0.02);
     z-index: 2;
 
     .corner-header {
       height: 30px; // Réduit de 40px
+      border-bottom: 1px solid rgba($second, 0.1);
     }
 
     .time-slot {
@@ -138,7 +139,9 @@
       justify-content: center;
       border-bottom: 1px solid rgba($second, 0.1);
       color: $second;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0 0.5rem;
     }
   }
 
@@ -176,9 +179,9 @@
     position: absolute;
     left: 2px;
     right: 2px;
-    margin: 1px;
+    margin: 0;
     padding: 4px;
-    border-radius: 10px;
+    border-radius: 6px;
     background-color: $main;
     color: white;
     cursor: pointer;
@@ -192,7 +195,7 @@
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
     font-weight: 500;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-height: 42px;
+    min-height: 20px; // Réduire la hauteur minimale
 
     &:hover {
       transform: translateY(-1px);
@@ -201,12 +204,12 @@
     }
 
     .event-title {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       line-height: 1.2;
       width: 100%;
       text-align: center;
-      font-weight: 600;
-      margin-bottom: 1px;
+      font-weight: 700; // Plus gras
+      margin-bottom: 2px;
       padding: 0 4px;
       display: -webkit-box;
       -webkit-box-orient: vertical;
@@ -214,50 +217,56 @@
       text-overflow: ellipsis;
       -webkit-line-clamp: 2;
       line-clamp: 2;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     }
 
     .event-type {
-      font-size: 0.75rem;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 1px 6px;
-      border-radius: 3px;
+      font-size: 0.8rem;
+      padding: 1px 0;
       margin: 1px 0;
       max-width: 95%;
+      opacity: 0.9;
+      font-weight: 500;
     }
 
     .event-professor {
       font-size: 0.75rem;
       font-style: italic;
-      opacity: 0.9;
+      opacity: 0.85;
       text-align: center;
       width: 100%;
       padding: 1px 4px;
     }
 
     .event-location {
-      font-size: 0.7rem;
-      background: rgba(0, 0, 0, 0.2);
-      padding: 1px 6px;
-      border-radius: 3px;
+      font-size: 0.6rem;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 2px 8px;
+      border-radius: 4px;
       max-width: 95%;
+      font-weight: 600;
+      margin: 2px 0;
+      letter-spacing: 0.2px;
     }
 
     // Gestion des événements courts
     &[style*="height: calc(100% - 2px)"] {
       .event-professor,
-      .event-location,
       .event-type {
         display: none;
       }
 
-      .event-title {
+      .event-title,
+      .event-location {
         font-size: 0.75rem;
+        margin: 0;
+        -webkit-line-clamp: 1;
       }
     }
 
     // Gestion des événements moyens
     &[style*="height: calc(200% - 2px)"] {
-      .event-location {
+      .event-professor {
         display: none;
       }
     }
@@ -631,10 +640,11 @@
 
     .calendar-grid {
       .time-column {
-        min-width: 40px;
+        min-width: 50px;
         
         .time-slot {
-          font-size: 1rem;
+          font-size: 0.75rem;
+          padding: 0 0.25rem;
         }
       }
 

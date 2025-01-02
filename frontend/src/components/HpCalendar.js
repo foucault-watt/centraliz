@@ -9,7 +9,7 @@ moment.locale("fr");
 
 // Fonction utilitaire pour formater l'heure
 const formatHour = (hour) => {
-  return `${hour}:00`;
+  return `${hour.toString().padStart(2, '0')}h`;
 };
 
 const parseICal = (icalData) => {
@@ -307,7 +307,7 @@ const HpCalendar = () => {
   };
 
   // Générer les heures de la journée (8h à 18h)
-  const hours = Array.from({ length: 10 }, (_, i) => i + 8);
+  const hours = Array.from({ length: 10 }, (_, i) => i + 8); // De 8h à 19h
 
   // Modifier la génération des jours de la semaine
   const weekDays = Array.from({ length: 5 }, (_, i) => 
@@ -330,28 +330,27 @@ const HpCalendar = () => {
     return events.filter(event => {
       const eventStart = moment(event.start);
       const eventEnd = moment(event.end);
-      const cellStart = moment(day).hour(hour);
-      const cellEnd = moment(day).hour(hour + 1);
+      const cellStart = moment(day).hour(hour).minute(0);
+      const cellEnd = moment(day).hour(hour + 1).minute(0);
 
-      // Un événement est dans la cellule si :
-      // - il commence dans cette cellule
-      // - OU il a commencé avant mais n'est pas encore fini
-      return eventStart.isSame(cellStart, 'hour') ||
-             (eventStart.isBefore(cellEnd) && eventEnd.isAfter(cellStart));
+      return eventStart.isBefore(cellEnd) && eventEnd.isAfter(cellStart);
     }).map(event => {
       const eventStart = moment(event.start);
       const eventEnd = moment(event.end);
-      const duration = eventEnd.diff(eventStart, 'hours');
       
-      // Calculer la position et la taille de l'événement
-      const startHour = eventStart.hour();
-      const topOffset = (startHour === hour) ? 0 : -((hour - startHour) * 100);
+      // Calculer la position avec précision en tenant compte des minutes
+      const startHour = eventStart.hour() + (eventStart.minute() / 60);
+      const endHour = eventEnd.hour() + (eventEnd.minute() / 60);
+      const duration = endHour - startHour;
+      
+      // Calculer le décalage en pourcentage basé sur les minutes
+      const topOffset = ((startHour - hour) * 100);
       
       return {
         ...event,
         duration,
         topOffset,
-        isStart: startHour === hour
+        isStart: Math.floor(startHour) === hour
       };
     });
   };
@@ -377,9 +376,9 @@ const HpCalendar = () => {
               <div className="event-title">
                 {event.title}
               </div>
+              {event.location && <div className="event-location">{event.location}</div>}
               {event.courseType && <div className="event-type">{event.courseType}</div>}
               {event.professor && <div className="event-professor">{event.professor}</div>}
-              {event.location && <div className="event-location">{event.location}</div>}
             </div>
           ))}
         </div>

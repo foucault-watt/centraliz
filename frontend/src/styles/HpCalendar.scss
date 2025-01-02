@@ -208,6 +208,12 @@
       font-weight: 600;
       margin-bottom: 1px;
       padding: 0 4px;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
 
     .event-type {

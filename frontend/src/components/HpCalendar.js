@@ -59,7 +59,19 @@ const parseICal = (icalData) => {
 
 const HpCalendar = () => {
   const [icalData, setIcalData] = useState("");
-  const [currentDate, setCurrentDate] = useState(moment().startOf('week').add(1, 'day'));
+  const [currentDate, setCurrentDate] = useState(() => {
+    const today = moment();
+    // Sur mobile, on commence par le jour actuel
+    if (window.innerWidth < 768) {
+      // Si c'est un weekend, on va au prochain jour ouvré
+      while (today.day() === 0 || today.day() === 6) {
+        today.add(1, 'day');
+      }
+      return today;
+    }
+    // Sur desktop, on garde le comportement existant
+    return moment().startOf('week').add(1, 'day');
+  });
   const { userName, displayName } = useContext(UserContext);
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);

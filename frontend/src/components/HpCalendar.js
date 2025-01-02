@@ -376,11 +376,30 @@ const HpCalendar = () => {
   );
 
   const navigateWeek = (direction) => {
-    setCurrentDate(prev => 
-      direction === 'next' 
-        ? moment(prev).add(1, 'week')
-        : moment(prev).subtract(1, 'week')
-    );
+    if (isMobile) {
+      // Navigation quotidienne sur mobile (sans weekends)
+      setCurrentDate(prev => {
+        let newDate = direction === 'next' 
+          ? moment(prev).add(1, 'day')
+          : moment(prev).subtract(1, 'day');
+        
+        // Si le nouveau jour est un weekend, on continue jusqu'au prochain jour ouvré
+        while (newDate.day() === 0 || newDate.day() === 6) {
+          newDate = direction === 'next'
+            ? newDate.add(1, 'day')
+            : newDate.subtract(1, 'day');
+        }
+        
+        return newDate;
+      });
+    } else {
+      // Navigation hebdomadaire sur desktop (comportement existant)
+      setCurrentDate(prev => 
+        direction === 'next' 
+          ? moment(prev).add(1, 'week')
+          : moment(prev).subtract(1, 'week')
+      );
+    }
   };
 
   const handleMonthSelect = (monthOffset) => {
@@ -389,7 +408,20 @@ const HpCalendar = () => {
   };
 
   const goToToday = () => {
-    setCurrentDate(moment().startOf('week').add(1, 'day'));
+    let today = moment();
+    
+    // Si on est sur mobile et que c'est un weekend
+    if (isMobile && (today.day() === 0 || today.day() === 6)) {
+      // On va au prochain lundi
+      while (today.day() === 0 || today.day() === 6) {
+        today.add(1, 'day');
+      }
+    } else if (!isMobile) {
+      // Sur desktop, on reste sur le comportement existant
+      today = today.startOf('week').add(1, 'day');
+    }
+    
+    setCurrentDate(today);
   };
 
   return (

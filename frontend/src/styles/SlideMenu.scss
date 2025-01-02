@@ -1,0 +1,308 @@
+.slide-menu {
+  &__overlay {
+    backdrop-filter: blur(3px);
+    transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
+  }
+
+  &__content {
+    box-shadow: -4px 0 6px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(
+      to bottom,
+      lighten($background, 3%),
+      $background
+    );
+    border-left: 1px solid rgba($main, 0.1);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba($main, 0.1),
+        transparent
+      );
+    }
+
+    h3 {
+      color: $main;
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1.5rem;
+      position: relative;
+
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -0.5rem;
+        width: 30px;
+        height: 2px;
+        background-color: rgba($main, 0.5);
+        transition: width 0.3s ease;
+      }
+
+      &:hover::after {
+        width: 50px;
+      }
+    }
+  }
+
+  &__main {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1rem;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      background-color: rgba($main, 0.1);
+      color: $second;
+      transition: all 0.3s ease;
+      border: 1px solid rgba($main, 0.05);
+      position: relative;
+      overflow: hidden;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          transparent,
+          rgba($main, 0.05)
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      &:hover::after {
+        opacity: 1;
+      }
+
+      &:hover {
+        background-color: rgba($main, 0.2);
+        transform: translateX(10px);
+      }
+
+      svg {
+        transition: transform 0.3s ease;
+      }
+
+      &:hover svg {
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  &__section {
+    animation: fadeIn 0.3s ease-out;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba($main, 0.02);
+    border: 1px solid rgba($main, 0.05);
+    margin-top: 2rem !important;
+    margin: 1rem;
+
+    p {
+      line-height: 1.5;
+      color: rgba($second, 0.9);
+      font-size: 0.85rem;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid rgba($main, 0.2);
+      border-radius: 8px;
+      background-color: rgba($main, 0.1);
+      color: $second;
+      min-height: 100px;
+      font-size: 0.9rem;
+      resize: vertical;
+      margin-bottom: 1rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &::placeholder {
+        color: rgba($second, 0.6);
+      }
+
+      &:hover {
+        background-color: rgba($main, 0.15);
+        border-color: rgba($main, 0.3);
+      }
+
+      &:focus {
+        border-color: rgba($main, 0.6);
+        outline: none;
+        background-color: rgba($main, 0.2);
+        box-shadow: 0 0 0 2px rgba($main, 0.1);
+      }
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+
+      a {
+        padding: 0.4rem;
+        border-radius: 50%;
+        background-color: rgba($main, 0.1);
+        color: $second;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background-color: rgba($main, 0.2);
+          color: white;
+          transform: translateY(-2px);
+        }
+      }
+    }
+
+    a {
+      color: $second;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      position: relative;
+      font-size: 0.85rem;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        bottom: -1px;
+        left: 0;
+        background-color: $second;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+      }
+
+      &:hover::after {
+        transform: scaleX(1);
+      }
+    }
+
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: rgba($main, 0.2);
+      border: 1px solid rgba($main, 0.1);
+      border-radius: 8px;
+      color: $second;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          45deg,
+          transparent,
+          rgba($main, 0.1),
+          transparent
+        );
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+      }
+
+      &:hover {
+        background-color: rgba($main, 0.3);
+        transform: translateY(-2px);
+      }
+
+      &:hover::after {
+        transform: translateX(100%);
+      }
+    }
+
+    .status-message {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: 8px;
+      background-color: rgba($main, 0.15);
+      text-align: center;
+      font-size: 0.9rem;
+      color: $second;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+
+  &__back {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    color: $second;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba($main, 0.1);
+    }
+  }
+
+  &__close {
+    color: $second;
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    padding: 0.5rem;
+
+    &:hover {
+      background: rgba($main, 0.1);
+      transform: rotate(90deg);
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

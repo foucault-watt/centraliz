@@ -100,6 +100,58 @@
   }
 }
 
+.header__menu-button {
+  position: absolute;
+  left: 1.5rem;
+  background: none;
+  border: none;
+  color: $day;
+  padding: 0.8rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  svg {
+    width: 28px;
+    height: 28px;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover svg {
+    transform: scale(1.1);
+  }
+
+  @media (max-width: 767px) {
+    left: 0.8rem;
+    padding: 0.6rem;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  @media (max-width: 375px) {
+    left: 0.5rem;
+    padding: 0.5rem;
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+}
+
 .install-popup {
   position: fixed;
   top: 0;

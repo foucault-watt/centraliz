@@ -1,7 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 import Header from "./components/Header.js";
 import Main from "./components/Main.js";
-import Footer from "./components/Footer.js";
 import Onboarding from "./components/Onboarding.js"; // Ajoutez cette ligne
 import LoginPage from "./components/LoginPage.js"; // Ajoutez cette ligne
 
@@ -112,7 +111,7 @@ const App = () => {
         <div className="App">
           <Header />
           <Main />
-          <Footer />
+          {/* Suppression du Footer */}
         </div>
       )}
     </UserContext.Provider>

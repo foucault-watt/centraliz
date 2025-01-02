@@ -62,6 +62,26 @@ const services = [
     image: process.env.PUBLIC_URL + "/links/bds.png",
   },
   {
+    name: "ENI",
+    link: "http://ressources-electroniques.univ-lille.fr/login?url=https://www.eni-training.com/cs/univ-lille/",
+    image: process.env.PUBLIC_URL + "/links/eni.png",
+  },
+  {
+    name: "Europresse",
+    link: "https://ressources-electroniques.univ-lille.fr/login?url=http://nouveau.europresse.com/access/ip/default.aspx?un=TourcoingT_1/",
+    image: process.env.PUBLIC_URL + "/links/europresse.jpg",
+  },
+  {
+    name: "File Sender",
+    link: "https://filesender.renater.fr/index.php?s=upload/",
+    image: process.env.PUBLIC_URL + "/links/file-sender.jpg",
+  },
+  {
+    name: "Next Cloud",
+    link: "https://nextcloud.centralelille.fr/",
+    image: process.env.PUBLIC_URL + "/links/nextcloud.jpeg",
+  },
+  {
     name: "Pain'Gouin",
     link: "https://paingouin.rezoleo.fr/",
     image: process.env.PUBLIC_URL + "/links/paingouin.png",
@@ -72,6 +92,11 @@ const services = [
     image: process.env.PUBLIC_URL + "/links/eclosion.png",
   },
   {
+    name: "Absinthe",
+    link: "https://absinthe.rezoleo.fr/",
+    image: process.env.PUBLIC_URL + "/links/absinthe.svg",
+  },
+  {
     name: "My'Iteem",
     link: "https://myiteem.fr/",
     image: process.env.PUBLIC_URL + "/links/myiteem.png",
@@ -80,6 +105,21 @@ const services = [
     name: "Le Clap",
     link: "https://le-clap.fr/",
     image: process.env.PUBLIC_URL + "/links/clap.png",
+  },
+  {
+    name: "Centr'All Games",
+    link: "https://centrallgames.rezoleo.fr/",
+    image: process.env.PUBLIC_URL + "/links/cag.png",
+  },
+  {
+    name: "Rézoléo",
+    link: "https://rezoleo.fr/",
+    image: process.env.PUBLIC_URL + "/links/rezoleo.png",
+  },
+  {
+    name: "Server Status",
+    link: "https://status.rezoleo.fr/",
+    image: process.env.PUBLIC_URL + "/links/status.svg",
   },
 ];
 

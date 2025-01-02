@@ -20,7 +20,7 @@
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",
-    "express": "^4.21.1",
+    "express": "^4.21.2",
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
     "glob": "^11.0.0",

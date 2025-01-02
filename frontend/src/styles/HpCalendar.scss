@@ -1,311 +1,340 @@
-.rbc-event-content {
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: smaller;
-  margin: auto;
-}
-
-.rbc-event-label {
-  display: none;
-}
-
-.rbc-event {
-  background-color: $main !important;
-  text-align: center;
-  transition: all 0.3s ease;
-  border-radius: 8px !important;
-  padding: 6px !important;
-  border: none !important;
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    z-index: 900;
-  }
-
-  &.tne-event {
-    background-color: $green !important;
-    border-color: #308749 !important;
-    background: linear-gradient(135deg, $green, darken($green, 10%)) !important;
-
-    &:hover {
-      box-shadow: 0 4px 12px rgba($green, 0.3);
-    }
-  }
-
-  &.cb-event {
-    background-color: $red !important;
-    border-color: #913838 !important;
-    background: linear-gradient(135deg, $red, darken($red, 10%)) !important;
-
-    &:hover {
-      box-shadow: 0 4px 12px rgba($red, 0.3);
-    }
-  }
-}
-
-.rbc-allday-cell {
-  display: none;
-}
-
-.hp-calendar .rbc-toolbar {
-  color: $second !important;
-}
-
-.hp-calendar * {
-  color: $second;
-}
-
-.hp-calendar .rbc-events-container * {
-  color: $day !important;
-}
-
-.rbc-events-container {
-  margin-right: 5% !important;
-  margin-left: 5% !important;
-}
-
-.rbc-toolbar {
-  padding-bottom: 5px !important;
-}
-
-.rbc-toolbar-label {
-  padding-top: 5px !important;
-}
-
-.rbc-today {
-  background-color: #f8e5e8 !important;
-  background: linear-gradient(45deg, 
-    rgba($main, 0.05) 25%, 
-    rgba($main, 0.08) 25%, 
-    rgba($main, 0.08) 50%, 
-    rgba($main, 0.05) 50%, 
-    rgba($main, 0.05) 75%, 
-    rgba($main, 0.08) 75%, 
-    rgba($main, 0.08)
-  ) !important;
-  background-size: 20px 20px !important;
-  animation: todayPattern 30s linear infinite !important;
-}
-
-// Ajout des animations pour les différents éléments du calendrier
 .hp-calendar {
-  position: relative; // Ajout de cette ligne
-  // Animation d'entrée du calendrier
   animation: slideInFromBottom 0.6s ease-out;
 
-  // Effet de survol sur les événements avec perspective
-  .rbc-event {
+  // En-tête du calendrier
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: rgba($main, 0.03);
+    border-radius: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+
+    .navigation-controls {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      order: 2;
+      min-width: 200px;
+      justify-content: center;
+
+      .today-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        background: rgba($main, 0.1);
+        border-radius: 6px;
+        color: $second;
+
+        &:hover {
+          background: rgba($main, 0.15);
+        }
+      }
+    }
+
+    .month-selector {
+      position: relative;
+      cursor: pointer;
+      order: 1;
+      flex-basis: 100%;
+      text-align: center;
+
+      h2 {
+        font-size: 1.3rem;
+        margin: 0;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background: rgba($main, 0.05);
+        }
+      }
+
+      .month-picker {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        min-width: 200px;
+        margin-top: 0.5rem;
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 0.2s, transform 0.2s;
+
+        &.hiding {
+          opacity: 0;
+          transform: translateY(-10px);
+          pointer-events: none;
+        }
+        
+        div {
+          padding: 0.75rem 1rem;
+          transition: all 0.2s;
+          
+          &:hover {
+            background: rgba($main, 0.05);
+          }
+          
+          &.current {
+            background: rgba($main, 0.1);
+            font-weight: 500;
+          }
+        }
+      }
+    }
+
+    button {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: rgba($main, 0.1);
+        transform: scale(1.1);
+      }
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: $second;
+      text-transform: capitalize;
+    }
+  }
+
+  // Grille du calendrier
+  .calendar-grid {
+    display: flex;
+    border: 1px solid rgba($second, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  // Colonne des heures
+  .time-column {
+    min-width: 60px;
+    border-right: 1px solid rgba($second, 0.1);
+    background: rgba($main, 0.02);
+    z-index: 2;
+
+    .corner-header {
+      height: 30px; // Réduit de 40px
+    }
+
+    .time-slot {
+      height: 45px; // Réduit de 60px
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid rgba($second, 0.1);
+      color: $second;
+      font-size: 0.8rem;
+    }
+  }
+
+  // Colonnes des jours
+  .day-column {
+    flex: 1;
+    min-width: 0;
+
+    .day-header {
+      height: 30px; // Réduit de 40px
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid rgba($second, 0.1);
+      background: rgba($main, 0.05);
+      color: $second;
+      font-weight: 500;
+      text-transform: capitalize;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .time-cell {
+      height: 45px; // Réduit de 60px
+      border-bottom: 1px solid rgba($second, 0.1);
+      border-right: 1px solid rgba($second, 0.1);
+      position: relative;
+      padding: 1px; // Ajouter un petit padding pour l'espacement
+    }
+  }
+
+  // Style des événements
+  .calendar-event {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    margin: 1px;
+    padding: 4px;
+    border-radius: 10px;
+    background-color: $main;
+    color: white;
+    cursor: pointer;
+    overflow: hidden;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; // Centre verticalement
+    gap: 2px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 42px;
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 900; // Doit être inférieur au z-index du popup
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      z-index: 10;
     }
 
-    // Animation d'apparition des événements
-    &.new-event {
-      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    .event-title {
+      font-size: 0.85rem;
+      line-height: 1.2;
+      width: 100%;
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 1px;
+      padding: 0 4px;
     }
 
-    // Animations spécifiques par type d'événement
+    .event-type {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin: 1px 0;
+      max-width: 95%;
+    }
+
+    .event-professor {
+      font-size: 0.75rem;
+      font-style: italic;
+      opacity: 0.9;
+      text-align: center;
+      width: 100%;
+      padding: 1px 4px;
+    }
+
+    .event-location {
+      font-size: 0.7rem;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1px 6px;
+      border-radius: 3px;
+      max-width: 95%;
+    }
+
+    // Gestion des événements courts
+    &[style*="height: calc(100% - 2px)"] {
+      .event-professor,
+      .event-location,
+      .event-type {
+        display: none;
+      }
+
+      .event-title {
+        font-size: 0.75rem;
+      }
+    }
+
+    // Gestion des événements moyens
+    &[style*="height: calc(200% - 2px)"] {
+      .event-location {
+        display: none;
+      }
+    }
+
     &.tne-event {
+      background: linear-gradient(135deg, $green, darken($green, 10%));
       &:hover {
-        transform: translateY(-2px) scale(1.02) rotateX(2deg);
         box-shadow: 0 4px 12px rgba($green, 0.3);
       }
     }
 
     &.cb-event {
+      background: linear-gradient(135deg, $red, darken($red, 10%));
       &:hover {
-        transform: translateY(-2px) scale(1.02) rotateX(2deg);
         box-shadow: 0 4px 12px rgba($red, 0.3);
       }
     }
   }
 
-  // Animation des boutons de navigation
-
-  // Animation du jour actuel
-  .rbc-today {
-    position: relative;
-    overflow: hidden;
-  }
-}
-
-.rbc-toolbar {
-  button {
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-weight: 500;
-    border: 2px solid transparent;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba($main, 0.2);
-      background-color: rgba($main, 0.1);
-      border-color: $main;
+  // Style des détails dans la modale
+  .event-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1rem 0;
+    
+    .event-main-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: $main;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba($second, 0.1);
     }
 
-    &:active {
-      transform: translateY(1px);
+    .event-professor-detail,
+    .event-location-detail {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.5rem;
+      background: rgba($second, 0.05);
+      border-radius: 6px;
+
+      .label {
+        font-size: 0.9rem;
+        color: $second;
+        opacity: 0.8;
+        min-width: 85px;
+      }
+
+      .value {
+        font-weight: 500;
+        color: $second;
+      }
     }
 
-    &.rbc-active {
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      background-color: $main;
-      color: white;
-      box-shadow: 0 4px 12px rgba($main, 0.2);
-    }
-  }
-}
+    .event-type-detail {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.5rem;
+      background: rgba($main, 0.05);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
 
-.rbc-current-time-indicator{
-  height: 2px !important;
-  background-color: $main-dark !important;
-}
+      .label {
+        font-size: 0.9rem;
+        color: $second;
+        opacity: 0.8;
+        min-width: 85px;
+      }
 
-// Définition des animations
-@keyframes slideInFromBottom {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes popIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8) translateY(10px);
-  }
-  70% {
-    transform: scale(1.05) translateY(-2px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba($main, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba($main, 0.1);
-  }
-}
-
-@keyframes todayPattern {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 40px 40px;
-  }
-}
-
-// Animation pour le changement de vue
-.rbc-calendar {
-  .rbc-time-view,
-  .rbc-month-view {
-    animation: fadeScale 0.3s ease-out;
-  }
-  .rbc-time-view {
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-  }
-}
-
-.rbc-time-header {
-  background-color: rgba($main, 0.03);
-}
-
-.rbc-header {
-  padding: 10px !important;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.9em;
-  letter-spacing: 0.5px;
-}
-
-@keyframes fadeScale {
-  from {
-    opacity: 0.7;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-// Amélioration des transitions entre les événements
-.rbc-events-container {
-  .rbc-event {
-    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &:not(:hover) {
-      .rbc-event-content {
-        transition: color 0.3s ease;
+      .value {
+        font-weight: 500;
+        color: $main;
       }
     }
   }
 }
 
-// Animation de chargement pour les transitions de données
-.rbc-calendar {
-  &.loading {
-    position: relative;
-
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(white, 0.7);
-      z-index: 1000;
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    &::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 40px;
-      height: 40px;
-      margin: -20px 0 0 -20px;
-      border: 3px solid rgba($main, 0.3);
-      border-top-color: $main;
-      border-radius: 50%;
-      z-index: 1001;
-      animation: spin 1s linear infinite;
-    }
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Styles pour le popup personnalisé */
+// Modal
 .modal-overlay {
-  position: absolute; // Changé de fixed à absolute
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -315,146 +344,52 @@
   justify-content: center;
   align-items: center;
   animation: fadeIn 0.3s ease-out;
-  z-index: 1000; // Assure que le popup est au-dessus des autres éléments
-  border-radius: 22px;
+  z-index: 1000;
+  border-radius: 12px;
 }
 
 .modal-content {
-  background-color: white;
+  background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
   padding: 2rem;
   border-radius: 16px;
   position: relative;
   max-width: 500px;
   width: 90%;
   animation: slideDown 0.3s ease-out;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15),
-              0 5px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  max-height: 85vh;
+  overflow-y: auto;
 
   h2 {
-    margin-top: 0;
     color: $second;
-    margin: 0 0 0.5rem 0;
     font-size: 1.5rem;
     font-weight: 600;
-    border-bottom: 2px solid rgba($second, 0.1);
+    margin: 0 0 1rem 0;
     padding-bottom: 0.5rem;
-  }
-
-  p {
-    color: $second;
-    white-space: pre-wrap;
-  }
-
-  div {
-    margin: 0.5rem 0;
-    font-size: 1.1rem;
-
-    &:first-of-type {
-      font-size: 1.2rem;
-      font-weight: 500;
-      color: $main;
-    }
-
-    b {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      background-color: rgba($second, 0.1);
-      border-radius: 6px;
-      font-weight: 500;
-    }
-  }
-
-  .button-container {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    justify-content: flex-end;
+    border-bottom: 2px solid rgba($second, 0.1);
   }
 
   button {
-    margin-top: 0.65rem;
-    margin-right: 1rem;
+    margin-top: 1rem;
     padding: 0.75rem 1.5rem;
-    background-color: $main;
-    color: white !important;
+    background: linear-gradient(135deg, $main, darken($main, 15%));
+    color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s;
-    background: linear-gradient(135deg, $main, darken($main, 15%));
-    font-weight: 500;
-    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
 
     &:hover {
-      background-color: darken($main, 10%);
       transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba($main, 0.3);
+      box-shadow: 0 4px 12px rgba($main, 0.2);
     }
 
-    &:disabled {
-      background-color: lighten($main, 20%);
-      cursor: not-allowed;
-      animation: shake 0.3s;
-    }
-
-    &:not(:disabled) {
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba($main, 0.2);
-      }
-      
-      &:active {
-        transform: translateY(0);
-      }
-    }
-
-    &:first-of-type {
-      background-color: $main;
-      color: white;
-
-      &:hover {
-        background-color: darken($main, 10%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba($main, 0.2);
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
-    }
-
-    &:last-of-type {
-      background-color: rgba($second, 0.1);
+    &:last-child {
+      background: rgba($second, 0.1);
       color: $second;
-
-      &:hover {
-        background-color: rgba($second, 0.15);
-        transform: translateY(-2px);
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
+      margin-left: 0.5rem;
     }
-  }
-
-  &.evaluation {
-    transform-origin: top center;
-    animation: modalPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .evaluation-notice {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background-color: rgba($second, 0.1);
-    border-left: 4px solid $second;
-    border-radius: 0 8px 8px 0;
-    font-size: 0.95rem;
-    color: $second;
   }
 
   .evaluation-notice {
@@ -463,22 +398,74 @@
     background-color: rgba($green, 0.1);
     border-left: 4px solid $green;
     border-radius: 0 8px 8px 0;
-    font-size: 0.95rem;
     color: darken($green, 10%);
   }
+
+  .error-message {
+    color: $red;
+    background-color: rgba($red, 0.1);
+    border-left: 4px solid $red;
+    padding: 0.75rem;
+    border-radius: 0 4px 4px 0;
+    margin-top: 1rem;
+  }
+
+  .event-details {
+    gap: 0.5rem; // Réduit de 0.75rem
+    margin: 0.5rem 0; // Réduit de 1rem
+
+    .event-professor-detail,
+    .event-location-detail,
+    .event-type-detail {
+      padding: 0.35rem 0.5rem; // Réduit de 0.5rem
+      margin-bottom: 0; // Supprime la marge du bas
+    }
+  }
+
+  // Ajout d'une scrollbar stylisée
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba($main, 0.05);
+    border-radius: 8px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba($main, 0.2);
+    border-radius: 8px;
+    
+    &:hover {
+      background: rgba($main, 0.3);
+    }
+  }
+}
+
+.modal-content.evaluation {
+  max-width: 600px;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
 
   .required-notice {
     color: $second;
     font-size: 0.9rem;
-    margin-bottom: 1rem;
-    opacity: 0.7;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    background: rgba($main, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid $main;
   }
 
   .question {
     animation: slideInUp 0.3s ease-out;
     animation-fill-mode: both;
-    margin-bottom: 1.5rem;
-    
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba($second, 0.1);
+
     @for $i from 1 through 10 {
       &:nth-child(#{$i}) {
         animation-delay: #{$i * 0.1}s;
@@ -488,12 +475,37 @@
     label {
       display: block;
       font-weight: 500;
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
       color: $second;
+      font-size: 1.1rem;
+      line-height: 1.4;
 
-      &.required {
+      &.required::after {
+        content: ' *';
         color: $main;
-        font-weight: 600;
+        font-weight: bold;
+      }
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 1rem;
+      border: 2px solid rgba($second, 0.1);
+      border-radius: 8px;
+      font-size: 1rem;
+      line-height: 1.5;
+      resize: vertical;
+      transition: all 0.3s ease;
+      
+      &:focus {
+        border-color: $main;
+        box-shadow: 0 0 0 3px rgba($main, 0.1);
+        outline: none;
+      }
+
+      &::placeholder {
+        color: rgba($second, 0.5);
       }
     }
 
@@ -513,10 +525,13 @@
         cursor: pointer;
         transition: all 0.2s ease;
         font-weight: normal;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        margin: 0;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
+        border: 2px solid transparent;
         
         &:hover {
           background: rgba($main, 0.1);
@@ -525,6 +540,9 @@
 
         input {
           margin: 0;
+          cursor: pointer;
+          width: 16px;
+          height: 16px;
         }
         
         &:has(input:checked) {
@@ -537,169 +555,164 @@
       }
 
       &.horizontal {
-        display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 0.5rem;
-        margin: 0 -0.5rem;
-        
-        &::-webkit-scrollbar {
-          height: 4px;
-        }
-        
-        &::-webkit-scrollbar-track {
-          background: rgba($main, 0.05);
-        }
-        
-        &::-webkit-scrollbar-thumb {
-          background: rgba($main, 0.2);
-          border-radius: 4px;
-        }
-
-        label {
-          flex: 0 0 auto;
-          margin: 0 0.25rem;
-          white-space: nowrap;
-          min-width: auto;
-          padding: 0.5rem 1rem;
+        @media (max-width: 767px) {
+          flex-direction: column;
           
-          &:first-child {
-            margin-left: 0;
-          }
-          
-          &:last-child {
-            margin-right: 0;
+          label {
+            width: 100%;
           }
         }
       }
     }
+  }
 
-    textarea {
-      width: 100%;
-      min-height: 100px;
-      padding: 1rem;
-      border: 2px solid rgba($second, 0.1);
-      border-radius: 8px;
-      font-size: 0.95rem;
-      resize: vertical;
-      transition: all 0.3s ease;
-      
-      &:focus {
-        border-color: $main;
-        box-shadow: 0 0 0 3px rgba($main, 0.1);
-        outline: none;
-      }
+  button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, $main, darken($main, 10%));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba($main, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+
+    &.success {
+      background: linear-gradient(135deg, $green, darken($green, 10%));
+      pointer-events: none;
+    }
+
+    // Ajout d'un ID pour le scroll
+    &#submitButton {
+      scroll-margin-top: 20px; // Marge pour le scroll
     }
   }
 
   .success-message {
+    margin-top: 1rem;
+    padding: 1rem;
     background: rgba($green, 0.1);
-    color: $green;
-    padding: 0.75rem;
+    color: darken($green, 10%);
     border-radius: 8px;
     text-align: center;
-    margin: 1rem 0;
+    font-weight: 500;
     animation: fadeInScale 0.3s ease-out;
   }
 
-  button.success {
-    background: $green;
-    pointer-events: none;
+  .error-message {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba($red, 0.1);
+    color: $red;
+    border-radius: 8px;
+    animation: shake 0.4s ease-in-out;
   }
 }
 
-@keyframes fadeInScale {
+// Responsive
+@media (max-width: 767px) {
+  .hp-calendar {
+
+    .calendar-grid {
+      .time-column {
+        min-width: 40px;
+        
+        .time-slot {
+          font-size: 1rem;
+        }
+      }
+
+      .mobile-view {
+        flex: 1;
+        overflow-x: hidden;
+      }
+
+      .calendar-event {
+        padding: 3px;
+        left: 1px;
+        right: 1px;
+
+        .event-title {
+          -webkit-line-clamp: 2;
+        }
+
+        .event-location {
+          padding: 1px 4px;
+        }
+      }
+    }
+
+    .calendar-header {
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .navigation-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .month-selector {
+        width: 100%;
+        text-align: center;
+
+        h2 {
+          font-size: 1.1rem;
+        }
+
+        .month-picker {
+          left: 0;
+          right: 0;
+        }
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .modal-content {
+    padding: 1rem;
+    width: 95%;
+    margin: 0.5rem;
+  }
+}
+
+// Animations essentielles
+@keyframes slideInFromBottom {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
-.modal-content.evaluation {
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 1.5rem;
-  
-  // Style du scroll
-  &::-webkit-scrollbar {
-    width: 8px;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  
-  &::-webkit-scrollbar-track {
-    background: rgba($main, 0.05);
-    border-radius: 10px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: rgba($main, 0.2);
-    border-radius: 10px;
-    
-    &:hover {
-      background: rgba($main, 0.3);
-    }
-  }
-
-  .question {
-    animation: slideInUp 0.3s ease-out;
-    animation-fill-mode: both;
-    margin-bottom: 1.5rem;
-    
-    @for $i from 1 through 10 {
-      &:nth-child(#{$i}) {
-        animation-delay: #{$i * 0.1}s;
-      }
-    }
-
-    label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 0.75rem;
-      color: $second;
-    }
-
-    .likert-scale {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      
-      label {
-        flex: 1;
-        min-width: 120px;
-        padding: 0.75rem;
-        background: rgba($main, 0.05);
-        border-radius: 8px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-weight: normal;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        
-        &:hover {
-          background: rgba($main, 0.1);
-          transform: translateY(-2px);
-        }
-
-        input {
-          margin: 0;
-        }
-        
-        &:has(input:checked) {
-          background: $main;
-          color: white;
-          transform: scale(1.02);
-          box-shadow: 0 2px 8px rgba($main, 0.2);
-          animation: selectFade 0.2s ease-out;
-        }
-      }
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -725,190 +738,8 @@
   }
 }
 
-// Mise à jour du style du bouton d'envoi
-.modal-content.evaluation button {
-  margin-top: 1.5rem;
-  width: 100%;
-  padding: 1rem;
-  background: linear-gradient(135deg, $main, darken($main, 10%));
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba($main, 0.2);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-// Style pour les messages d'erreur
-.error-message {
-  background: rgba($red, 0.1);
-  color: $red;
-  padding: 0.75rem;
-  border-radius: 8px;
-  margin-top: 1rem;
-  animation: shake 0.4s ease-in-out;
-}
-
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
-}
-
-.error-message {
-  color: $red;
-  margin-top: 0.5rem;
-  animation: fadeIn 0.3s ease-in;
-  background-color: rgba($red, 0.1);
-  border-left: 4px solid $red;
-  padding: 0.75rem;
-  border-radius: 0 4px 4px 0;
-  margin: 1rem 0;
-  animation: slideInLeft 0.3s ease-out;
-}
-
-/* Animations pour le popup */
-@keyframes fadeIn {
-  from { 
-    opacity: 0; 
-  }
-  to { 
-    opacity: 1; 
-  }
-}
-
-@keyframes slideDown {
-  from { 
-    opacity: 0; 
-    transform: translateY(-30px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
-  100% { transform: translateX(0); }
-}
-
-.rating {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-
-  svg {
-    width: 32px;
-    height: 32px;
-    margin: 0 5px;
-    transition: fill 0.2s;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-
-    &:hover {
-      fill: #FFD700;
-      stroke: #FFD700;
-    }
-  }
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1.5rem 0;
-
-  svg {
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &:hover {
-      transform: scale(1.2) rotate(5deg);
-      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
-    }
-
-    &.active {
-      animation: starPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.4));
-    }
-  }
-}
-
-textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: 1rem;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  resize: vertical;
-  transition: all 0.3s ease;
-  margin-bottom: 1rem;
-
-  &:focus {
-    border-color: $main;
-    box-shadow: 0 0 0 2px rgba($main, 0.2);
-    outline: none;
-  }
-}
-
-.div-hp-calendar{
-  padding-top: 10px !important;
-}
-
-@keyframes starPop {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.3) rotate(10deg);
-  }
-  100% {
-    transform: scale(1) rotate(0);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes modalPopIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.rbc-time-content {
-  overflow: visible;
-  height: auto;
-}
-
-.tuto-export-hp {
-  max-width: 100%;
-  height: auto;
-  margin: 10px auto;
-  display: block;
-  border-radius: 10px;
 }

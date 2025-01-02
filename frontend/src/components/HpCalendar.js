@@ -1,42 +1,15 @@
 import ICAL from "ical.js";
-import { ArrowLeft, ArrowRight, Undo2} from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
-import React, { useContext, useEffect, useState, useCallback, useMemo } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "../App";
 
 moment.locale("fr");
-const localizer = momentLocalizer(moment);
 
-const messages = {
-  next: <ArrowRight />,
-  previous: <ArrowLeft />,
-  today: <Undo2 />,
-  month: "Mois",
-  week: "Semaine",
-  day: "Jour",
-  agenda: "Agenda",
-  date: "Date",
-  time: "Heure",
-  event: "Événement",
-  noEventsInRange: "Aucun événement dans cette plage biloute",
-  showMore: (total) => `+ ${total} plus`,
-};
-
-const getInitialDate = () => {
-  const today = moment();
-  const dayOfWeek = today.day();
-
-  // Si c'est samedi (6) ou dimanche (0), aller au lundi suivant
-  if (dayOfWeek === 6) {
-    return today.add(2, "days").toDate();
-  } else if (dayOfWeek === 0) {
-    return today.add(1, "days").toDate();
-  }
-
-  return today.toDate();
+// Fonction utilitaire pour formater l'heure
+const formatHour = (hour) => {
+  return `${hour}:00`;
 };
 
 const parseICal = (icalData) => {
@@ -50,27 +23,32 @@ const parseICal = (icalData) => {
     const dtstart = vevent.getFirstPropertyValue("dtstart").toJSDate();
     const dtend = vevent.getFirstPropertyValue("dtend").toJSDate();
 
-    const eventDetails = [summary, location].filter(Boolean);
+    // Nouveau parsing du summary
+    const parts = summary.split('-').map(part => part.trim());
+    let courseName = parts[0];
+    let professor = '';
+    let courseType = '';
 
-    const eventTitle = eventDetails
-      .join(" ")
-      .replace(/\s*-\s*/g, (match, offset, string) => {
-        const occurrences = string.slice(0, offset).match(/\s*-\s*/g) || [];
-        return occurrences.length < 2 ? "\n" : match;
-      })
-      .replace(/(TD|Séminaire|CB|sem.|TP)/g, "$1\n");
-      
-    const isTNE = eventTitle.includes("TNE");
-    const isCB = eventTitle.includes("CB");
+    if (parts.length >= 3) {
+      courseName = parts[0];
+      professor = parts[1];
+      courseType = parts.slice(2).join(' - '); // Au cas où il y aurait d'autres tirets
+    } else if (parts.length === 2) {
+      courseName = parts[0];
+      professor = parts[1];
+    }
+
+    const isTNE = summary.includes("TNE");
+    const isCB = summary.includes("CB");
 
     let className = "";
     if (isTNE) className = "tne-event";
     else if (isCB) className = "cb-event";
 
-    const processedSummary = summary.replace(/-/g, '\n');
-
     return {
-      title: processedSummary,
+      title: courseName,
+      professor: professor,
+      courseType: courseType,
       location: location,
       start: dtstart,
       end: dtend,
@@ -79,22 +57,9 @@ const parseICal = (icalData) => {
   });
 };
 
-const CustomEvent = ({ event }) => (
-  <div>
-    {event.title.split('\n').map((line, index) => (
-      <div key={index}>{line}</div>
-    ))}
-    {event.location && (
-      <div>
-        <b>{event.location}</b>
-      </div>
-    )}
-  </div>
-);
-
 const HpCalendar = () => {
   const [icalData, setIcalData] = useState("");
-  const [currentDate, setCurrentDate] = useState(getInitialDate());
+  const [currentDate, setCurrentDate] = useState(moment().startOf('week').add(1, 'day'));
   const { userName, displayName } = useContext(UserContext);
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -104,6 +69,8 @@ const HpCalendar = () => {
   const [evaluationConfig, setEvaluationConfig] = useState(null);
   const [answers, setAnswers] = useState({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
 
   const closeModal = () => {
     setShowModal(false);
@@ -172,6 +139,36 @@ const HpCalendar = () => {
     }
   }, [userName]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Ajouter un useEffect pour gérer le clic en dehors du sélecteur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showMonthPicker && !event.target.closest('.month-selector')) {
+        setShowMonthPicker(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showMonthPicker]);
+
+  // Ajouter un effet pour scroller au bouton quand l'évaluation est ouverte
+  useEffect(() => {
+    if (showEvaluationModal) {
+      setTimeout(() => {
+        document.getElementById('submitButton')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100); // Petit délai pour laisser le modal s'afficher
+    }
+  }, [showEvaluationModal]);
+
   const events = useMemo(() => {
     if (icalData) {
       try {
@@ -183,68 +180,6 @@ const HpCalendar = () => {
     }
     return [];
   }, [icalData]);
-
-  const getNextWorkday = (date) => {
-    const nextDay = moment(date).add(1, "days");
-    if (nextDay.day() === 6) {
-      // Si c'est samedi
-      return nextDay.add(2, "days"); // Aller à lundi
-    } else if (nextDay.day() === 0) {
-      // Si c'est dimanche
-      return nextDay.add(1, "days"); // Aller à lundi
-    }
-    return nextDay;
-  };
-
-  const getPreviousWorkday = (date) => {
-    const prevDay = moment(date).subtract(1, "days");
-    if (prevDay.day() === 6) {
-      // Si c'est samedi
-      return prevDay.subtract(1, "days"); // Aller à vendredi
-    } else if (prevDay.day() === 0) {
-      // Si c'est dimanche
-      return prevDay.subtract(2, "days"); // Aller à vendredi
-    }
-    return prevDay;
-  };
-
-  const handleNavigate = (newDate, view, action) => {
-    if (window.innerWidth < 768 && view === "day") {
-      let adjustedDate = moment(newDate);
-
-      switch (action) {
-        case "NEXT":
-          adjustedDate = getNextWorkday(currentDate);
-          break;
-        case "PREV":
-          adjustedDate = getPreviousWorkday(currentDate);
-          break;
-        case "TODAY":
-          // Si aujourd'hui est un weekend, aller au prochain jour ouvré
-          if (adjustedDate.day() === 0) {
-            // Dimanche
-            adjustedDate.add(1, "days");
-          } else if (adjustedDate.day() === 6) {
-            // Samedi
-            adjustedDate.add(2, "days");
-          }
-          break;
-        default:
-          // Vérifier que le jour est un jour ouvré
-          if (adjustedDate.day() === 0) {
-            // Dimanche
-            adjustedDate.add(1, "days");
-          } else if (adjustedDate.day() === 6) {
-            // Samedi
-            adjustedDate.subtract(1, "days");
-          }
-      }
-
-      setCurrentDate(adjustedDate.toDate());
-    } else {
-      setCurrentDate(newDate);
-    }
-  };
 
   const handleSelectEvent = async (event) => {
     setAnswers({});
@@ -269,6 +204,15 @@ const HpCalendar = () => {
 
   const handleEvaluate = () => {
     if (!hasEvaluated) {
+      // Vérifier si l'événement est passé
+      const eventEndTime = moment(selectedEvent.end);
+      const now = moment();
+  
+      if (eventEndTime.isAfter(now)) {
+        setErrorMessage("Vous ne pouvez évaluer que les enseignements terminés");
+        return;
+      }
+  
       // Vérifier d'abord si une configuration existe pour le groupe
       fetch(`${process.env.REACT_APP_URL_BACK}/api/eva/config?userName=${userName}`)
         .then(response => {
@@ -312,6 +256,8 @@ const HpCalendar = () => {
 
     if (missingRequired) {
       setErrorMessage("Les questions marquées d'un * sont obligatoires");
+      // Scroll jusqu'au message d'erreur
+      document.querySelector('.error-message')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
@@ -348,39 +294,172 @@ const HpCalendar = () => {
     }
   };
 
+  // Générer les heures de la journée (8h à 18h)
+  const hours = Array.from({ length: 10 }, (_, i) => i + 8);
+
+  // Modifier la génération des jours de la semaine
+  const weekDays = Array.from({ length: 5 }, (_, i) => 
+    moment(currentDate).startOf('week').add(i, 'days')
+  );
+
+  const renderTimeColumn = () => (
+    <div className="time-column">
+      {hours.map(hour => (
+        <div key={hour} className="time-slot">
+          {formatHour(hour)}
+        </div>
+      ))}
+    </div>
+  );
+
+  const getEventsForCell = (day, hour) => {
+    if (!events) return [];
+    
+    return events.filter(event => {
+      const eventStart = moment(event.start);
+      const eventEnd = moment(event.end);
+      const cellStart = moment(day).hour(hour);
+      const cellEnd = moment(day).hour(hour + 1);
+
+      // Un événement est dans la cellule si :
+      // - il commence dans cette cellule
+      // - OU il a commencé avant mais n'est pas encore fini
+      return eventStart.isSame(cellStart, 'hour') ||
+             (eventStart.isBefore(cellEnd) && eventEnd.isAfter(cellStart));
+    }).map(event => {
+      const eventStart = moment(event.start);
+      const eventEnd = moment(event.end);
+      const duration = eventEnd.diff(eventStart, 'hours');
+      
+      // Calculer la position et la taille de l'événement
+      const startHour = eventStart.hour();
+      const topOffset = (startHour === hour) ? 0 : -((hour - startHour) * 100);
+      
+      return {
+        ...event,
+        duration,
+        topOffset,
+        isStart: startHour === hour
+      };
+    });
+  };
+
+  const renderDayColumn = (day) => (
+    <div key={day.format('YYYY-MM-DD')} className="day-column">
+      <div className="day-header">
+        {isMobile ? day.format('dddd DD/MM') : day.format('ddd DD/MM')}
+      </div>
+      {hours.map(hour => (
+        <div key={`${day.format('YYYY-MM-DD')}-${hour}`} className="time-cell">
+          {getEventsForCell(day, hour).map((event, index) => (
+            event.isStart && <div
+              key={index}
+              className={`calendar-event ${event.className}`}
+              onClick={() => handleSelectEvent(event)}
+              style={{
+                height: `calc(${event.duration * 100}% - 2px)`,
+                top: `${event.topOffset}%`,
+                zIndex: 1
+              }}
+            >
+              <div className="event-title">
+                {event.title}
+              </div>
+              {event.courseType && <div className="event-type">{event.courseType}</div>}
+              {event.professor && <div className="event-professor">{event.professor}</div>}
+              {event.location && <div className="event-location">{event.location}</div>}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+
+  const navigateWeek = (direction) => {
+    setCurrentDate(prev => 
+      direction === 'next' 
+        ? moment(prev).add(1, 'week')
+        : moment(prev).subtract(1, 'week')
+    );
+  };
+
+  const handleMonthSelect = (monthOffset) => {
+    setCurrentDate(prev => moment(prev).add(monthOffset, 'months'));
+    setShowMonthPicker(false);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(moment().startOf('week').add(1, 'day'));
+  };
+
   return (
     <div className="hp-calendar">
-      <Calendar
-        localizer={localizer}
-        events={events}
-        style={{ height: 500 }}
-        messages={messages}
-        min={new Date(1970, 1, 1, 8, 0)}
-        max={new Date(1970, 1, 1, 17, 45)}
-        defaultView={window.innerWidth < 768 ? "day" : "work_week"}
-        views={[window.innerWidth < 768 ? "day" : "work_week"]}
-        onSelectEvent={handleSelectEvent}
-        eventPropGetter={(event) => ({
-          className: event.className,
-        })}
-        date={currentDate}
-        onNavigate={handleNavigate}
-        components={{
-          event: CustomEvent,
-        }}
-      />
+      <div className="calendar-header">
+        <div className="navigation-controls">
+          <button onClick={() => navigateWeek('prev')} title="Semaine précédente">
+            <ArrowLeft />
+          </button>
+          <button onClick={goToToday} className="today-btn" title="Aujourd'hui">
+            Aujourd'hui
+          </button>
+          <div className="month-selector" onClick={() => setShowMonthPicker(!showMonthPicker)}>
+          <h2>{currentDate.format('MMMM YYYY')}</h2>
+          {showMonthPicker && (
+            <div className="month-picker">
+              {[-2, -1, 0, 1, 2].map(offset => (
+                <div 
+                  key={offset} 
+                  onClick={() => handleMonthSelect(offset)}
+                  className={offset === 0 ? 'current' : ''}
+                >
+                  {moment(currentDate).add(offset, 'months').format('MMMM YYYY')}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+          <button onClick={() => navigateWeek('next')} title="Semaine suivante">
+            <ArrowRight />
+          </button>
+        </div>
+      </div>
+      <div className="calendar-grid">
+        <div className="time-column">
+          <div className="corner-header"></div>
+          {renderTimeColumn()}
+        </div>
+        {isMobile ? (
+          <div className="mobile-view">
+            {renderDayColumn(currentDate)}
+          </div>
+        ) : (
+          weekDays.map(day => renderDayColumn(day))
+        )}
+      </div>
+
       {showModal && selectedEvent && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Détails de l'événement</h2>
-            {selectedEvent.title.split('\n').map((line, index) => (
-              <div key={index}>{line}</div>
-            ))}
-            {selectedEvent.location && (
-              <div>
-                <b>{selectedEvent.location}</b>
+            <div className="event-details">
+              <div className="event-main-title">{selectedEvent.title}</div>
+              <div className="event-type-detail">
+                <span className="label">Type :</span>
+                <span className="value">{selectedEvent.courseType}</span>
               </div>
-            )}
+              {selectedEvent.professor && (
+                <div className="event-professor-detail">
+                  <span className="label">Professeur :</span>
+                  <span className="value">{selectedEvent.professor}</span>
+                </div>
+              )}
+              {selectedEvent.location && (
+                <div className="event-location-detail">
+                  <span className="label">Salle :</span>
+                  <span className="value">{selectedEvent.location}</span>
+                </div>
+              )}
+            </div>
             {errorMessage ? (
               <div className="error-message">{errorMessage}</div>
             ) : hasEvaluated ? (
@@ -437,6 +516,7 @@ const HpCalendar = () => {
               </div>
             )}
             <button 
+              id="submitButton"
               onClick={submitEvaluation}
               className={submitSuccess ? 'success' : ''}
             >

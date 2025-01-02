@@ -11,20 +11,17 @@ router.get("/config", (req, res) => {
 
     // Vérifier que l'utilisateur existe et obtenir son groupe
     const userGroup = evaService.getUserGroup(userName);
-    console.log("userGroup:", userGroup);
     if (!userGroup) {
       return res.status(404).json({ error: "Utilisateur non trouvé ou pas de groupe assigné" });
     }
 
     // Obtenir la configuration pour ce groupe
     const config = evaService.getEvaluationConfig(userGroup);
-    console.log("config", config);
     if (!config) {
       return res.status(404).json({ error: "Pas de configuration pour ce groupe" });
     }
 
     // Log pour débug
-    console.log(`Configuration trouvée pour ${userName} (Groupe: ${userGroup}):`, config);
 
     res.status(200).json(config);
   } catch (error) {

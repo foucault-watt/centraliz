@@ -7,3 +7,4 @@ backend.log
 logins.json
 evaluations.json
 mdp.json
+backend/src/data/leaderboard.json

@@ -302,7 +302,7 @@ router.get(`/stats/${process.env.SECRET_API}/:userName`, async (req, res) => {
     chart.setBackgroundColor('white');
 
     console.log('Génération de l\'URL du graphique...');
-    const imageUrl = chart.getUrl();
+    const imageUrl = await chart.getShortUrl();
     console.log('URL du graphique générée:', imageUrl);
 
     res.redirect(imageUrl);

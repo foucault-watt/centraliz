@@ -49,6 +49,105 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  &-ranking {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $day;
+    font-size: 0.8rem;
+    max-width: 200px;
+    text-align: right;
+
+    .ranking-text {
+      font-weight: 500;
+      display: block;
+      line-height: 1.2;
+      white-space: normal;
+      word-wrap: break-word;
+      
+      &:first-letter {
+        text-transform: capitalize;
+      }
+      
+      .previous-user {
+        display: block;
+        margin-top: 0.1rem;
+        font-size: 0.75rem;
+        opacity: 0.85;
+      }
+    }
+
+    .info-icon {
+      position: relative;
+      cursor: help;
+      display: flex;
+      align-items: center;
+      padding: 0.3rem;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+
+        .info-tooltip {
+          visibility: visible;
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .info-tooltip {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background-color: white;
+        color: $second;
+        padding: 0.8rem 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        width: max-content;
+        max-width: 250px;
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.2s ease;
+        z-index: 1000;
+
+        p {
+          margin: 0.3rem 0;
+          font-size: 0.85rem;
+          line-height: 1.4;
+
+          &:first-child {
+            margin-top: 0;
+          }
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 767px) {
+      right: 0.8rem;
+      font-size: 0.75rem;
+      max-width: 150px;
+
+      .info-tooltip {
+        right: -10px;
+      }
+
+      .ranking-text .previous-user {
+        font-size: 0.7rem;
+      }
+    }
+  }
+
   // Grand écran
   @media (min-width: 1200px) {
     &-logo {
@@ -85,6 +184,20 @@
 
     &-title {
       font-size: 2.2rem;
+    }
+
+    &-ranking {
+      right: 0.8rem;
+      font-size: 0.75rem;
+      max-width: 150px;
+
+      .info-tooltip {
+        right: -10px;
+      }
+
+      .ranking-text .previous-user {
+        font-size: 0.7rem;
+      }
     }
   }
 

@@ -120,6 +120,45 @@ function Mail() {
     return DOMPurify.sanitize(fragment, { FORBID_STYLE: true }); // Sanitiser le contenu
   };
 
+  useEffect(() => {
+    const checkStoredPassword = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_URL_BACK}/api/zimbra/check`,
+          {
+            credentials: "include",
+          }
+        );
+        const data = await response.json();
+        if (data.hasPassword) {
+          // Afficher le status uniquement pendant l'authentification
+          setStatus("Authentification automatique...");
+          const authResponse = await fetch(
+            `${process.env.REACT_APP_URL_BACK}/api/zimbra/auto-auth`,
+            {
+              method: "POST",
+              credentials: "include",
+            }
+          );
+          const authData = await authResponse.json();
+          if (authResponse.ok && authData.success) {
+            setIsAuthenticated(true);
+            // Effacer le message une fois authentifié
+            setStatus("");
+          } else {
+            // Garder le message d'erreur si l'authentification échoue
+            setStatus("Échec de l'authentification automatique");
+          }
+        }
+      } catch (error) {
+        console.error("Erreur:", error);
+        setStatus("Erreur lors de l'authentification automatique.");
+      }
+    };
+    
+    checkStoredPassword();
+  }, []);
+
   return (
     <div>
       <h2 className="module-title">Vos derniers mails</h2>

@@ -1,5 +1,5 @@
 // frontend/src/components/ZimbraAuth.js
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { UserContext } from "../App";
 
 const ZimbraAuth = ({ setIsAuthenticated }) => {
@@ -7,42 +7,6 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
-
-  useEffect(() => {
-    const checkStoredPassword = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/zimbra/check`,
-          {
-            credentials: "include",
-          }
-        );
-        const data = await response.json();
-        if (data.hasPassword) {
-          setStatus("Authentification automatique...");
-          const authResponse = await fetch(
-            `${process.env.REACT_APP_URL_BACK}/api/zimbra/auto-auth`,
-            {
-              method: "POST",
-              credentials: "include",
-            }
-          );
-          const authData = await authResponse.json();
-          if (authResponse.ok && authData.success) {
-            setStatus("Authentification réussie !");
-            setIsAuthenticated(true);
-          } else {
-            setStatus(authData.error || "Échec de l'authentification automatique.");
-          }
-        }
-      } catch (error) {
-        console.error("Erreur:", error);
-        setStatus("Erreur lors de l'authentification automatique.");
-      }
-    };
-    checkStoredPassword();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

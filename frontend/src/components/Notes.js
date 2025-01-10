@@ -162,8 +162,12 @@ const Notes = () => {
       {!isLoggedIn && (
         <>
           <h2 className="module-title">Calcul des notes</h2>
+          <div className="info-message">
+            🚧 Cette fonctionnalité est en cours de développement. L'importation
+            manuelle du CSV est temporaire, bientôt les notes seront
+            synchronisées automatiquement avec WebAurion ! 🚀
+          </div>
           <div className="upload-section">
-            
             <label className="upload-button">
               <Upload className="upload-icon" />
               Importer un CSV
@@ -176,9 +180,14 @@ const Notes = () => {
             </label>
           </div>
           <span className="upload-message">
-            Sur WebAurion, allez dans "Notes" → "Exporter" → "CSV en UTF-8" et importez le ici
+            Sur WebAurion, allez dans "Notes" → "Exporter" → "CSV en UTF-8" et
+            importez le ici
           </span>
-          <a href="https://webaurion.centralelille.fr/" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://webaurion.centralelille.fr/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <video
               src={process.env.PUBLIC_URL + "/export-webaurion.mp4"}
               className="tuto-export-webaurion"

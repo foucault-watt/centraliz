@@ -62,6 +62,16 @@
     letter-spacing: 0.5px;
   }
 
+  &-domain-suffix {
+    font-size: 2rem;
+    font-weight: 300;
+    opacity: 0.8;
+    color: $day;
+    margin-left: 2px;
+    letter-spacing: -0.5px;
+    transform: translateY(2px);
+  }
+
   &-ranking {
     position: absolute;
     right: 1.5rem;
@@ -185,6 +195,10 @@
     &-title {
       font-size: 2.6rem;
     }
+
+    &-domain-suffix {
+      font-size: 1.8rem;
+    }
   }
 
   // Mobile
@@ -216,6 +230,10 @@
         font-size: 0.7rem;
       }
     }
+
+    &-domain-suffix {
+      font-size: 1.6rem;
+    }
   }
 
   // Très petit écran
@@ -226,6 +244,10 @@
 
     &-title {
       font-size: 1.8rem;
+    }
+
+    &-domain-suffix {
+      font-size: 1.4rem;
     }
   }
 }

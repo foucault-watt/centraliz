@@ -9,7 +9,6 @@
 
 // Styles pour le conteneur principal
 .zimbra-auth-container {
-  max-width: 600px;
   margin: 0 auto;
   padding: 25px;
   background-color: lighten($day, 10%);
@@ -77,9 +76,8 @@
 
 // Styles pour la liste des emails
 .mail-list {
-  height: 500px;
+  height: 530px;
   overflow-y: auto;
-  max-width: 800px;
   padding: 0 10px 0 0;
   list-style: none;
 

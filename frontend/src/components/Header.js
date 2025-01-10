@@ -60,6 +60,7 @@ export default function Header() {
       >
         <img src={"logo-title.svg"} className="header-logo" alt="logo" />
         <h1 className="header-title">Centraliz</h1>
+        <span className="header-domain-suffix">.it</span>
       </div>
 
       {rankingInfo && (

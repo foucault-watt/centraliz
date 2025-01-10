@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ArrowRight } from "lucide-react";
 
 const Onboarding = ({ userName, onComplete }) => {
   const [icalLink, setIcalLink] = useState("");
@@ -8,57 +9,48 @@ const Onboarding = ({ userName, onComplete }) => {
   const steps = [
     {
       title: "Bienvenue sur Centraliz !",
-      content:
-        "Centraliz est ton nouveau compagnon pour simplifier ta vie à Centrale Lille. Découvrons ensemble tout ce que tu peux faire !",
-      icon: "👋",
+      content: `Hey ${userName} ! 👋 Tu vas voir, Centraliz va te changer la vie à Centrale. Fini les galères avec les différents sites ! On te montre ça ?`,
+      icon: "✨",
     },
     {
-      title: "L'ENT c'est terminé !",
-      content:
-        "Centraliz te permet de centraliser les outils de l'ENT au même endroit. Au revoir les interfaces veillotes et compliquées !",
-      icon: "🤦‍♂️",
+      title: "Fini la galère de l'ENT !",
+      content: "L'ENT, Hyperplanning, Zimbra... Tout ça c'est du passé ! Tu retrouves tout dans une seule app moderne et simple à utiliser.",
+      icon: "🎯",
     },
     {
-      title: "Ton emploi du temps",
-      content:
-        "Fini Hyperplanning ! Visualise ton planning de cours dans une interface moderne et intuitive.",
+      title: "Un emploi du temps intelligent",
+      content: "Ton planning devient ENFIN lisible ! Les CB sont en rouge, les cours en bleu et les TNE en vert.",
       icon: "📅",
     },
     {
-      title: "Les événements associatifs",
-      content:
-        "Ne rate plus aucun événement ! Retrouve tous les torchtôts, soirées et activités organisés par les assos.",
+      title: "La vie associative en direct",
+      content: "Le calendrier du CLA est intégré directement dans Centraliz ! Plus d'excuses pour rater les soirées !",
       icon: "🎉",
     },
     {
-      title: "Tes mails Zimbra",
-      content:
-        "Consulte facilement et rapidement tes mails sans devoir passer par Zimbra.",
-      icon: "📧",
+      title: "Tes mails, simplement",
+      content: "Reçois tes mails de l'école directement sur Centraliz ! Plus besoin d'ouvrir Zimbra toutes les 10 minutes.",
+      icon: "✉️",
     },
     {
-      title: "Centraliz en tant qu'app",
-      content:
-        "A tous moments tu peux cliquer sur le titre Centraliz pour installer l'application sur ton téléphone !",
-      icon: "📲",
+      title: "Une vraie app mobile",
+      content: "Sur ton téléphone, appuie sur 'Ajouter à l'écran d'accueil' pour avoir Centraliz comme une vraie app ! Pratique pour checker ton planning rapidement.",
+      icon: "📱",
     },
     {
-      title: "Qui suis-je ?",
-      content:
-        "Je suis Foucault Wattinne, étudiant à l'ITEEM. J'ai créé Centraliz pour nous faciliter la vie à centrale. ",
-      icon: "👨‍💻",
-    },
-    {
-      title: "Donne moi ton avis !",
-      content:
-        "Tu peux me laisser un feedback à tous moments en bas de la page !",
-      icon: "🫵",
-    },
-    {
-      title: "Commençons !",
-      content:
-        "Pour commencer, va sur ton hyperplanning et copie le lien iCal en suivant le guide ci-dessous",
+      title: "Une histoire d'étudiant",
+      content: "Je suis Foucault de l'ITEEM ! J'ai créé Centraliz pour nous faciliter la vie à centrale.",
       icon: "🚀",
+    },
+    {
+      title: "Ensemble, on va plus loin",
+      content: "Aide moi à améliorer Centraliz ! Le bouton feedback dans le menu te permet de suggérer des améliorations directement.",
+      icon: "💡",
+    },
+    {
+      title: "Dernière étape !",
+      content: "Il te suffit de copier-coller ton lien iCal d'Hyperplanning. Ça prend 30 secondes, la dernière ligne droite !",
+      icon: "🌟",
     },
   ];
 
@@ -99,14 +91,14 @@ const Onboarding = ({ userName, onComplete }) => {
   return (
     <div className="onboarding-overlay">
       <div className="onboarding-content">
-        <div className="onboarding-step">
+        <div className="onboarding-step animate-fade-in">
           <div className="step-icon">{steps[currentStep].icon}</div>
           <h1>{steps[currentStep].title}</h1>
           <p>{steps[currentStep].content}</p>
         </div>
 
         {currentStep === steps.length - 1 ? (
-          <div className="onboarding-form">
+          <div className="onboarding-form animate-slide-up">
             <div className="tutorial-container">
               <video
                 src="/export-hp.mp4"
@@ -122,7 +114,7 @@ const Onboarding = ({ userName, onComplete }) => {
                 rel="noopener noreferrer"
                 className="hyperplanning-link"
               >
-                Ouvrir Hyperplanning →
+                Ouvrir Hyperplanning <ArrowRight size={16} className="inline-block ml-1" />
               </a>
             </div>
 
@@ -145,19 +137,19 @@ const Onboarding = ({ userName, onComplete }) => {
         ) : (
           <button
             onClick={() => setCurrentStep((curr) => curr + 1)}
-            className="next-button"
+            className="next-button animate-pulse"
           >
-            Suivant →
+            Continuer l'aventure <ArrowRight size={20} className="inline-block ml-1" />
           </button>
         )}
 
         <div className="steps-indicator">
-          {steps.map((_, index) => (
-            <div
-              key={index}
-              className={`step-dot ${index <= currentStep ? "active" : ""}`}
+          <div className="progress-bar">
+            <div 
+              className="progress-fill" 
+              style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
             />
-          ))}
+          </div>
         </div>
       </div>
     </div>

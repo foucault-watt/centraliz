@@ -109,10 +109,10 @@ const ClaCalendar = () => {
     const endHour = moment(end).hours();
     
     if (startHour === 20 && endHour === 0) {
-      return { type: "Torch'Tôt", className: "torch-tot" };
+      return { type: "\"Torch'Tôt\"", className: "torch-tot" };
     }
     if (startHour === 22 && endHour === 3) {
-      return { type: "Torcho", className: "torcho" };
+      return { type: "\"Torcho\"", className: "torcho" };
     }
     return null;
   };

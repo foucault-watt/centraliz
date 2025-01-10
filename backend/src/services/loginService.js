@@ -61,6 +61,11 @@ class LoginService {
   }
 
   addLogin(displayName) {
+    
+    // Ne pas enregistrer pour "Foucault Wattinne"
+    if (displayName === "Foucault Wattinne") {
+      return;
+    }
 
     try {
       const data = fs.readFileSync(this.loginPath, 'utf8');

@@ -1,2 +1,2 @@
 # Centraliz Ads.txt
-contact=support@centraliz.rezoleo.fr
+contact=foucault.wattinne@iteem.centralelille.fr

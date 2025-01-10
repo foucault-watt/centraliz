@@ -70,8 +70,8 @@ export default function Header() {
           <div className="info-icon">
             <Info size={18} />
             <div className="info-tooltip">
-              <p>Score basé sur le nombre de jours de connexion uniques</p>
-              <p>Votre score: {rankingInfo.userScore} jours de connexion</p>
+              <p>Calculé sur le nombre de jours de connexion uniques</p>
+              <p>Votre score : <strong>{rankingInfo.userScore}</strong> jours de connexion</p>
             </div>
           </div>
         </div>

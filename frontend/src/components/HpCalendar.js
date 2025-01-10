@@ -448,7 +448,7 @@ const HpCalendar = () => {
             Aujourd'hui
           </button>
           <div className="month-selector" onClick={() => setShowMonthPicker(!showMonthPicker)}>
-          <h2>{currentDate.format('MMMM YYYY')} ⯆</h2>
+          <h2>{currentDate.format('MMMM')} ⯆</h2>
           {showMonthPicker && (
             <div className="month-picker">
               {[-2, -1, 0, 1, 2].map(offset => (

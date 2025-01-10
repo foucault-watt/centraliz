@@ -22,16 +22,19 @@
     }
 
     @media (max-width: 767px) {
-      .header-title {
+      .header-title,
+      .header-domain-suffix {
         opacity: 0;
         visibility: hidden;
         width: 0;
+        transition: none; // Pas de transition pour la disparition
       }
 
       .header-ranking {
         opacity: 1;
         visibility: visible;
         transform: translateY(-50%) translateX(0);
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; // Transition uniquement pour l'apparition
       }
     }
   }
@@ -70,6 +73,7 @@
     margin-left: 2px;
     letter-spacing: -0.5px;
     transform: translateY(2px);
+    transition: none; // Suppression de la transition générale
   }
 
   &-ranking {
@@ -84,6 +88,7 @@
     font-size: 0.8rem;
     max-width: 200px;
     text-align: right;
+    transition: none; // Suppression de la transition générale
 
     .ranking-text {
       font-weight: 500;
@@ -160,6 +165,7 @@
       right: 0.8rem;
       font-size: 0.75rem;
       max-width: 150px;
+      transition: none; // Suppression de la transition générale
 
       .info-tooltip {
         right: -10px;

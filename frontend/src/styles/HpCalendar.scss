@@ -47,13 +47,12 @@
       h2 {
         font-size: 1.3rem;
         margin: 0;
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 0.5rem;
         border-radius: 6px;
         transition: background-color 0.2s;
-        min-width: 200px; // Largeur minimale
         width: fit-content;
         margin: 0 auto;
-        width: 220px;
+        width: 130px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -683,6 +682,7 @@
       .navigation-controls {
         width: 100%;
         justify-content: space-between;
+        gap: 0; // Modification ici
       }
 
       .month-selector {

@@ -12,49 +12,43 @@ const formatHour = (hour) => {
   return `${hour.toString().padStart(2, '0')}h`;
 };
 
-const parseICal = (icalData) => {
-  const jcalData = ICAL.parse(icalData);
-  const comp = new ICAL.Component(jcalData);
-  const vevents = comp.getAllSubcomponents("vevent");
+// Déplacer parseICal en tant que fonction pure
+const parseICalData = (icalData) => {
+  if (!icalData) return [];
+  
+  try {
+    const jcalData = ICAL.parse(icalData);
+    const comp = new ICAL.Component(jcalData);
+    const vevents = comp.getAllSubcomponents("vevent");
 
-  return vevents.map((vevent) => {
-    const summary = vevent.getFirstPropertyValue("summary") || "";
-    const location = vevent.getFirstPropertyValue("location") || "";
-    const dtstart = vevent.getFirstPropertyValue("dtstart").toJSDate();
-    const dtend = vevent.getFirstPropertyValue("dtend").toJSDate();
+    return vevents.map((vevent) => {
+      const summary = vevent.getFirstPropertyValue("summary") || "";
+      const location = vevent.getFirstPropertyValue("location") || "";
+      const dtstart = vevent.getFirstPropertyValue("dtstart").toJSDate();
+      const dtend = vevent.getFirstPropertyValue("dtend").toJSDate();
 
-    // Nouveau parsing du summary
-    const parts = summary.split('-').map(part => part.trim());
-    let courseName = parts[0];
-    let professor = '';
-    let courseType = '';
+      const parts = summary.split('-').map(part => part.trim());
+      const [courseName, professor = '', ...rest] = parts;
+      const courseType = rest.join(' - ');
 
-    if (parts.length >= 3) {
-      courseName = parts[0];
-      professor = parts[1];
-      courseType = parts.slice(2).join(' - '); // Au cas où il y aurait d'autres tirets
-    } else if (parts.length === 2) {
-      courseName = parts[0];
-      professor = parts[1];
-    }
+      const isTNE = summary.includes("TNE");
+      const isCB = summary.includes("CB");
+      const className = isTNE ? "tne-event" : isCB ? "cb-event" : "";
 
-    const isTNE = summary.includes("TNE");
-    const isCB = summary.includes("CB");
-
-    let className = "";
-    if (isTNE) className = "tne-event";
-    else if (isCB) className = "cb-event";
-
-    return {
-      title: courseName,
-      professor: professor,
-      courseType: courseType,
-      location: location,
-      start: dtstart,
-      end: dtend,
-      className: className,
-    };
-  });
+      return {
+        title: courseName,
+        professor,
+        courseType,
+        location,
+        start: dtstart,
+        end: dtend,
+        className,
+      };
+    });
+  } catch (error) {
+    console.error("Erreur lors du parsing des données iCal:", error);
+    return [];
+  }
 };
 
 const HpCalendar = () => {
@@ -181,16 +175,9 @@ const HpCalendar = () => {
     }
   }, [showEvaluationModal]);
 
+  // Utiliser useMemo pour le parsing des événements
   const events = useMemo(() => {
-    if (icalData) {
-      try {
-        return parseICal(icalData);
-      } catch (error) {
-        console.error("Erreur lors du parsing des données iCal:", error);
-        return [];
-      }
-    }
-    return [];
+    return parseICalData(icalData);
   }, [icalData]);
 
   const handleSelectEvent = async (event) => {
@@ -306,85 +293,100 @@ const HpCalendar = () => {
     }
   };
 
-  // Générer les heures de la journée (8h à 18h)
-  const hours = Array.from({ length: 10 }, (_, i) => i + 8); // De 8h à 19h
+  // Mémoisation des heures et jours
+  const hours = useMemo(() => Array.from({ length: 10 }, (_, i) => i + 8), []);
 
-  // Modifier la génération des jours de la semaine
-  const weekDays = Array.from({ length: 5 }, (_, i) => 
-    moment(currentDate).startOf('week').add(i, 'days')
-  );
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 5 }, (_, i) => 
+      moment(currentDate).startOf('week').add(i, 'days')
+    );
+  }, [currentDate]);
 
-  const renderTimeColumn = () => (
-    <div className="time-column">
-      {hours.map(hour => (
-        <div key={hour} className="time-slot">
-          {formatHour(hour)}
-        </div>
-      ))}
-    </div>
-  );
-
-  const getEventsForCell = (day, hour) => {
-    if (!events) return [];
+  // Optimisation du calcul des événements par cellule
+  const getEventsForCell = useCallback((day, hour) => {
+    if (!events?.length) return [];
+    
+    const cellStart = moment(day).hour(hour).minute(0);
+    const cellEnd = moment(day).hour(hour + 1).minute(0);
     
     return events.filter(event => {
       const eventStart = moment(event.start);
       const eventEnd = moment(event.end);
-      const cellStart = moment(day).hour(hour).minute(0);
-      const cellEnd = moment(day).hour(hour + 1).minute(0);
-
       return eventStart.isBefore(cellEnd) && eventEnd.isAfter(cellStart);
     }).map(event => {
       const eventStart = moment(event.start);
-      const eventEnd = moment(event.end);
-      
-      // Calculer la position avec précision en tenant compte des minutes
       const startHour = eventStart.hour() + (eventStart.minute() / 60);
-      const endHour = eventEnd.hour() + (eventEnd.minute() / 60);
-      const duration = endHour - startHour;
-      
-      // Calculer le décalage en pourcentage basé sur les minutes
-      const topOffset = ((startHour - hour) * 100);
+      const endHour = moment(event.end).hour() + (moment(event.end).minute() / 60);
       
       return {
         ...event,
-        duration,
-        topOffset,
+        duration: endHour - startHour,
+        topOffset: ((startHour - hour) * 100),
         isStart: Math.floor(startHour) === hour
       };
     });
-  };
+  }, [events]);
 
-  const renderDayColumn = (day) => (
-    <div key={day.format('YYYY-MM-DD')} className="day-column">
-      <div className="day-header">
-        {isMobile ? day.format('dddd DD/MM') : day.format('ddd DD/MM')}
-      </div>
-      {hours.map(hour => (
-        <div key={`${day.format('YYYY-MM-DD')}-${hour}`} className="time-cell">
-          {getEventsForCell(day, hour).map((event, index) => (
-            event.isStart && <div
-              key={index}
-              className={`calendar-event ${event.className}`}
-              onClick={() => handleSelectEvent(event)}
-              style={{
-                height: `calc(${event.duration * 100}% - 2px)`,
-                top: `${event.topOffset}%`,
-                zIndex: 1
-              }}
-            >
-              <div className="event-title">
-                {event.title}
-              </div>
-              {event.location && <div className="event-location">{event.location}</div>}
-              {event.courseType && <div className="event-type">{event.courseType}</div>}
-              {event.professor && <div className="event-professor">{event.professor}</div>}
-            </div>
-          ))}
+  // Mémoisation des colonnes du calendrier
+  const DayColumn = React.memo(({ day, hours, getEventsForCell, handleSelectEvent, isMobile }) => {
+    return (
+      <div className="day-column">
+        <div className="day-header">
+          {isMobile ? day.format('dddd DD/MM') : day.format('ddd DD/MM')}
         </div>
-      ))}
-    </div>
-  );
+        {hours.map(hour => (
+          <TimeCell 
+            key={`${day.format('YYYY-MM-DD')}-${hour}`}
+            day={day}
+            hour={hour}
+            getEventsForCell={getEventsForCell}
+            handleSelectEvent={handleSelectEvent}
+          />
+        ))}
+      </div>
+    );
+  });
+
+  // Composant optimisé pour les cellules de temps
+  const TimeCell = React.memo(({ day, hour, getEventsForCell, handleSelectEvent }) => {
+    const events = getEventsForCell(day, hour);
+    
+    return (
+      <div className="time-cell">
+        {events.map((event, index) => (
+          event.isStart && (
+            <Event 
+              key={index}
+              event={event}
+              handleSelectEvent={handleSelectEvent}
+            />
+          )
+        ))}
+      </div>
+    );
+  });
+
+  // Composant optimisé pour les événements
+  const Event = React.memo(({ event, handleSelectEvent }) => {
+    const style = {
+      height: `calc(${event.duration * 100}% - 2px)`,
+      top: `${event.topOffset}%`,
+      zIndex: 1
+    };
+
+    return (
+      <div
+        className={`calendar-event ${event.className}`}
+        onClick={() => handleSelectEvent(event)}
+        style={style}
+      >
+        <div className="event-title">{event.title}</div>
+        {event.location && <div className="event-location">{event.location}</div>}
+        {event.courseType && <div className="event-type">{event.courseType}</div>}
+        {event.professor && <div className="event-professor">{event.professor}</div>}
+      </div>
+    );
+  });
 
   const navigateWeek = (direction) => {
     if (isMobile) {
@@ -446,7 +448,7 @@ const HpCalendar = () => {
             Aujourd'hui
           </button>
           <div className="month-selector" onClick={() => setShowMonthPicker(!showMonthPicker)}>
-          <h2>{currentDate.format('MMMM YYYY')}</h2>
+          <h2>{currentDate.format('MMMM YYYY')} ⯆</h2>
           {showMonthPicker && (
             <div className="month-picker">
               {[-2, -1, 0, 1, 2].map(offset => (
@@ -469,14 +471,31 @@ const HpCalendar = () => {
       <div className="calendar-grid">
         <div className="time-column">
           <div className="corner-header"></div>
-          {renderTimeColumn()}
+          {hours.map(hour => (
+            <div key={hour} className="time-slot">
+              {formatHour(hour)}
+            </div>
+          ))}
         </div>
         {isMobile ? (
-          <div className="mobile-view">
-            {renderDayColumn(currentDate)}
-          </div>
+          <DayColumn
+            day={currentDate}
+            hours={hours}
+            getEventsForCell={getEventsForCell}
+            handleSelectEvent={handleSelectEvent}
+            isMobile={isMobile}
+          />
         ) : (
-          weekDays.map(day => renderDayColumn(day))
+          weekDays.map(day => (
+            <DayColumn
+              key={day.format('YYYY-MM-DD')}
+              day={day}
+              hours={hours}
+              getEventsForCell={getEventsForCell}
+              handleSelectEvent={handleSelectEvent}
+              isMobile={isMobile}
+            />
+          ))
         )}
       </div>
 

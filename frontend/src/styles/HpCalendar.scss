@@ -50,6 +50,13 @@
         padding: 0.5rem 1rem;
         border-radius: 6px;
         transition: background-color 0.2s;
+        min-width: 200px; // Largeur minimale
+        width: fit-content;
+        margin: 0 auto;
+        width: 220px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
 
         &:hover {
           background: rgba($main, 0.05);

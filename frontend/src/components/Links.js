@@ -9,7 +9,7 @@ const services = [
   {
     name: "ENT",
     link: "https://ent.centralelille.fr/",
-    image: process.env.PUBLIC_URL + "/links/centrale.png",
+    image: process.env.PUBLIC_URL + "/links/ent.png",
   },
   {
     name: "Zimbra",

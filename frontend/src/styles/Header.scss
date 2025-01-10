@@ -20,6 +20,20 @@
     .header-title {
       font-size: 2.2rem;
     }
+
+    @media (max-width: 767px) {
+      .header-title {
+        opacity: 0;
+        visibility: hidden;
+        width: 0;
+      }
+
+      .header-ranking {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(-50%) translateX(0);
+      }
+    }
   }
 
   &-link {
@@ -46,7 +60,6 @@
     font-size: 3rem;
     font-weight: 600;
     letter-spacing: 0.5px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &-ranking {
@@ -145,6 +158,10 @@
       .ranking-text .previous-user {
         font-size: 0.7rem;
       }
+
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-50%) translateX(20px);
     }
   }
 

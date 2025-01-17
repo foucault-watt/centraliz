@@ -85,7 +85,7 @@ const HpCalendar = () => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [sharedEvents, setSharedEvents] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);
 
@@ -552,7 +552,7 @@ const fetchUserCalendar = async (userId) => {
             className: `${event.className} shared`,
             sharedBy: users.find(u => u.userName === userId)?.displayName
         }));
-        setSharedEvents(prev => [...prev, ...parsedEvents]);
+        setSharedEvents(parsedEvents); // Remplacer au lieu d'ajouter
     } catch (error) {
         console.error('Erreur:', error);
     }
@@ -602,7 +602,7 @@ const fetchUserCalendar = async (userId) => {
         <input
             type="text"
             className="search-input"
-            placeholder="Rechercher un utilisateur..."
+            placeholder="Comparer le calendrier..."
             value={searchQuery}
             onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -620,10 +620,15 @@ const fetchUserCalendar = async (userId) => {
                     .map(user => (
                         <div
                             key={user.userName}
-                            className={`user-item ${selectedUsers.includes(user.userName) ? 'selected' : ''}`}
+                            className={`user-item ${selectedUser === user.userName ? 'selected' : ''}`}
                             onClick={() => {
-                                if (!selectedUsers.includes(user.userName)) {
-                                    setSelectedUsers(prev => [...prev, user.userName]);
+                                if (selectedUser === user.userName) {
+                                    // Si on clique sur l'utilisateur déjà sélectionné, on désélectionne
+                                    setSelectedUser(null);
+                                    setSharedEvents([]); // Vider les événements partagés
+                                } else {
+                                    // Sinon, on sélectionne le nouvel utilisateur
+                                    setSelectedUser(user.userName);
                                     fetchUserCalendar(user.userName);
                                 }
                                 setShowUsersList(false);

@@ -142,10 +142,20 @@ const Notes = () => {
   };
 
   const toggleModule = (moduleName) => {
-    setExpandedModules((prev) => ({
-      ...prev,
-      [moduleName]: !prev[moduleName],
-    }));
+    setExpandedModules((prev) => {
+      // Crée un nouvel objet avec toutes les matières repliées
+      const allClosed = Object.keys(prev).reduce((acc, key) => {
+        acc[key] = false;
+        return acc;
+      }, {});
+      
+      // Si la matière cliquée était déjà dépliée, on la replie aussi
+      // Sinon, on la déplie (les autres restent repliées)
+      return {
+        ...allClosed,
+        [moduleName]: !prev[moduleName]
+      };
+    });
   };
 
   const handleLogin = (event) => {

@@ -14,9 +14,9 @@ $fade-duration: 0.3s;
 
 // Styles
 .container {
-  max-width: 800px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0px;
+  padding: 0 20px; // Ajout d'un padding horizontal pour éviter que le contenu ne colle aux bords
   font-family: Arial, sans-serif;
   color: $second;
   text-align: center;
@@ -36,6 +36,16 @@ $fade-duration: 0.3s;
 .grid {
   display: grid;
   gap: 20px;
+  max-width: 1800px; // Limite max pour très grands écrans
+  margin: 0 auto;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .module {
@@ -104,7 +114,6 @@ $fade-duration: 0.3s;
     transition: all $expand-duration $expand-timing;
     opacity: 0;
     transform: scaleY(0);
-    background-color: lighten(#c8e6c9, 11%);
 
 
     &.expanded {

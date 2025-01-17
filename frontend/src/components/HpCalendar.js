@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleChevronDown } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -448,7 +448,7 @@ const HpCalendar = () => {
             Aujourd'hui
           </button>
           <div className="month-selector" onClick={() => setShowMonthPicker(!showMonthPicker)}>
-          <h2>{currentDate.format('MMMM')} ⯆</h2>
+          <h2>{currentDate.format('MMMM')} <CircleChevronDown size={18} /></h2>
           {showMonthPicker && (
             <div className="month-picker">
               {[-2, -1, 0, 1, 2].map(offset => (

@@ -89,6 +89,8 @@ const SlideMenu = ({ isOpen, onClose }) => {
     return "Dans votre navigateur : Utilisez le menu (⋮) puis 'Installer l'application' ou 'Ajouter à l'écran d'accueil'";
   };
 
+  console.log()
+
   const menuSections = {
     install: {
       title: "Installation",

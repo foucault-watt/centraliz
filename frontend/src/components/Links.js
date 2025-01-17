@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 const services = [
   {
@@ -62,16 +62,6 @@ const services = [
     image: process.env.PUBLIC_URL + "/links/bds.png",
   },
   {
-    name: "ENI",
-    link: "http://ressources-electroniques.univ-lille.fr/login?url=https://www.eni-training.com/cs/univ-lille/",
-    image: process.env.PUBLIC_URL + "/links/eni.png",
-  },
-  {
-    name: "Europresse",
-    link: "https://ressources-electroniques.univ-lille.fr/login?url=http://nouveau.europresse.com/access/ip/default.aspx?un=TourcoingT_1/",
-    image: process.env.PUBLIC_URL + "/links/europresse.jpg",
-  },
-  {
     name: "File Sender",
     link: "https://filesender.renater.fr/index.php?s=upload/",
     image: process.env.PUBLIC_URL + "/links/file-sender.jpg",
@@ -107,11 +97,6 @@ const services = [
     image: process.env.PUBLIC_URL + "/links/clap.png",
   },
   {
-    name: "Centr'All Games",
-    link: "https://centrallgames.rezoleo.fr/",
-    image: process.env.PUBLIC_URL + "/links/cag.png",
-  },
-  {
     name: "Rézoléo",
     link: "https://rezoleo.fr/",
     image: process.env.PUBLIC_URL + "/links/rezoleo.png",
@@ -123,9 +108,9 @@ const services = [
   },
 ];
 
-const ServiceItem = ({ service, active, onClick }) => (
-  <li className={active ? "active" : ""} onClick={onClick}>
-    <a href={active ? service.link : "#"} target="_blank" rel="noreferrer">
+const ServiceItem = ({ service }) => (
+  <li>
+    <a href={service.link} target="_blank" rel="noreferrer">
       <img src={service.image} alt={`Icône ${service.name}`} />
       <span>{service.name}</span>
     </a>
@@ -133,51 +118,12 @@ const ServiceItem = ({ service, active, onClick }) => (
 );
 
 const Links = () => {
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const handleClick = (index) => (e) => {
-    e.preventDefault(); // Empêche toujours la redirection par défaut
-    
-    if (isMobile) {
-      if (activeIndex === index) {
-        // Si déjà actif, ouvre dans un nouvel onglet
-        window.open(services[index].link, '_blank', 'noopener,noreferrer');
-      } else {
-        // Première fois qu'on clique, afficher le nom
-        setActiveIndex(index);
-        setTimeout(() => {
-          setActiveIndex(null);
-        }, 3000);
-      }
-    } else {
-      // Sur PC, ouvre directement dans un nouvel onglet
-      window.open(services[index].link, '_blank', 'noopener,noreferrer');
-    }
-  };
-
   return (
     <>
       <h2 className="module-title">Liens utiles</h2>
       <ul className="liste-services">
         {services.map((service, index) => (
-          <ServiceItem
-            key={index}
-            service={service}
-            active={activeIndex === index}
-            onClick={handleClick(index)}
-          />
+          <ServiceItem key={index} service={service} />
         ))}
       </ul>
     </>

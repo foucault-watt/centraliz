@@ -60,7 +60,7 @@ async function fetchHpData(userId) {
 function checkUser(userId) {
     try {
         const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
-        return { exists: !!users[userId] };
+        return { exists: users[userId] && !!users[userId].icalLink };
     } catch (error) {
         console.error("Erreur lors de la vérification de l'utilisateur:", error);
         throw error;

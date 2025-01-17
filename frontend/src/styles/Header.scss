@@ -27,7 +27,7 @@
         opacity: 0;
         visibility: hidden;
         width: 0;
-        transition: none; // Pas de transition pour la disparition
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, width 0.3s ease-in-out;
       }
 
       .header-ranking {
@@ -165,7 +165,7 @@
       right: 0.8rem;
       font-size: 0.75rem;
       max-width: 150px;
-      transition: none; // Suppression de la transition générale
+      transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, transform 0.3s ease-in-out;
 
       .info-tooltip {
         right: -10px;

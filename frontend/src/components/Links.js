@@ -100,12 +100,7 @@ const services = [
     name: "Rézoléo",
     link: "https://rezoleo.fr/",
     image: process.env.PUBLIC_URL + "/links/rezoleo.png",
-  },
-  {
-    name: "Server Status",
-    link: "https://status.rezoleo.fr/",
-    image: process.env.PUBLIC_URL + "/links/status.svg",
-  },
+  }
 ];
 
 const ServiceItem = ({ service }) => (

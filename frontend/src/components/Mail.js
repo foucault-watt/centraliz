@@ -121,6 +121,28 @@ function Mail() {
   };
 
   useEffect(() => {
+    const autoAuthenticate = async () => {
+      try {
+        const authResponse = await fetch(
+          `${process.env.REACT_APP_URL_BACK}/api/zimbra/auto-auth`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
+        const authData = await authResponse.json();
+        if (authResponse.ok && authData.success) {
+          setIsAuthenticated(true);
+          setStatus("");
+        } else {
+          setStatus("Échec de l'authentification automatique");
+        }
+      } catch (error) {
+        console.error("Erreur:", error);
+        setStatus("Erreur lors de l'authentification automatique.");
+      }
+    };
+
     const checkStoredPassword = async () => {
       try {
         const response = await fetch(
@@ -131,31 +153,15 @@ function Mail() {
         );
         const data = await response.json();
         if (data.hasPassword) {
-          // Afficher le status uniquement pendant l'authentification
           setStatus("Authentification automatique...");
-          const authResponse = await fetch(
-            `${process.env.REACT_APP_URL_BACK}/api/zimbra/auto-auth`,
-            {
-              method: "POST",
-              credentials: "include",
-            }
-          );
-          const authData = await authResponse.json();
-          if (authResponse.ok && authData.success) {
-            setIsAuthenticated(true);
-            // Effacer le message une fois authentifié
-            setStatus("");
-          } else {
-            // Garder le message d'erreur si l'authentification échoue
-            setStatus("Échec de l'authentification automatique");
-          }
+          await autoAuthenticate();
         }
       } catch (error) {
         console.error("Erreur:", error);
         setStatus("Erreur lors de l'authentification automatique.");
       }
     };
-    
+
     checkStoredPassword();
   }, []);
 

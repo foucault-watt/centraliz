@@ -438,10 +438,17 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   padding: $gap;
 }
 
-.calendars-wrapper,
-.mail-links-wrapper {
+@mixin flex-wrapper {
   display: flex;
   gap: $gap;
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.calendars-wrapper,
+.mail-links-wrapper {
+  @include flex-wrapper;
   width: 100%;
 
   @media (max-width: 768px) {

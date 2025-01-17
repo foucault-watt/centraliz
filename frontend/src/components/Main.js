@@ -77,8 +77,8 @@ function Main() {
         return;
       }
       setIsTyping(false);
-      if (e.key === 'ArrowLeft') handleNavigation('left', false);
-      if (e.key === 'ArrowRight') handleNavigation('right', false);
+      if (e.key === 'ArrowLeft') handleNavigation('left');
+      if (e.key === 'ArrowRight') handleNavigation('right');
     };
     
     window.addEventListener('keydown', handleKeyPress);

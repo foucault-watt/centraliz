@@ -177,11 +177,16 @@ const HpCalendar = () => {
       if (showMonthPicker && !event.target.closest(".month-selector")) {
         setShowMonthPicker(false);
       }
+      if (showUsersList && !event.target.closest(".user-selector")) {
+        setShowUsersList(false);
+      }
     };
 
     document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [showMonthPicker]);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [showMonthPicker, showUsersList]);
 
   // Ajouter un effet pour scroller au bouton quand l'évaluation est ouverte
   useEffect(() => {
@@ -203,8 +208,16 @@ const HpCalendar = () => {
     setAnswers({});
     setErrorMessage("");
     setSubmitSuccess(false);
-
+  
     setSelectedEvent(event);
+    
+    // Si c'est un événement partagé, ne pas permettre l'évaluation
+    if (event.className?.includes('shared')) {
+      setHasEvaluated(true); // Utiliser hasEvaluated pour masquer le bouton d'évaluation
+      setShowModal(true);
+      return;
+    }
+  
     try {
       const cleanTitle = event.title.split("\n")[0];
       const response = await fetch(
@@ -599,52 +612,76 @@ const fetchUserCalendar = async (userId) => {
           </button>
         </div>
         <div className="user-selector">
-        <input
-            type="text"
-            className="search-input"
-            placeholder="Comparer le calendrier..."
-            value={searchQuery}
-            onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowUsersList(true);
+  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+    <input
+      type="text"
+      className="search-input"
+      placeholder={selectedUser ? users.find(u => u.userName === selectedUser)?.displayName : "Comparer le calendrier..."}
+      value={searchQuery}
+      onChange={(e) => {
+        setSearchQuery(e.target.value);
+        setShowUsersList(true);
+      }}
+      onFocus={() => setShowUsersList(true)}
+    />
+    {selectedUser && (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedUser(null);
+          setSharedEvents([]);
+          setSearchQuery('');
+        }}
+        style={{
+          position: 'absolute',
+          right: '8px',
+          background: 'none',
+          border: 'none',
+          padding: '4px',
+          cursor: 'pointer'
+        }}
+        title="Désélectionner l'utilisateur"
+      >
+        <X size={16} />
+      </button>
+    )}
+  </div>
+  {showUsersList && (
+    <div className="users-list">
+      {users
+        .filter(user => 
+          user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.group?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .map(user => (
+          <div
+            key={user.userName}
+            className={`user-item ${selectedUser === user.userName ? 'selected' : ''}`}
+            onClick={() => {
+              if (selectedUser === user.userName) {
+                // Si on clique sur l'utilisateur déjà sélectionné, on désélectionne
+                setSelectedUser(null);
+                setSharedEvents([]); // Vider les événements partagés
+              } else {
+                // Sinon, on sélectionne le nouvel utilisateur
+                setSelectedUser(user.userName);
+                fetchUserCalendar(user.userName);
+              }
+              setShowUsersList(false);
+              setSearchQuery('');
             }}
-            onFocus={() => setShowUsersList(true)}
-        />
-        {showUsersList && (
-            <div className="users-list">
-                {users
-                    .filter(user => 
-                        user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        user.group?.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(user => (
-                        <div
-                            key={user.userName}
-                            className={`user-item ${selectedUser === user.userName ? 'selected' : ''}`}
-                            onClick={() => {
-                                if (selectedUser === user.userName) {
-                                    // Si on clique sur l'utilisateur déjà sélectionné, on désélectionne
-                                    setSelectedUser(null);
-                                    setSharedEvents([]); // Vider les événements partagés
-                                } else {
-                                    // Sinon, on sélectionne le nouvel utilisateur
-                                    setSelectedUser(user.userName);
-                                    fetchUserCalendar(user.userName);
-                                }
-                                setShowUsersList(false);
-                                setSearchQuery('');
-                            }}
-                        >
-                            <div className="user-info">
-                                <div className="name">{user.displayName}</div>
-                                {user.group && <div className="group">{user.group}</div>}
-                            </div>
-                        </div>
-                    ))
-                }
+          >
+            <div className="user-info">
+              <div className="name">{user.displayName}</div>
+              {user.group && <div className="group">{user.group}</div>}
             </div>
-        )}
+          </div>
+        ))
+      }
     </div>
+  )}
+</div>
+
       </div>
       <div className="calendar-grid">
         <div className="time-column">
@@ -700,14 +737,22 @@ const fetchUserCalendar = async (userId) => {
                 </div>
               )}
             </div>
-            {errorMessage ? (
-              <div className="error-message">{errorMessage}</div>
-            ) : hasEvaluated ? (
+            {selectedEvent.className?.includes('shared') ? (
               <div className="evaluation-notice">
-                Vous avez déjà évalué cet enseignement
+                Vous ne pouvez pas évaluer les cours de quelqu'un d'autre
               </div>
             ) : (
-              <button onClick={handleEvaluate}>Évaluer</button>
+              <>
+                {errorMessage ? (
+                  <div className="error-message">{errorMessage}</div>
+                ) : hasEvaluated ? (
+                  <div className="evaluation-notice">
+                    Vous avez déjà évalué cet enseignement
+                  </div>
+                ) : (
+                  <button onClick={handleEvaluate}>Évaluer</button>
+                )}
+              </>
             )}
             <button onClick={closeModal}>Fermer</button>
           </div>

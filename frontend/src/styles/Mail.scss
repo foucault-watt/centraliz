@@ -99,16 +99,7 @@
     }
   }
 
-  .mail-header {
-    padding-bottom: 15px;
-    border-bottom: 2px solid $second;
-
-    h2 {
-      color: $second;
-      margin: 0;
-      font-size: 1.8em;
-    }
-  }
+  // Removed repeated .mail-header rules; relying on global .mail-header
 
   .mail-item {
     margin-bottom: 15px;

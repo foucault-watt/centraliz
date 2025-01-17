@@ -121,6 +121,7 @@
         border: 1px solid rgba($main, 0.1);
         border-radius: 6px;
         background: rgba($main, 0.05);
+        padding-right: 30px; // Ajouter de l'espace pour la croix
         
         &:focus {
           outline: none;
@@ -166,6 +167,21 @@
           &.selected {
             background: rgba($main, 0.1);
           }
+        }
+      }
+
+      button {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: rgba($main, 0.1);
+          transform: scale(1.1);
+          color: $main;
         }
       }
     }
@@ -377,6 +393,12 @@
         content: "👥";
         margin-right: 4px;
       }
+
+      &.overlap-right,
+      &.overlap-left {
+        border-left: 2px solid rgba(white, 0.3);
+        border-right: 2px solid rgba(white, 0.3);
+      }
     }
 
     &.overlap-left {
@@ -389,19 +411,6 @@
       left: 50%;
       right: 2px;
       margin-left: 1px;
-    }
-
-    &.shared {
-      // Quand partagé et en chevauchement, ajuster la bordure
-      &.overlap-right {
-        border-left: 2px solid rgba(white, 0.3);
-        border-right: 2px solid rgba(white, 0.3);
-      }
-      
-      &.overlap-left {
-        border-left: 2px solid rgba(white, 0.3);
-        border-right: 2px solid rgba(white, 0.3);
-      }
     }
 
     &.overlap-left,

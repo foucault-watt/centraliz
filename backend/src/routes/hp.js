@@ -51,4 +51,13 @@ router.post('/save-user', async (req, res) => {
     }
 });
 
+router.get('/users', async (req, res) => {
+    try {
+        const users = await hpService.getAllUsers();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors de la récupération des utilisateurs' });
+    }
+});
+
 module.exports = router;

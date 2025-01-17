@@ -129,9 +129,24 @@ async function saveUser(userId, icalLink) {
     }
 }
 
+function getAllUsers() {
+    try {
+        const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
+        return Object.entries(users).map(([userName, data]) => ({
+            userName,
+            displayName: data.displayName,
+            group: data.group
+        }));
+    } catch (error) {
+        console.error("Erreur lors de la récupération des utilisateurs:", error);
+        throw error;
+    }
+}
+
 module.exports = {
     fetchHpData,
     checkUser,
     saveUser,
-    validateIcal
+    validateIcal,
+    getAllUsers
 };

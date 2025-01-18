@@ -1,0 +1,152 @@
+{
+  "groups": {
+    "IE2": {
+      "UE": [
+        {
+          "Automatique et informatique": [
+            {
+              "coef": 700,
+              "enseignements": [
+                {
+                  "Applications d'entreprise": 1,
+                  "Commande des systèmes": 4,
+                  "Conception de Système d'information": 1,
+                  "Développement Web": 1,
+                  "Intelligence ambiante": 1,
+                  "Introduction aux réseaux": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Culture générale, professionnelle et SHS": [
+            {
+              "coef": 2,
+              "enseignements": [
+                {
+                  "Economie et Science politique": 1,
+                  "Changement organisationnel": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Développement et expériences": [
+            {
+              "coef": 4,
+              "enseignements": [
+                {
+                  "Projet - Conception et réalisation d'un produit ou d'un service": 5,
+                  "Stage découverte entreprise - vente ITEEM": 5,
+                  "Retour de Stage IE1": 2,
+                  "Cycle de conférences": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Electricité, Electronique, Onde et Télecom": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Electronique 2": 2,
+                  "Equipement électrique 2": 2,
+                  "Modélisation, simulation et commande des processus électriques": 2,
+                  "Ondes": 4,
+                  "Traitement du signal": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Affaires": [
+            {
+              "coef": 5,
+              "enseignements": [
+                {
+                  "Communication 3": 2,
+                  "Développement durable et Responsabilité sociétale 2": 1,
+                  "Finances et gestion 3": 1,
+                  "Finances et gestion 4": 1,
+                  "Marketing 3": 1,
+                  "Marketing 4": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Management et entrepreneuriat": [
+            {
+              "coef": 5,
+              "enseignements": [
+                {
+                  "Entrepreneuriat": 2,
+                  "Management de l'innovation": 2,
+                  "Management de projet 3": 1,
+                  "Management de projet 4": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Langues et international": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Anglais 3": 2,
+                  "Anglais 4": 2,
+                  "Espagnol 3": 2,
+                  "Espagnol 4": 2,
+                  "Allemand 3": 2,
+                  "Allemand 4": 2,
+                  "Chinois 3": 2,
+                  "Chinois 4": 2,
+                  "Langue française": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Mathématiques": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Mathématiques 3": 1,
+                  "Mathématiques 4": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Mécanique et matériau": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Bureau d'étude": 2,
+                  "Conception et Production de Systèmes 2": 2,
+                  "Du Minerai à la pièce fonctionnelle": 1,
+                  "Dynamique des solides": 2,
+                  "Mécanique des fluides": 1,
+                  "Résistance des matériaux": 2,
+                  "Thermodynamique": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

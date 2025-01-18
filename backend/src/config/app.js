@@ -14,6 +14,7 @@ const publicRoutes = require("../routes/publicData");
 const evaRoutes = require("../routes/eva");
 const statsRoutes = require("../routes/stats");
 const rankRoutes = require("../routes/ranking");
+const coefRoutes = require('../routes/coef');
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -69,6 +70,7 @@ app.use("/api", publicRoutes);
 app.use("/api/eva", evaRoutes);
 app.use("/api", statsRoutes);
 app.use("/api", rankRoutes);
+app.use('/api/coef', coefRoutes);
 
 
 // Route de test pour crash du serveur (à utiliser avec précaution)

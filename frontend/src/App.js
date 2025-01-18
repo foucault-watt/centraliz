@@ -111,7 +111,6 @@ const App = () => {
         <div className="App">
           <Header />
           <Main />
-          {/* Suppression du Footer */}
         </div>
       )}
     </UserContext.Provider>

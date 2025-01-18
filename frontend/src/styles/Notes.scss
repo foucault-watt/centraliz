@@ -16,7 +16,6 @@ $fade-duration: 0.3s;
 .container {
   width: 100%;
   margin: 0 auto;
-  padding: 0 20px; // Ajout d'un padding horizontal pour éviter que le contenu ne colle aux bords
   font-family: Arial, sans-serif;
   color: $second;
   text-align: center;
@@ -31,6 +30,34 @@ $fade-duration: 0.3s;
   border: 1px solid #ffeeba;
   font-size: 0.9em;
   text-align: center;
+}
+
+.warning-message {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 15px;
+  margin: 20px;
+  border-radius: 8px;
+  border: 1px solid #ffeeba;
+  text-align: center;
+
+  .feedback-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: $main;
+    text-decoration: underline;
+    
+    &:hover {
+      color: darken($main, 10%);
+    }
+  }
+
+  .feedback-hint {
+    display: block;
+    margin-top: 10px;
+    font-style: italic;
+    font-size: 0.9em;
+  }
 }
 
 .grid {
@@ -50,7 +77,7 @@ $fade-duration: 0.3s;
 
 .module {
   border: 1px solid $day-border;
-  border-radius: 5px;
+  border-radius: 12px;
   overflow: hidden;
   @include box-shadow();
 
@@ -81,17 +108,6 @@ $fade-duration: 0.3s;
 
       .moyenne {
         margin-right: 10px;
-      }
-
-      &::after {
-        content: '▼';
-        font-size: 12px;
-        @include transition(transform);
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        transition: transform $expand-duration $expand-timing;
       }
     }
 
@@ -356,4 +372,43 @@ $fade-duration: 0.3s;
   margin: 10px auto;
   display: block;
   border-radius: 10px;
+}
+
+.ue-section {
+  grid-column: 1 / -1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin-bottom: 20px;
+
+  .ue-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid $day-border;
+
+    .moyenne {
+      font-size: 1.2em;
+    }
+  }
+
+  .modules-grid {
+    display: grid;
+    gap: 20px;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 1200px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .coef {
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-right: 10px;
+  }
 }

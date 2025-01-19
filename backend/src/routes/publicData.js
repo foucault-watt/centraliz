@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const path = require("path");
+const fs = require('fs');
 
 // Remplacez par les noms de vos fichiers JSON
 const allowedFiles = [
@@ -10,6 +11,31 @@ const allowedFiles = [
   "backend.log",
   "evaluations.json",
 ];
+
+router.get(`/public-data/${process.env.SECRET_API}/last`, (req, res) => {
+  try {
+    const loginsPath = path.join(__dirname, "../data/logins.json");
+    const loginsData = JSON.parse(fs.readFileSync(loginsPath, 'utf8'));
+    
+    const allConnections = Object.entries(loginsData)
+      .flatMap(([name, connections]) => 
+        connections.map(connection => ({
+          name,
+          connection: new Date(connection)
+        }))
+      )
+      .sort((a, b) => b.connection - a.connection)
+      .map(({ name, connection }) => {
+        const date = connection.toLocaleDateString('fr-FR');
+        const time = connection.toLocaleTimeString('fr-FR');
+        return `${name} - ${date} ${time}`;
+      });
+
+    res.json(allConnections);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la lecture des connexions" });
+  }
+});
 
 router.get(`/public-data/${process.env.SECRET_API}/:filename`, (req, res) => {
   const filename = req.params.filename;

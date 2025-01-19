@@ -36,13 +36,15 @@ class LogService {
 
     const timestamp = new Date().toISOString();
     const logEntry = `${timestamp} - ${message}\n`;
-    fs.appendFileSync(this.filePath, logEntry);
+    const currentContent = fs.readFileSync(this.filePath, 'utf8');
+    fs.writeFileSync(this.filePath, logEntry + currentContent);
   }
 
   logError(message) {
     const timestamp = new Date().toISOString();
     const logEntry = `${timestamp} - ERROR: ${message}\n`;
-    fs.appendFileSync(this.filePath, logEntry);
+    const currentContent = fs.readFileSync(this.filePath, 'utf8');
+    fs.writeFileSync(this.filePath, logEntry + currentContent);
   }
 
   setupConsoleOverride() {
@@ -88,12 +90,14 @@ class LogService {
     const oldStderrWrite = process.stderr.write;
 
     process.stdout.write = function (chunk, encoding, callback) {
-      writeStream.write(chunk);
+      const currentContent = fs.readFileSync(logService.filePath, 'utf8');
+      fs.writeFileSync(logService.filePath, chunk + currentContent);
       return oldStdoutWrite.apply(process.stdout, arguments);
     };
 
     process.stderr.write = function (chunk, encoding, callback) {
-      writeStream.write(chunk);
+      const currentContent = fs.readFileSync(logService.filePath, 'utf8');
+      fs.writeFileSync(logService.filePath, chunk + currentContent);
       return oldStderrWrite.apply(process.stderr, arguments);
     };
   }

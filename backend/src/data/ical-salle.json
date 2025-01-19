@@ -1,0 +1,967 @@
+[
+  {
+    "salle": null,
+    "ical_link": null,
+    "position": 1
+  },
+  {
+    "salle": "A-026",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_A_026.ics?version=2022.0.5.0&idICal=3ABCE3CB9A93BF4F9205E80DC09DD5F5&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 2
+  },
+  {
+    "salle": "A-027",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_A_027.ics?version=2022.0.5.0&idICal=5DA65DDF2A8FC45F16143F2FC9E9BD1E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 3
+  },
+  {
+    "salle": "Amphi BODA",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Amphi_BODA.ics?version=2022.0.5.0&idICal=2974651DDF0E6161768F5E955F08B626&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 4
+  },
+  {
+    "salle": "Amphi CUCCARONI",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Amphi_CUCCARONI.ics?version=2022.0.5.0&idICal=2F46B05DCCACD1C5E87A1D28737AA306&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 5
+  },
+  {
+    "salle": "Amphi GOUBET",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Amphi_GOUBET.ics?version=2022.0.5.0&idICal=49BA0547434D23CE785656606A09F6C9&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 6
+  },
+  {
+    "salle": "Amphi L. de VINC",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Amphi_L__de_VINC.ics?version=2022.0.5.0&idICal=AA3904935887795465CBE2188DF4E6FA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 7
+  },
+  {
+    "salle": "AMPHI LOISON",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_AMPHI_LOISON.ics?version=2022.0.5.0&idICal=7B501876890BBAAE256043A788464F35&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 8
+  },
+  {
+    "salle": "AMPHI PETIT",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_AMPHI_PETIT.ics?version=2022.0.5.0&idICal=250C72850DB2393DE06C1AD104F73CAC&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 9
+  },
+  {
+    "salle": "Amphi POIRIER",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Amphi_POIRIER.ics?version=2022.0.5.0&idICal=B7E2245F610A6E930A9593B6E7001679&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 10
+  },
+  {
+    "salle": "Aquarium",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Aquarium.ics?version=2022.0.5.0&idICal=2B2BAF886F1051DE407E45DAC5F4CA78&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 11
+  },
+  {
+    "salle": "B-014",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_014.ics?version=2022.0.5.0&idICal=2B606F699432FA28146A5849F5C3ECA3&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 12
+  },
+  {
+    "salle": "B-015",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_015.ics?version=2022.0.5.0&idICal=350A6319AF3E52A25AC8BCE71E981F25&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 13
+  },
+  {
+    "salle": "B-016",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_016.ics?version=2022.0.5.0&idICal=6CC347FB59DF9F3A5B72837C6D719D26&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 14
+  },
+  {
+    "salle": "B-023",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_023.ics?version=2022.0.5.0&idICal=2FA88EB3A929FF1191C009CF3FF2BB8D&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 15
+  },
+  {
+    "salle": "B-024",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_024.ics?version=2022.0.5.0&idICal=D26F1848E42AF53DA89ED9C2BA9BD9E7&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 16
+  },
+  {
+    "salle": "B-026",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_026.ics?version=2022.0.5.0&idICal=920D5666631C3BF7AB8EB450D0A62B4F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 17
+  },
+  {
+    "salle": "B-028",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_028.ics?version=2022.0.5.0&idICal=B3360952D47E4B7362D7235B1FE08930&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 18
+  },
+  {
+    "salle": "B-030",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_030.ics?version=2022.0.5.0&idICal=8E37954D34AD3E4E3463503E7D94A4F8&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 19
+  },
+  {
+    "salle": "B-couloir amphi",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B_couloir_amphi.ics?version=2022.0.5.0&idICal=12C549D0E2884ECFBC0F1B45BFD78552&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 20
+  },
+  {
+    "salle": "B7-001",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_001.ics?version=2022.0.5.0&idICal=4B2A6482397C47C1D897471BB9749655&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 21
+  },
+  {
+    "salle": "B7-002",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_002.ics?version=2022.0.5.0&idICal=F0C582D181DFC31A57203293D6F3D09A&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 22
+  },
+  {
+    "salle": "B7-003",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_003.ics?version=2022.0.5.0&idICal=92FD66DA69DA81C35EA06BB0B86F2CBE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 23
+  },
+  {
+    "salle": "B7-008",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_008.ics?version=2022.0.5.0&idICal=5E9B9B752EEB7A9510FFB89BA630E80F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 24
+  },
+  {
+    "salle": "B7-101",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_101.ics?version=2022.0.5.0&idICal=361B15EE239B3519E0E76C3756D5CA93&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 25
+  },
+  {
+    "salle": "B7-102",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_102.ics?version=2022.0.5.0&idICal=8CDB3732072349BC811A5A65791A21B9&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 26
+  },
+  {
+    "salle": "B7-103",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_103.ics?version=2022.0.5.0&idICal=E66E9FAD222A10B8E667D9E6DB8B2F28&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 27
+  },
+  {
+    "salle": "B7-104",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_104.ics?version=2022.0.5.0&idICal=1285C77B6F2C222E434D545A6414E826&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 28
+  },
+  {
+    "salle": "B7-105",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_105.ics?version=2022.0.5.0&idICal=1AA85452EC0AEC6C905E2419AD0AC29B&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 29
+  },
+  {
+    "salle": "B7-106",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_B7_106.ics?version=2022.0.5.0&idICal=2C4AA578BA95A1EC7DEC8F13F82F0D95&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 30
+  },
+  {
+    "salle": "BOSSUT",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_BOSSUT.ics?version=2022.0.5.0&idICal=BBE4525E87883EC9A15ADB374BC9EB0C&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 31
+  },
+  {
+    "salle": "C-002",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_002.ics?version=2022.0.5.0&idICal=CC2DBBC29BAF96290D9E2B5849CE0B03&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 32
+  },
+  {
+    "salle": "C-016",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_016.ics?version=2022.0.5.0&idICal=7D68A3CFBFB5C058DF1DAED35AAB0131&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 33
+  },
+  {
+    "salle": "C-018",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_018.ics?version=2022.0.5.0&idICal=4789A4ED77512204FD0D92EA9C49662F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 34
+  },
+  {
+    "salle": "C-019",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_019.ics?version=2022.0.5.0&idICal=DD7ADA79C985B119204001B43CD43699&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 35
+  },
+  {
+    "salle": "C-027",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_027.ics?version=2022.0.5.0&idICal=A956EBAC3CC210E204F7F47589ED84D4&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 36
+  },
+  {
+    "salle": "C-027a",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_027a.ics?version=2022.0.5.0&idICal=E38B97B58C3437886F03CE1B4A28C3F0&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 37
+  },
+  {
+    "salle": "C-027b",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_027b.ics?version=2022.0.5.0&idICal=38FB1FCFD97BE7B57A04735F263689C0&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 38
+  },
+  {
+    "salle": "C-027c",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_027c.ics?version=2022.0.5.0&idICal=EE3479CA031402EB724B14BE6346B038&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 39
+  },
+  {
+    "salle": "C-101",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_101.ics?version=2022.0.5.0&idICal=CA35D09E371B2D09FA029BE8D7D49006&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 40
+  },
+  {
+    "salle": "C-101a",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_101a.ics?version=2022.0.5.0&idICal=8C1FF3A681DBE41DBF5755C1E9552FFC&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 41
+  },
+  {
+    "salle": "C-101b",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_101b.ics?version=2022.0.5.0&idICal=815F61D284D232031BB397ADA9562EBA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 42
+  },
+  {
+    "salle": "C-102",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_102.ics?version=2022.0.5.0&idICal=FDA223FBE2566EAA2EDE5C01332AB20F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 43
+  },
+  {
+    "salle": "C-108",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_108.ics?version=2022.0.5.0&idICal=C8C79FC3E333E241C74E6352CB2DB882&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 44
+  },
+  {
+    "salle": "C-112",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_112.ics?version=2022.0.5.0&idICal=3C4DE17E02D94B7B4176F80A9CE2A2B1&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 45
+  },
+  {
+    "salle": "C-116",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_116.ics?version=2022.0.5.0&idICal=9FD7B7A686E7335CCD30D5794F7BAAB1&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 46
+  },
+  {
+    "salle": "C-118",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_118.ics?version=2022.0.5.0&idICal=D8605DDA9AD6384537D1A8D98B671863&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 47
+  },
+  {
+    "salle": "C-120",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_120.ics?version=2022.0.5.0&idICal=F8DCD0D484D29A5A09E92534998E0D77&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 48
+  },
+  {
+    "salle": "C-123",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_123.ics?version=2022.0.5.0&idICal=91670090576207F4AE657C3CCC90A109&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 49
+  },
+  {
+    "salle": "C-125",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_125.ics?version=2022.0.5.0&idICal=F794440DFCE755D552E69DA21216A674&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 50
+  },
+  {
+    "salle": "C-204",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_204.ics?version=2022.0.5.0&idICal=1F78A13A4DF110420EBC69D7574D7AF3&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 51
+  },
+  {
+    "salle": "C-206",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_206.ics?version=2022.0.5.0&idICal=C244409EC5117B7AE27A247116D2641A&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 52
+  },
+  {
+    "salle": "C-208a",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_208a.ics?version=2022.0.5.0&idICal=8A248417ADAE5DFD5DEA90E0B3074FAD&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 53
+  },
+  {
+    "salle": "C-212",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_212.ics?version=2022.0.5.0&idICal=4CCA20F091F45A8DFA0E710B997FC8AA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 54
+  },
+  {
+    "salle": "C-214",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_214.ics?version=2022.0.5.0&idICal=2C45DEB605C98F5952235CB026056C21&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 55
+  },
+  {
+    "salle": "C-306",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_306.ics?version=2022.0.5.0&idICal=71C12958550DE30621F05E1DB174294D&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 56
+  },
+  {
+    "salle": "C-314",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C_314.ics?version=2022.0.5.0&idICal=E956CF7E00ED68C5B21AF345B80754F1&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 57
+  },
+  {
+    "salle": "C7a-003",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7a_003.ics?version=2022.0.5.0&idICal=B8F0CA440150366113FC3BC00DC62297&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 58
+  },
+  {
+    "salle": "C7a-016",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7a_016.ics?version=2022.0.5.0&idICal=6073BDD8148814101FB56FDF21A35AC4&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 59
+  },
+  {
+    "salle": "C7a-033",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7a_033.ics?version=2022.0.5.0&idICal=CD8737728D925CC050686E7AC61409ED&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 60
+  },
+  {
+    "salle": "C7a-035",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7a_035.ics?version=2022.0.5.0&idICal=7273E124D342804B63DF3B2E2CD44818&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 61
+  },
+  {
+    "salle": "C7b-055",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_055.ics?version=2022.0.5.0&idICal=03F6BAB6B1415BCEACDE5BA8C4760006&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 62
+  },
+  {
+    "salle": "C7b-057",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_057.ics?version=2022.0.5.0&idICal=B84C4AE0F8879382E10BD50187580535&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 63
+  },
+  {
+    "salle": "C7b-059",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_059.ics?version=2022.0.5.0&idICal=8DEF165CABBCD94A6BF9A8C788A7733E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 64
+  },
+  {
+    "salle": "C7b-061",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_061.ics?version=2022.0.5.0&idICal=659B186527ACB4341B9A750809556B93&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 65
+  },
+  {
+    "salle": "C7b-063",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_063.ics?version=2022.0.5.0&idICal=E0F202DC89739A573DA0D293CFDA2550&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 66
+  },
+  {
+    "salle": "C7b-064",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_064.ics?version=2022.0.5.0&idICal=B2385DE6FFC024CEBAFD2E69195768B0&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 67
+  },
+  {
+    "salle": "C7b-065",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_065.ics?version=2022.0.5.0&idICal=901E9FE4C7A3E4444DF9D60F8499D6E6&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 68
+  },
+  {
+    "salle": "C7b-072",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_072.ics?version=2022.0.5.0&idICal=B6012E0FC476338B1D2D98C848E7A64D&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 69
+  },
+  {
+    "salle": "C7b-074",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_074.ics?version=2022.0.5.0&idICal=C4FBBE8722AB8DE548A244274F5EE7EA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 70
+  },
+  {
+    "salle": "C7b-151",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_151.ics?version=2022.0.5.0&idICal=435CAE1E6857828C1E9D5C4A38ACD2DC&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 71
+  },
+  {
+    "salle": "C7b-153",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_153.ics?version=2022.0.5.0&idICal=1B3CD2E5F79E63042877951B9DFEE9CE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 72
+  },
+  {
+    "salle": "C7b-154",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_154.ics?version=2022.0.5.0&idICal=0D69D5A6A1B3998E9C41861951BAE4D7&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 73
+  },
+  {
+    "salle": "C7b-155",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_155.ics?version=2022.0.5.0&idICal=5B3B1C0B1913389FA028C9828B785F47&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 74
+  },
+  {
+    "salle": "C7b-157",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_157.ics?version=2022.0.5.0&idICal=44C162B59DDFC3F63ED1B362289F0164&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 75
+  },
+  {
+    "salle": "C7b-160",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_160.ics?version=2022.0.5.0&idICal=D8C92A9426E64B7593C99374A9BD9AB4&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 76
+  },
+  {
+    "salle": "C7b-162",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_162.ics?version=2022.0.5.0&idICal=66DE57E1A38F07428614EF1828E62F36&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 77
+  },
+  {
+    "salle": "C7b-164",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_164.ics?version=2022.0.5.0&idICal=B90035E57BE2CDEEA9343289A2EC7912&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 78
+  },
+  {
+    "salle": "C7b-168",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_C7b_168.ics?version=2022.0.5.0&idICal=0F509453D4740707B405D48892952AB8&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 79
+  },
+  {
+    "salle": "Cafét. Centrale",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Cafet__Centrale.ics?version=2022.0.5.0&idICal=A8FBDC7C24722B41A80862A61B06B0C0&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 80
+  },
+  {
+    "salle": "Cafét. ITEEM",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Cafet__ITEEM.ics?version=2022.0.5.0&idICal=8F931964D255F538F61582C96C631F1E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 81
+  },
+  {
+    "salle": "D-006",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_D_006.ics?version=2022.0.5.0&idICal=64415CADD976C3DEC29DE03C8A240EDB&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 82
+  },
+  {
+    "salle": "E-202",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_202.ics?version=2022.0.5.0&idICal=CDF6D4C3492B5DBA188AE839F79AACEF&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 83
+  },
+  {
+    "salle": "E-204",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_204.ics?version=2022.0.5.0&idICal=C04A3178D3017CA58B8B8C30253B061F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 84
+  },
+  {
+    "salle": "E-208",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_208.ics?version=2022.0.5.0&idICal=1789B91B8FE5BC3D6F5E7F10047C791E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 85
+  },
+  {
+    "salle": "E-301",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_301.ics?version=2022.0.5.0&idICal=C9E04F64955B21E26EFC50340CAF570A&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 86
+  },
+  {
+    "salle": "E-302",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_302.ics?version=2022.0.5.0&idICal=42F1593C5C7462A9B4698F4511168E81&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 87
+  },
+  {
+    "salle": "E-303",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_303.ics?version=2022.0.5.0&idICal=8501698E020F58E4B473EDB7ACD8D0D2&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 88
+  },
+  {
+    "salle": "E-304",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_304.ics?version=2022.0.5.0&idICal=5AD9EE240A72D8A8A7AF2A85A3D85305&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 89
+  },
+  {
+    "salle": "E-305",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_305.ics?version=2022.0.5.0&idICal=B2DBAA33E2EE1CE61CB9731BD259BC4B&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 90
+  },
+  {
+    "salle": "E-306",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_306.ics?version=2022.0.5.0&idICal=A820DFDD2F42C3239678F0DC4AF21A7E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 91
+  },
+  {
+    "salle": "E-307",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_307.ics?version=2022.0.5.0&idICal=E029F8BD04F3734A513D18C9D92B68EC&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 92
+  },
+  {
+    "salle": "E-401",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_401.ics?version=2022.0.5.0&idICal=45765247829EB6A3F624F3A7B21E0F86&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 93
+  },
+  {
+    "salle": "E-402",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_402.ics?version=2022.0.5.0&idICal=51BB45CD6F08BC0086B3089ECAB13005&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 94
+  },
+  {
+    "salle": "E-403",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_403.ics?version=2022.0.5.0&idICal=F9D021B25CE14E77D62AFA35AA52BF9E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 95
+  },
+  {
+    "salle": "E-405",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_405.ics?version=2022.0.5.0&idICal=99C63BDAEE1ECB165DDEA23D22E90E43&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 96
+  },
+  {
+    "salle": "E-406",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_406.ics?version=2022.0.5.0&idICal=CB377C257423B40C85B509DEA4D6D0D7&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 97
+  },
+  {
+    "salle": "E-408",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_408.ics?version=2022.0.5.0&idICal=EDBF28ABDB9ED1FF809E0B824B73C5EE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 98
+  },
+  {
+    "salle": "E-410",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_410.ics?version=2022.0.5.0&idICal=838B633AEAE0E8FB792214F7BFDD9B17&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 99
+  },
+  {
+    "salle": "E-501",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_501.ics?version=2022.0.5.0&idICal=D4A135049898B14F1F34CAC3820BDFC6&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 100
+  },
+  {
+    "salle": "E-502",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_502.ics?version=2022.0.5.0&idICal=C59E5500B48A83DEE1275EA5F3F73337&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 101
+  },
+  {
+    "salle": "E-503",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_503.ics?version=2022.0.5.0&idICal=4EA003BB34C0D3192146A5B11F9F2DF1&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 102
+  },
+  {
+    "salle": "E-504",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_504.ics?version=2022.0.5.0&idICal=C76128D8A58FD8F054A717932D2E85A4&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 103
+  },
+  {
+    "salle": "E-505",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_505.ics?version=2022.0.5.0&idICal=B8B2818B4E7EA96EEC96C901B7B1318E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 104
+  },
+  {
+    "salle": "E-601",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_601.ics?version=2022.0.5.0&idICal=71FA8A57AC33FA75B9F7626BB247A6F1&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 105
+  },
+  {
+    "salle": "E-602",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_602.ics?version=2022.0.5.0&idICal=65F541A1860581B1279AA697240C7969&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 106
+  },
+  {
+    "salle": "E-603",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_603.ics?version=2022.0.5.0&idICal=FC3DBD7629C78219D1BFD2E4A3A1F774&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 107
+  },
+  {
+    "salle": "E-604",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_E_604.ics?version=2022.0.5.0&idICal=E97CA883302DB96EA551634267196E42&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 108
+  },
+  {
+    "salle": "ENSAM",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_ENSAM.ics?version=2022.0.5.0&idICal=B4A44C07D525EA9DCA937C9A678ECBF8&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 109
+  },
+  {
+    "salle": "ENSCL",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_ENSCL.ics?version=2022.0.5.0&idICal=2C370B5631D4329E9C2298AC30AED86B&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 110
+  },
+  {
+    "salle": "F-011",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_F_011.ics?version=2022.0.5.0&idICal=AD37782D9DEE100AEFEBF24ADBF4DF4A&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 111
+  },
+  {
+    "salle": "F-015",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_F_015.ics?version=2022.0.5.0&idICal=3D233AFB7F2493DA7F9280106DC47780&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 112
+  },
+  {
+    "salle": "F-018",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_F_018.ics?version=2022.0.5.0&idICal=7BF57E22F7F96ABC1D54927A06197777&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 113
+  },
+  {
+    "salle": "F-019",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_F_019.ics?version=2022.0.5.0&idICal=3AF0E242CE8D4D1722E1AD287E8297C3&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 114
+  },
+  {
+    "salle": "F-065",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_F_065.ics?version=2022.0.5.0&idICal=ECDFB42682E85330ACDF0BF010CED754&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 115
+  },
+  {
+    "salle": "F-066",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_F_066.ics?version=2022.0.5.0&idICal=352BB3886D110E933DF1453444AA35B5&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 116
+  },
+  {
+    "salle": "F-137",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_F_137.ics?version=2022.0.5.0&idICal=3BD707D605931242CD19E1BA5AB894AA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 117
+  },
+  {
+    "salle": "FABLAB",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_FABLAB.ics?version=2022.0.5.0&idICal=F1F5EBB86FC1E6685E07DA00A46488F3&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 118
+  },
+  {
+    "salle": "Fac J.Perrin S19",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Fac_J_Perrin_S19.ics?version=2022.0.5.0&idICal=C4285D70619531870E48BF6C7BE78AF6&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 119
+  },
+  {
+    "salle": "Fac J.Perrin S25",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Fac_J_Perrin_S25.ics?version=2022.0.5.0&idICal=9AD770AD8B4440300A8E599770F2F06D&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 120
+  },
+  {
+    "salle": "Fonderie-Hall",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Fonderie_Hall.ics?version=2022.0.5.0&idICal=D9282C0F83795DF0FD131482B0F02EC5&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 121
+  },
+  {
+    "salle": "Fonderie-Mezzan.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Fonderie_Mezzan_.ics?version=2022.0.5.0&idICal=86CF3F63F4D96632675B4AADA3076FFE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 122
+  },
+  {
+    "salle": "Fonderie-TP",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Fonderie_TP.ics?version=2022.0.5.0&idICal=9F6203BDC4939A69B2CA143398DB8DCF&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 123
+  },
+  {
+    "salle": "G-001",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_G_001.ics?version=2022.0.5.0&idICal=ED068178853CC6FDB29281DE0BA8C1A3&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 124
+  },
+  {
+    "salle": "G-101",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_G_101.ics?version=2022.0.5.0&idICal=10EE31AACC6108E52B00B1CBC8C57204&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 125
+  },
+  {
+    "salle": "Halle Grémeaux",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Halle_Gremeaux.ics?version=2022.0.5.0&idICal=B2FF0E786C0550F64BB61ECBC16527C5&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 126
+  },
+  {
+    "salle": "Halle Vallin",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Halle_Vallin.ics?version=2022.0.5.0&idICal=3A5737FE1ADBBB494C435D5AFF92FA2A&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 127
+  },
+  {
+    "salle": "I-001",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_I_001.ics?version=2022.0.5.0&idICal=461C1B50C42D406DFF100C4A346B13AA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 128
+  },
+  {
+    "salle": "I-101",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_I_101.ics?version=2022.0.5.0&idICal=580B9D51D0D1CD7A67792EBF46076ABF&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 129
+  },
+  {
+    "salle": "I-102",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_I_102.ics?version=2022.0.5.0&idICal=099240867C5096DB2C4A7B62CB2BDA06&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 130
+  },
+  {
+    "salle": "I-103",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_I_103.ics?version=2022.0.5.0&idICal=97034F9870FABAB0106FDE0B72079EB9&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 131
+  },
+  {
+    "salle": "I-104",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_I_104.ics?version=2022.0.5.0&idICal=B03BF54DE2C34A0D97A7B20FAC8F19B6&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 132
+  },
+  {
+    "salle": "I-105",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_I_105.ics?version=2022.0.5.0&idICal=0CCC18DC6B7663EB9618CCD08A3BB583&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 133
+  },
+  {
+    "salle": "I-106",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_I_106.ics?version=2022.0.5.0&idICal=66C397B8D2AD020DDA91B96E0F10A90B&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 134
+  },
+  {
+    "salle": "IEMN",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IEMN.ics?version=2022.0.5.0&idICal=5598A34461C9D5BC3C85BCC4AE4C6AEA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 135
+  },
+  {
+    "salle": "IG-005",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_005.ics?version=2022.0.5.0&idICal=7C0ED8EF3061627CC6C319B87D6D20F2&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 136
+  },
+  {
+    "salle": "IG-009",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_009.ics?version=2022.0.5.0&idICal=D9A3FE3E6000FED95882BE90D871297B&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 137
+  },
+  {
+    "salle": "IG-101",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_101.ics?version=2022.0.5.0&idICal=18B0D7F34ECAF1C0CFD41294D2996EEE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 138
+  },
+  {
+    "salle": "IG-103",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_103.ics?version=2022.0.5.0&idICal=682334BA17A96440E7D469B3D2845546&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 139
+  },
+  {
+    "salle": "IG-104",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_104.ics?version=2022.0.5.0&idICal=23F345C2BC7059E1E43BC9D647312B1F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 140
+  },
+  {
+    "salle": "IG-201",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_201.ics?version=2022.0.5.0&idICal=BF6F8F2077DE9F60714100DF7B565959&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 141
+  },
+  {
+    "salle": "IG-202",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_202.ics?version=2022.0.5.0&idICal=59E3EDDB5123B6E240B40802E7D2169A&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 142
+  },
+  {
+    "salle": "IG-205",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_205.ics?version=2022.0.5.0&idICal=D68E0C9AC7108FE08A4282839C6181A7&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 143
+  },
+  {
+    "salle": "IG-206",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_206.ics?version=2022.0.5.0&idICal=CB47D3D0A77AC82CC58428955EABC078&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 144
+  },
+  {
+    "salle": "IG-209",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_209.ics?version=2022.0.5.0&idICal=A64691AF9F7B31D1EBCB12C929DC920F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 145
+  },
+  {
+    "salle": "IG-301",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_301.ics?version=2022.0.5.0&idICal=C03792630D64371F17630C923A9416E2&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 146
+  },
+  {
+    "salle": "IG-302",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_302.ics?version=2022.0.5.0&idICal=7FF48377600C425F69E2CE0EABD3C188&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 147
+  },
+  {
+    "salle": "IG-305",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_305.ics?version=2022.0.5.0&idICal=4E8B87BC00833A0EB90E521E9C74F107&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 148
+  },
+  {
+    "salle": "IG-306",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_306.ics?version=2022.0.5.0&idICal=E2F69B62F8E16E97B575A44835C02D85&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 149
+  },
+  {
+    "salle": "IG-309",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_309.ics?version=2022.0.5.0&idICal=D0ACE5A4C0BEFE3467A45F16EF6524AB&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 150
+  },
+  {
+    "salle": "IG-310",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_310.ics?version=2022.0.5.0&idICal=8C1E2C0A80AA67591EF0D2F7D690C6DE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 151
+  },
+  {
+    "salle": "IG-SS01",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_SS01.ics?version=2022.0.5.0&idICal=1AC1109E532749368CC94F0963ADF632&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 152
+  },
+  {
+    "salle": "IG-SS04",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_SS04.ics?version=2022.0.5.0&idICal=589948788FA758FDC2D9AA4B3C63772E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 153
+  },
+  {
+    "salle": "IG-SS05",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_SS05.ics?version=2022.0.5.0&idICal=056ED89C3A0DA98AD520FE0B8DB94606&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 154
+  },
+  {
+    "salle": "IG-SS06",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IG_SS06.ics?version=2022.0.5.0&idICal=77F506D0F1EA37828A4B926D6AAEC494&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 155
+  },
+  {
+    "salle": "IMAGINE",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_IMAGINE.ics?version=2022.0.5.0&idICal=471E61AA32361651F89DC0617CE7FDC7&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 156
+  },
+  {
+    "salle": "J-101",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_J_101.ics?version=2022.0.5.0&idICal=4BC9562D3605B60CB8EE7AF74556E0AB&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 157
+  },
+  {
+    "salle": "J-102",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_J_102.ics?version=2022.0.5.0&idICal=664C193A0B39A658A9C6D541BDB11423&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 158
+  },
+  {
+    "salle": "J-103",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_J_103.ics?version=2022.0.5.0&idICal=AC01778BFBB28EE34D92576A149666C8&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 159
+  },
+  {
+    "salle": "J-104",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_J_104.ics?version=2022.0.5.0&idICal=7DAC4D2261E2B1F5D682BF48D8822232&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 160
+  },
+  {
+    "salle": "J-105",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_J_105.ics?version=2022.0.5.0&idICal=9CD7DC827BF3BEFC71804805D57D01E8&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 161
+  },
+  {
+    "salle": "Labo Fab Proto.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Fab_Proto_.ics?version=2022.0.5.0&idICal=C03526A7719E9F24F5954B23936A8418&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 162
+  },
+  {
+    "salle": "Labo Fab. Frais.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Fab__Frais_.ics?version=2022.0.5.0&idICal=0E2640D64DA111997624E31B870AB73B&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 163
+  },
+  {
+    "salle": "Labo Fab. Métau",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Fab__Metau.ics?version=2022.0.5.0&idICal=B2462FD89DD6C9241C6A6F235A91FACD&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 164
+  },
+  {
+    "salle": "Labo Fab. Métro",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Fab__Metro.ics?version=2022.0.5.0&idICal=66ADB62FB4432EF2F3954C377405EE32&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 165
+  },
+  {
+    "salle": "Labo Fab. MOCN",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Fab__MOCN.ics?version=2022.0.5.0&idICal=D664F34915CFB7D78CACD41CDA2AC29F&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 166
+  },
+  {
+    "salle": "Labo Fab. Perç.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Fab__Perc_.ics?version=2022.0.5.0&idICal=4E27D1FC93CAC69D5F4DC9CF91968ABE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 167
+  },
+  {
+    "salle": "Labo Fab. Tourn.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Fab__Tourn_.ics?version=2022.0.5.0&idICal=5CA75874F7F9D516AE68D9777CEA5F63&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 168
+  },
+  {
+    "salle": "Labo Méca.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Meca_.ics?version=2022.0.5.0&idICal=42362FF1A314E7FAB35FF74CDDEB632C&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 169
+  },
+  {
+    "salle": "Labo Méca. Flu.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_Meca__Flu_.ics?version=2022.0.5.0&idICal=A0EE4B65D64588834C95FF1029E27E96&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 170
+  },
+  {
+    "salle": "Labo SdM Fond.",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Labo_SdM_Fond_.ics?version=2022.0.5.0&idICal=725780EB069C5590EE9D9B7D1617823E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 171
+  },
+  {
+    "salle": "Lahousse",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Lahousse.ics?version=2022.0.5.0&idICal=EF31EC229824721CE057C9D49561AC50&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 172
+  },
+  {
+    "salle": "LAURENT",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_LAURENT.ics?version=2022.0.5.0&idICal=AA8EE01355D8964907E491FE0CCF3026&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 173
+  },
+  {
+    "salle": "Lycée du Hainau",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Lycee_du_Hainau.ics?version=2022.0.5.0&idICal=AD1271128FD30FDEF58248E15D15A3A8&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 174
+  },
+  {
+    "salle": "M6-001",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_M6_001.ics?version=2022.0.5.0&idICal=853EDC5D81F7C4E532F07D90774B2828&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 175
+  },
+  {
+    "salle": "M6-004",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_M6_004.ics?version=2022.0.5.0&idICal=350D7784B96A7CB04552735494ACA406&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 176
+  },
+  {
+    "salle": "M6-005",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_M6_005.ics?version=2022.0.5.0&idICal=5E8CA22B89B3672F496A7CFF8A5F490E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 177
+  },
+  {
+    "salle": "Polytech C302",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Polytech_C302.ics?version=2022.0.5.0&idICal=279669F735F28543B6E31A1E7438775A&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 178
+  },
+  {
+    "salle": "Polytech D125",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Polytech_D125.ics?version=2022.0.5.0&idICal=C443834CE813148542C7C4391F47DB88&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 179
+  },
+  {
+    "salle": "Polytech D127",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Polytech_D127.ics?version=2022.0.5.0&idICal=56D40DD9077C990C689CA335ED7AD5FA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 180
+  },
+  {
+    "salle": "Polytech E202",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Polytech_E202.ics?version=2022.0.5.0&idICal=EC68FE41246F8E1466BEFC10421C0B2E&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 181
+  },
+  {
+    "salle": "Salle TP Université Lille 1 P3/P4",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Salle_TP_Universite_Lille_1_P3_P4.ics?version=2022.0.5.0&idICal=67A12A65AFC747557592C562C371FBBE&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 182
+  },
+  {
+    "salle": "SALLE WOZNIAK",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_SALLE_WOZNIAK.ics?version=2022.0.5.0&idICal=D0CCC04F623FAAB6AA2EB735C70A04DA&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 183
+  },
+  {
+    "salle": "Skema A223",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Skema_A223.ics?version=2022.0.5.0&idICal=66013A430E3EEF63260190D60C31B578&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 184
+  },
+  {
+    "salle": "Skema C 213",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Skema_C_213.ics?version=2022.0.5.0&idICal=7304C72CC3A0BB64AC2F10CCAC15887D&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 185
+  },
+  {
+    "salle": "Skema C305",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Skema_C305.ics?version=2022.0.5.0&idICal=0E176F86E71A43CDF95FE8E2F508A0B2&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 186
+  },
+  {
+    "salle": "Skema C311",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Skema_C311.ics?version=2022.0.5.0&idICal=B89564B2E805EC712F2A43151C233302&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 187
+  },
+  {
+    "salle": "SKEMA Médiathè",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_SKEMA_Mediathe.ics?version=2022.0.5.0&idICal=8D1004BAABE9E61B424FCA86133CFDC5&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 188
+  },
+  {
+    "salle": "Terrain de foot",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Terrain_de_foot.ics?version=2022.0.5.0&idICal=143C40B3C859801E7A0479FDED98B062&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 189
+  },
+  {
+    "salle": "Terrain de rugby",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Terrain_de_rugby.ics?version=2022.0.5.0&idICal=CD157FE5E0BB0A889649820AE658D2F6&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 190
+  },
+  {
+    "salle": "Zen",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Zen.ics?version=2022.0.5.0&idICal=72FD4D6479AA9084EF09051465905957&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 191
+  },
+  {
+    "salle": "Zen",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Zen.ics?version=2022.0.5.0&idICal=72FD4D6479AA9084EF09051465905957&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 192
+  },
+  {
+    "salle": "Zen",
+    "ical_link": "https://planning.centralelille.fr/Telechargements/ical/Edt_Zen.ics?version=2022.0.5.0&idICal=72FD4D6479AA9084EF09051465905957&param=643d5b312e2e36325d2666683d3126663d3130",
+    "position": 193
+  }
+]

@@ -119,7 +119,7 @@ const ClaCalendar = () => {
 
   return (
     <>
-      <h2 className="module-title">Les prochains events</h2>
+      <h2 className="module-title">Les prochains évents CLA</h2>
       <div className="cla-calendar">
         <div className="events-list">
           {getFutureEvents().map((event, index) => {

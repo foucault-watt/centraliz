@@ -174,6 +174,7 @@ $fade-duration: 0.3s;
   border-radius: 5px;
   font-size: 0.9em;
   color: white; // Ajout pour s'assurer que tous les chiffres sont en blanc
+  margin-left: 8px;
 
   &.vert {
     background-color: $green;
@@ -492,7 +493,6 @@ $fade-duration: 0.3s;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid $day-border;
     background-color: rgba($main, 0.08);

@@ -214,6 +214,8 @@
     border-radius: 8px;
     overflow: hidden;
     position: relative;
+    touch-action: pan-x;  // Permet le swipe horizontal
+    user-select: none;    // Empêche la sélection de texte pendant le swipe
   }
 
   // Colonne des heures
@@ -245,6 +247,8 @@
   .day-column {
     flex: 1;
     min-width: 0;
+    touch-action: pan-x;  // Permet le swipe horizontal
+    pointer-events: none; // Les événements touch passent à travers la colonne
 
     .day-header {
       height: 30px; // Réduit de 40px
@@ -267,6 +271,10 @@
       border-right: 1px solid rgba($second, 0.1);
       position: relative;
       padding: 1px; // Ajouter un petit padding pour l'espacement
+    }
+
+    .calendar-event {
+      pointer-events: auto; // Réactive les événements uniquement pour les events
     }
   }
 

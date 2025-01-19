@@ -412,8 +412,18 @@ const HpCalendar = () => {
   // Mémoisation des colonnes du calendrier
   const DayColumn = React.memo(
     ({ day, hours, getEventsForCell, handleSelectEvent, isMobile }) => {
+      const handleTouchStart = (e) => {
+        // Empêcher la propagation uniquement si on touche un événement du calendrier
+        if (e.target.closest('.calendar-event')) {
+          e.stopPropagation();
+        }
+      };
+
       return (
-        <div className="day-column">
+        <div 
+          className="day-column"
+          onTouchStart={handleTouchStart}
+        >
           <div className="day-header">
             {isMobile ? day.format("dddd DD/MM") : day.format("ddd DD/MM")}
           </div>

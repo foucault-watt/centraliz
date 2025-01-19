@@ -30,10 +30,8 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .pages-container {
   position: relative;
   width: 100%;
-  // Supprimer 'height: 100vh;' pour permettre au contenu de s'étendre
   overflow: hidden;
-  touch-action: none;
-  -webkit-overflow-scrolling: touch; // Améliore le défilement sur iOS
+  touch-action: pan-y pinch-zoom; // Autorise uniquement le scroll vertical
   
   @media (max-width: 767px) {
     overflow: hidden;
@@ -44,9 +42,12 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .pages-wrapper {
   display: flex;
   width: 300%;
-  // Supprimer 'height: 100%;' pour laisser le contenu déterminer la hauteur
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); // Animation plus rapide et plus fluide
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); // Animation plus rapide et plus fluide
   will-change: transform;
+
+  &[data-swiping="true"] {
+    transition: none; // Désactive la transition pendant le swipe
+  }
 
   &.position-left {
     transform: translateX(0);
@@ -116,22 +117,21 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .page-section {
   flex: 0 0 33.33%;
   width: 33.33%;
-  // Supprimer 'height: 100%;' pour éviter les scrolls internes
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  
+  // Empêche le scroll horizontal quand on est aux extrémités
+  overscroll-behavior-x: none;
   display: flex;
   flex-direction: column;
   gap: $gap;
-  // Supprimer 'overflow-y: auto;' pour éviter les scrolls internes
 
-  // Suppression de l'opacité et de la transition
-  // opacity: 0.3;
-  // transition: opacity 0.5s ease;
-
-  // Suppression des sélecteurs d'opacité
-  // .section-notes &:first-child,
-  // .section-calendar &:nth-child(2),
-  // .section-mail &:last-child {
-  //   opacity: 1;
-  // }
+  .section-content {
+    padding: $gap;
+    height: 100%;
+    overflow-y: auto;
+  }
 
   &.calendars-section,
   &.mail-links-section {

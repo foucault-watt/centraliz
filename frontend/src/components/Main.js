@@ -22,48 +22,53 @@ const debounce = (fn, delay) => {
 };
 
 const useSwipe = (onSwipe) => {
-  const [touchStartX, setTouchStartX] = useState(0);
-  const [touchMoveX, setTouchMoveX] = useState(0);
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
+  const [touchMove, setTouchMove] = useState({ x: 0, y: 0 });
   const [isSwiping, setIsSwiping] = useState(false);
+  const minSwipeDistance = 50; // Distance minimale pour un swipe
+  const swipeThreshold = 0.3; // Ratio minimum de déplacement horizontal vs vertical
 
   const handleTouchStart = (e) => {
-    setTouchStartX(e.touches[0].clientX);
-    setIsSwiping(true);
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    setTouchMove({ x: touch.clientX, y: touch.clientY });
+    setIsSwiping(false);
   };
 
   const handleTouchMove = (e) => {
-    if (!isSwiping) return;
-    setTouchMoveX(e.touches[0].clientX);
-    
-    // Calculer la différence de déplacement
-    const diff = touchStartX - e.touches[0].clientX;
-    
-    // Si le déplacement est significatif, empêcher le scroll vertical
-    if (Math.abs(diff) > 5) {
-      e.preventDefault();
+    const touch = e.touches[0];
+    setTouchMove({ x: touch.clientX, y: touch.clientY });
+
+    // Calculer les différences de déplacement
+    const deltaX = Math.abs(touch.clientX - touchStart.x);
+    const deltaY = Math.abs(touch.clientY - touchStart.y);
+
+    // Si le déplacement horizontal est significatif et plus important que le vertical
+    if (deltaX > deltaY * swipeThreshold && deltaX > 10) {
+      setIsSwiping(true);
+      e.preventDefault(); // Empêcher le scroll uniquement si on détecte un swipe horizontal
     }
   };
 
   const handleTouchEnd = () => {
     if (!isSwiping) return;
 
-    const diff = touchStartX - touchMoveX;
-    const minSwipeDistance = 30; // Réduire la distance minimale pour un swipe
-
-    if (Math.abs(diff) > minSwipeDistance) {
-      onSwipe(diff > 0 ? 'left' : 'right');
+    const deltaX = touchMove.x - touchStart.x;
+    
+    if (Math.abs(deltaX) >= minSwipeDistance) {
+      onSwipe(deltaX > 0 ? 'right' : 'left');
     }
-
+    
     setIsSwiping(false);
   };
 
   return {
-    onTouchStart: handleTouchStart,
-    onTouchMove: (e) => {
-      e.stopPropagation();
-      handleTouchMove(e);
+    handlers: {
+      onTouchStart: handleTouchStart,
+      onTouchMove: handleTouchMove,
+      onTouchEnd: handleTouchEnd
     },
-    onTouchEnd: handleTouchEnd,
+    isSwiping
   };
 };
 
@@ -80,26 +85,39 @@ const Main = () => {
     setTimeout(() => setIsTransitioning(false), 500);
   }, [isTransitioning, isTyping]);
 
-  // Mise à jour de la gestion du swipe
-  const handleSwipe = useCallback((direction) => {
+  // Créer une fonction de navigation réutilisable
+  const handleNavigation = useCallback((direction) => {
     if (isTyping || isTransitioning) return;
 
-    const sections = ['notes', 'calendar', 'mail'];
+    const sections = [SECTIONS.NOTES, SECTIONS.CALENDAR, SECTIONS.MAIL];
     const currentIndex = sections.indexOf(currentSection);
     
-    // Ajout d'une vérification supplémentaire
-    if (!sections.includes(currentSection)) return;
-    
-    const newIndex = direction === 'left' ? 
-      Math.min(sections.length - 1, currentIndex + 1) : 
-      Math.max(0, currentIndex - 1);
-    
-    if (newIndex !== currentIndex) {
-      handleSectionChange(sections[newIndex]);
+    if (direction === 'left' && currentIndex < sections.length - 1) {
+      handleSectionChange(sections[currentIndex + 1]);
+    } else if (direction === 'right' && currentIndex > 0) {
+      handleSectionChange(sections[currentIndex - 1]);
     }
   }, [currentSection, handleSectionChange, isTyping, isTransitioning]);
 
-  const swipeHandlers = useSwipe(handleSwipe);
+  const { handlers, isSwiping } = useSwipe(handleNavigation);
+
+  // Mise à jour de l'effet pour utiliser handleNavigation
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      const activeElement = document.activeElement;
+      const isActiveInput = activeElement.tagName === 'INPUT' || 
+                          activeElement.tagName === 'TEXTAREA' ||
+                          activeElement.isContentEditable;
+      
+      if (isActiveInput) return;
+      
+      if (e.key === 'ArrowLeft') handleNavigation('right');
+      if (e.key === 'ArrowRight') handleNavigation('left');
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [handleNavigation]);
 
   // Optimisation de la détection du focus
   const isInputElement = useCallback((element) => {
@@ -124,13 +142,13 @@ const Main = () => {
       }
       
       // Navigation par touches
-      if (e.key === 'ArrowLeft') handleSwipe('right');
-      if (e.key === 'ArrowRight') handleSwipe('left');
+      if (e.key === 'ArrowLeft') handleNavigation('right');
+      if (e.key === 'ArrowRight') handleNavigation('left');
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleSwipe]);
+  }, [handleNavigation]);
 
   // Ajout d'un gestionnaire de focus/blur global
   useEffect(() => {
@@ -188,15 +206,12 @@ const Main = () => {
         isDisabled={isTransitioning || isTyping}
       />
       
-      <div 
-        className="pages-container" 
-        {...swipeHandlers}
-        style={{ 
-          touchAction: 'none', // Désactive le scroll natif pendant le swipe
-          userSelect: 'none'  // Empêche la sélection de texte pendant le swipe
-        }}
-      >
-        <div className={`pages-wrapper section-${currentSection}`}>
+      <div className="pages-container">
+        <div 
+          className={`pages-wrapper section-${currentSection}`}
+          data-swiping={isSwiping}
+          {...handlers}
+        >
           <section className="page-section">
             <div className="section-content">
               <div className="div-notes">

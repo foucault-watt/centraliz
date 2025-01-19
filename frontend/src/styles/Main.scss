@@ -21,18 +21,32 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   }
 }
 
+.main-container {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden; // Empêche le scroll horizontal
+}
+
 .pages-container {
   position: relative;
   width: 100%;
   // Supprimer 'height: 100vh;' pour permettre au contenu de s'étendre
   overflow: hidden;
+  touch-action: none;
+  -webkit-overflow-scrolling: touch; // Améliore le défilement sur iOS
+  
+  @media (max-width: 767px) {
+    overflow: hidden;
+    position: relative;
+  }
 }
 
 .pages-wrapper {
   display: flex;
   width: 300%;
   // Supprimer 'height: 100%;' pour laisser le contenu déterminer la hauteur
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); // Animation plus rapide et plus fluide
+  will-change: transform;
 
   &.position-left {
     transform: translateX(0);
@@ -56,6 +70,30 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
     &.position-left {
       animation: shake-left 0.4s cubic-bezier(.36,.07,.19,.97) both;
     }
+  }
+
+  &.section-notes {
+    transform: translateX(0);
+  }
+
+  &.section-calendar {
+    transform: translateX(-33.33%);
+  }
+
+  &.section-mail {
+    transform: translateX(-66.66%);
+  }
+
+  &[data-transitioning="true"] {
+    pointer-events: none;
+    touch-action: none;
+    user-select: none;
+    transition: none; // Désactive la transition pendant le swipe
+  }
+
+  @media (max-width: 767px) {
+    will-change: transform; // Optimise les animations sur mobile
+    backface-visibility: hidden; // Réduit les problèmes de rendu
   }
 }
 
@@ -84,6 +122,16 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   gap: $gap;
   // Supprimer 'overflow-y: auto;' pour éviter les scrolls internes
 
+  // Suppression de l'opacité et de la transition
+  // opacity: 0.3;
+  // transition: opacity 0.5s ease;
+
+  // Suppression des sélecteurs d'opacité
+  // .section-notes &:first-child,
+  // .section-calendar &:nth-child(2),
+  // .section-mail &:last-child {
+  //   opacity: 1;
+  // }
 
   &.calendars-section,
   &.mail-links-section {
@@ -351,7 +399,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.7); // Modifier l'opacité par défaut
+  background: white; // Remplacer le rgba par white
   padding: 10px;
   border-radius: 50px;
   box-shadow: $shadow-default;
@@ -360,7 +408,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
   &:hover {
     transform: translateX(-50%) scale(1.02);
-    background: rgba(255, 255, 255, 0.9); // Plus opaque au survol
+    background: white; // Remplacer le rgba par white
   }
 
   button {
@@ -418,6 +466,12 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
     &:hover:not(.active) svg {
       transform: scale(1.1);
+    }
+
+    &[disabled] {
+      opacity: 0.7; // Un peu plus visible
+      cursor: not-allowed;
+      transform: none !important; // Empêcher les animations
     }
   }
 

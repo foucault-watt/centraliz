@@ -5,6 +5,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   position: sticky;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  overflow: hidden; // Empêche le débordement
 
   &.scrolled {
     padding: 0.2rem 0;
@@ -24,17 +26,13 @@
     @media (max-width: 767px) {
       .header-title,
       .header-domain-suffix {
-        opacity: 0;
-        visibility: hidden;
-        width: 0;
-        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, width 0.3s ease-in-out;
+        display: none; // Remplacer opacity/visibility par display none
       }
 
       .header-ranking {
         opacity: 1;
         visibility: visible;
         transform: translateY(-50%) translateX(0);
-        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; // Transition uniquement pour l'apparition
       }
     }
   }
@@ -49,7 +47,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover {
-      transform: scale(1.02);
+      transform: none; // Suppression de l'effet de scale qui causait le débordement
     }
   }
 

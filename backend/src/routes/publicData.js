@@ -28,7 +28,7 @@ router.get(`/public-data/${process.env.SECRET_API}/last`, (req, res) => {
       .map(({ name, connection }) => {
         const date = connection.toLocaleDateString('fr-FR');
         const time = connection.toLocaleTimeString('fr-FR');
-        return `${name} - ${date} ${time}`;
+        return `${date} ${time} - ${name}`;
       });
 
     res.json(allConnections);

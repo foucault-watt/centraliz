@@ -373,6 +373,14 @@ const Notes = () => {
                 </p>
               </div>
             </div>
+            <video
+              src={process.env.PUBLIC_URL + "/export-webaurion.mp4"}
+              className="tuto-export-webaurion"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
           </div>
           <form
             className="login-form"

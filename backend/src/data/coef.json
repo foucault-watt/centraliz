@@ -5,15 +5,15 @@
         {
           "Automatique et informatique": [
             {
-              "coef": 700,
+              "coef": 7,
               "enseignements": [
                 {
-                  "Applications d'entreprise": 1,
-                  "Commande des systèmes": 4,
-                  "Conception de Système d'information": 1,
-                  "Développement Web": 1,
-                  "Intelligence ambiante": 1,
-                  "Introduction aux réseaux": 1
+                  "Applications d'entreprise": 3,
+                  "Commande des systèmes": 3,
+                  "Conception de Système d'information": 4,
+                  "Développement Web": 5,
+                  "Intelligence ambiante": 4,
+                  "Introduction aux réseaux": 0
                 }
               ]
             }
@@ -40,8 +40,8 @@
                 {
                   "Projet - Conception et réalisation d'un produit ou d'un service": 5,
                   "Stage découverte entreprise - vente ITEEM": 5,
-                  "Retour de Stage IE1": 2,
-                  "Cycle de conférences": 3
+                  "Retour de Stage IE1": 0,
+                  "Cycle de conférences": 0
                 }
               ]
             }

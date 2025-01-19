@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Upload } from "lucide-react";
+import { Upload, ArrowUpRight } from "lucide-react";
 import Papa from "papaparse";
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import { UserContext } from "../App";
@@ -336,24 +336,44 @@ const Notes = () => {
               />
             </label>
           </div>
-          <span className="upload-message">
-            Sur WebAurion, allez dans "Notes" → "Exporter" → "CSV en UTF-8" et
-            importez le ici
-          </span>
-          <a
-            href="https://webaurion.centralelille.fr/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <video
-              src={process.env.PUBLIC_URL + "/export-webaurion.mp4"}
-              className="tuto-export-webaurion"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </a>
+          <div className="tutorial-steps">
+            <div className="step">
+              <div className="step-number">1</div>
+              <div className="step-content">
+                <div className="step-title">
+                  Accéder à WebAurion
+                  <a href="https://webaurion.centralelille.fr/" 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     className="external-link">
+                    Ouvrir WebAurion
+                    <ArrowUpRight size={16} />
+                  </a>
+                </div>
+                <p className="step-description">
+                  Connectez-vous avec vos identifiants ENT sur WebAurion
+                </p>
+              </div>
+            </div>
+            <div className="step">
+              <div className="step-number">2</div>
+              <div className="step-content">
+                <div className="step-title">Exporter vos notes</div>
+                <p className="step-description">
+                  Dans vos "Notes aux épreuves", cliquez sur "Exporter". Sélectionnez le format "<strong>CSV en UTF-8</strong>"
+                </p>
+              </div>
+            </div>
+            <div className="step">
+              <div className="step-number">3</div>
+              <div className="step-content">
+                <div className="step-title">Importer le fichier</div>
+                <p className="step-description">
+                  Utilisez le bouton "Importer un CSV" ci-dessus pour charger le fichier que vous venez de télécharger
+                </p>
+              </div>
+            </div>
+          </div>
           <form
             className="login-form"
             onSubmit={handleLogin}

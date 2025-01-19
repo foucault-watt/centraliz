@@ -19,6 +19,7 @@ const Notes = () => {
   const [userGroup, setUserGroup] = useState(null);  // Ajouter cet état
   const [activeUE, setActiveUE] = useState(null);
   const [unlistedModules, setUnlistedModules] = useState([]);
+  const [simulatedGrades, setSimulatedGrades] = useState({});
 
   const fetchCSVData = useCallback(async () => {
     setIsLoading(true);
@@ -238,8 +239,115 @@ const Notes = () => {
     }
   };
 
-  const calculateAverage = (module) => {
-    const { totalPoints, totalCoeff, vCount, nvCount } = module;
+  const calculateModuleAverage = (module, moduleName) => {
+    let { totalPoints, totalCoeff } = module;
+    
+    // Ajouter les notes simulées
+    const simulated = simulatedGrades[moduleName] || [];
+    simulated.forEach(grade => {
+      totalPoints += grade.note * grade.coefficient;
+      totalCoeff += grade.coefficient;
+    });
+
+    return totalCoeff > 0 ? totalPoints / totalCoeff : 0;
+  };
+
+  const recalculateUEAverages = (ueData) => {
+    const updatedUE = { ...ueData };
+    let ueTotalPoints = 0;
+    let ueTotalCoeff = 0;
+
+    Object.entries(updatedUE.modules).forEach(([moduleName, moduleData]) => {
+      const moduleAverage = calculateModuleAverage(moduleData, moduleName);
+      if (moduleAverage > 0) {
+        ueTotalPoints += moduleAverage * moduleData.coef;
+        ueTotalCoeff += moduleData.coef;
+      }
+    });
+
+    updatedUE.moyenne = ueTotalCoeff > 0 ? ueTotalPoints / ueTotalCoeff : 0;
+    return updatedUE;
+  };
+
+  const recalculateAllUEAverages = () => {
+    const updatedModules = {...organizedModules};
+    
+    Object.keys(updatedModules).forEach(ueName => {
+      let ueTotalPoints = 0;
+      let ueTotalCoeff = 0;
+  
+      Object.entries(updatedModules[ueName].modules).forEach(([moduleName, moduleData]) => {
+        // Calculer la moyenne du module avec les notes simulées
+        let moduleTotalPoints = moduleData.totalPoints;
+        let moduleTotalCoeff = moduleData.totalCoeff;
+        
+        // Ajouter les notes simulées
+        const simulated = simulatedGrades[moduleName] || [];
+        simulated.forEach(grade => {
+          moduleTotalPoints += grade.note * grade.coefficient;
+          moduleTotalCoeff += grade.coefficient;
+        });
+  
+        if (moduleTotalCoeff > 0) {
+          const moduleMoyenne = moduleTotalPoints / moduleTotalCoeff;
+          ueTotalPoints += moduleMoyenne * moduleData.coef;
+          ueTotalCoeff += moduleData.coef;
+        }
+      });
+  
+      updatedModules[ueName].moyenne = ueTotalCoeff > 0 ? ueTotalPoints / ueTotalCoeff : 0;
+    });
+  
+    return updatedModules;
+  };
+  
+  useEffect(() => {
+    if (Object.keys(simulatedGrades).length > 0) {
+      const updatedModules = recalculateAllUEAverages();
+      setOrganizedModules(updatedModules);
+    }
+  }, [simulatedGrades]);
+
+  const addSimulatedGrade = (moduleName, ueName, note, coefficient) => {
+    setSimulatedGrades(prev => ({
+      ...prev,
+      [moduleName]: [
+        ...(prev[moduleName] || []),
+        {
+          id: Date.now(),
+          note: parseFloat(note),
+          coefficient: parseFloat(coefficient)
+        }
+      ]
+    }));
+  };
+
+  const removeSimulatedGrade = (moduleName, gradeId) => {
+    setSimulatedGrades(prev => ({
+      ...prev,
+      [moduleName]: (prev[moduleName] || []).filter(grade => grade.id !== gradeId)
+    }));
+  };
+
+  const updateSimulatedGrade = (moduleName, gradeId, newNote) => {
+    setSimulatedGrades(prev => ({
+      ...prev,
+      [moduleName]: (prev[moduleName] || []).map(grade =>
+        grade.id === gradeId ? { ...grade, note: parseFloat(newNote) } : grade
+      )
+    }));
+  };
+
+  const calculateAverage = (module, moduleName) => {
+    let { totalPoints, totalCoeff, vCount, nvCount } = module;
+    
+    // Ajouter les notes simulées au calcul
+    const simulated = simulatedGrades[moduleName] || [];
+    simulated.forEach(grade => {
+      totalPoints += grade.note * grade.coefficient;
+      totalCoeff += grade.coefficient;
+    });
+
     const hasNumericNotes = totalCoeff > 0;
     const onlyV = vCount > 0 && nvCount === 0 && !hasNumericNotes;
     const hasNV = nvCount > 0;
@@ -415,7 +523,7 @@ const Notes = () => {
               </p>
               <div className="bomb-container">
                 <div className="bomb">💣</div>
-                <div className="bomb">💣</div>
+                <div class="bomb">💣</div>
                 <div className="bomb">💣</div>
               </div>
               <div className="explosion">💥</div>
@@ -447,7 +555,7 @@ const Notes = () => {
                     </h2>
                     <div className="modules-grid">
                       {Object.entries(ueData.modules).map(([moduleName, moduleData]) => {
-                        const average = calculateAverage(moduleData);
+                        const average = calculateAverage(moduleData, moduleName);
                         const isExpanded = expandedModules[moduleName];
                         return (
                           <div key={moduleName} className="module">
@@ -468,12 +576,109 @@ const Notes = () => {
                                   <p>{epreuve["Type de contrôle"]}</p>
                                   <p>{epreuve["Début"]}</p>
                                   <p>
-                                    Coeff{" "}
+                                    Coef{" "}
                                     {epreuve["Coefficient de l'Épreuve dans le Module"]}{" "}
                                     - <b>{epreuve["Notes"]}</b>
                                   </p>
                                 </div>
                               ))}
+                              
+                              {isExpanded && (
+                                <div className="simulate-grade">
+                                  <h4>Simuler une note</h4>
+                                  <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const formData = new FormData(e.target);
+                                    const note = formData.get('note');
+                                    addSimulatedGrade(
+                                      moduleName,
+                                      ueName,
+                                      note,
+                                      formData.get('coefficient')
+                                    );
+                                    e.target.reset();
+                                  }}>
+                                    <div className="note-input-container" data-value="Note: 0/20">
+                                      <input
+                                        type="range"
+                                        name="note"
+                                        min="0"
+                                        max="20"
+                                        step="0.25"
+                                        className="note-slider"
+                                        onChange={(e) => {
+                                          e.target.nextElementSibling.value = e.target.value;
+                                          e.target.closest('.note-input-container').setAttribute('data-value', `Note: ${e.target.value}/20`);
+                                        }}
+                                        defaultValue="0"
+                                      />
+                                      <input
+                                        type="number"
+                                        className="note-number"
+                                        step="0.25"
+                                        min="0"
+                                        max="20"
+                                        placeholder="Note"
+                                        onChange={(e) => {
+                                          e.target.previousElementSibling.value = e.target.value;
+                                          e.target.closest('.note-input-container').setAttribute('data-value', `Note: ${e.target.value}/20`);
+                                        }}
+                                        required
+                                      />
+                                    </div>
+                                    <div className="form-bottom">
+                                      <input
+                                        type="number"
+                                        name="coefficient"
+                                        step="1"
+                                        min="0"
+                                        placeholder="Coef"
+                                        required
+                                      />
+                                      <button type="submit">Ajouter</button>
+                                    </div>
+                                  </form>
+                                  
+                                  {(simulatedGrades[moduleName] || []).length > 0 && (
+                                    <div className="simulated-grades">
+                                      <h4>Notes simulées</h4>
+                                      {simulatedGrades[moduleName].map(grade => (
+                                        <div key={grade.id} className="simulated-grade">
+                                          <div className="note-input-container" data-value={`Note: ${grade.note}/20`}>
+                                            <input
+                                              type="range"
+                                              value={grade.note}
+                                              min="0"
+                                              max="20"
+                                              step="0.25"
+                                              className="note-slider"
+                                              onChange={(e) => {
+                                                updateSimulatedGrade(moduleName, grade.id, e.target.value);
+                                                e.target.closest('.note-input-container').setAttribute('data-value', `Note: ${e.target.value}/20`);
+                                              }}
+                                            />
+                                            <input
+                                              type="number"
+                                              value={grade.note}
+                                              className="note-number"
+                                              step="0.25"
+                                              min="0"
+                                              max="20"
+                                              onChange={(e) => updateSimulatedGrade(moduleName, grade.id, e.target.value)}
+                                            />
+                                          </div>
+                                          <div className="grade-actions">
+                                            <span>Coef: {grade.coefficient}</span>
+                                            <button onClick={() => removeSimulatedGrade(moduleName, grade.id)}>
+                                              Supprimer
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         );

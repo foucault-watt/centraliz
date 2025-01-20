@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState, useContext } from "react";
 import { UserContext } from "../App";
 
 const Notes = () => {
-  const [modules, setModules] = useState({});
   const [expandedModules, setExpandedModules] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isCSVUploaded, setIsCSVUploaded] = useState(false);
@@ -20,66 +19,11 @@ const Notes = () => {
   const [activeUE, setActiveUE] = useState(null);
   const [unlistedModules, setUnlistedModules] = useState([]);
   const [simulatedGrades, setSimulatedGrades] = useState({});
+  const [isDragging, setIsDragging] = useState(false);
 
-  const fetchCSVData = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const downloadResponse = await axios.post("/api/download-csv", {
-        username,
-        password,
-      });
-
-      if (downloadResponse.data.success) {
-        const csvDataResponse = await axios.get(
-          `/api/csv-data?path=${downloadResponse.data.filePath}`
-        );
-        Papa.parse(csvDataResponse.data, {
-          header: true,
-          complete: (results) => {
-            processGrades(results.data);
-            setIsLoading(false);
-          },
-        });
-      } else {
-        throw new Error("Échec du téléchargement du CSV");
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des données CSV:", error);
-      setError("Erreur de chargement des notes. Veuillez réessayer plus tard.");
-      setIsLoading(false);
-    }
-  }, [username, password]);
-
-  useEffect(() => {
-    if (isLoggedIn && !isCSVUploaded) {
-      fetchCSVData();
-    }
-  }, [isLoggedIn, isCSVUploaded, fetchCSVData]);
-
-  useEffect(() => {
-    const fetchCoefficients = async () => {
-      try {
-        const response = await axios.get(`/api/coef/${userName}`);
-        setCoefficients(response.data);
-        // Récupérer le groupe depuis la réponse
-        const userGroupFromResponse = Object.keys(response.data.groups)[0];
-        setUserGroup(userGroupFromResponse);
-      } catch (error) {
-        console.error("Erreur lors de la récupération des coefficients:", error);
-      }
-    };
-
-    if (userName) {
-      fetchCoefficients();
-    }
-  }, [userName]);
-
-  const processGrades = (grades) => {
+  const processGrades = useCallback((grades) => {
     if (!coefficients || !userGroup) {
-      // Si pas de coefficients pour le groupe, traiter tous les modules sans UE
       const processedModules = {};
-      const unmatched = [];
       
       grades.forEach((grade) => {
         const moduleName = grade["Module"];
@@ -95,7 +39,6 @@ const Notes = () => {
         // ...existing grade processing code...
       });
 
-      setModules(processedModules);
       setOrganizedModules({
         "Tous les modules": {
           coef: 1,
@@ -198,7 +141,6 @@ const Notes = () => {
       };
     }
 
-    setModules(processedModules);
     setOrganizedModules(organizedByUE);
     setExpandedModules(
       Object.keys(processedModules).reduce((acc, moduleName) => {
@@ -206,11 +148,68 @@ const Notes = () => {
         return acc;
       }, {})
     );
-  };
+  }, [coefficients, userGroup]);
+
+  const fetchCSVData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const downloadResponse = await axios.post("/api/download-csv", {
+        username,
+        password,
+      });
+
+      if (downloadResponse.data.success) {
+        const csvDataResponse = await axios.get(
+          `/api/csv-data?path=${downloadResponse.data.filePath}`
+        );
+        Papa.parse(csvDataResponse.data, {
+          header: true,
+          complete: (results) => {
+            processGrades(results.data);
+            setIsLoading(false);
+          },
+        });
+      } else {
+        throw new Error("Échec du téléchargement du CSV");
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données CSV:", error);
+      setError("Erreur de chargement des notes. Veuillez réessayer plus tard.");
+      setIsLoading(false);
+    }
+  }, [username, password, processGrades]);
+
+  useEffect(() => {
+    if (isLoggedIn && !isCSVUploaded) {
+      fetchCSVData();
+    }
+  }, [isLoggedIn, isCSVUploaded, fetchCSVData]);
+
+  useEffect(() => {
+    const fetchCoefficients = async () => {
+      try {
+        const response = await axios.get(`/api/coef/${userName}`);
+        setCoefficients(response.data);
+        // Récupérer le groupe depuis la réponse
+        const userGroupFromResponse = Object.keys(response.data.groups)[0];
+        setUserGroup(userGroupFromResponse);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des coefficients:", error);
+      }
+    };
+
+    if (userName) {
+      fetchCoefficients();
+    }
+  }, [userName]);
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+    processUploadedFile(file);
+  };
 
+  const processUploadedFile = (file) => {
     if (file && file.type === "text/csv") {
       const reader = new FileReader();
 
@@ -239,37 +238,33 @@ const Notes = () => {
     }
   };
 
-  const calculateModuleAverage = (module, moduleName) => {
-    let { totalPoints, totalCoeff } = module;
-    
-    // Ajouter les notes simulées
-    const simulated = simulatedGrades[moduleName] || [];
-    simulated.forEach(grade => {
-      totalPoints += grade.note * grade.coefficient;
-      totalCoeff += grade.coefficient;
-    });
-
-    return totalCoeff > 0 ? totalPoints / totalCoeff : 0;
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
   };
 
-  const recalculateUEAverages = (ueData) => {
-    const updatedUE = { ...ueData };
-    let ueTotalPoints = 0;
-    let ueTotalCoeff = 0;
-
-    Object.entries(updatedUE.modules).forEach(([moduleName, moduleData]) => {
-      const moduleAverage = calculateModuleAverage(moduleData, moduleName);
-      if (moduleAverage > 0) {
-        ueTotalPoints += moduleAverage * moduleData.coef;
-        ueTotalCoeff += moduleData.coef;
-      }
-    });
-
-    updatedUE.moyenne = ueTotalCoeff > 0 ? ueTotalPoints / ueTotalCoeff : 0;
-    return updatedUE;
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
   };
 
-  const recalculateAllUEAverages = () => {
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    processUploadedFile(file);
+  };
+
+  const recalculateAllUEAverages = useCallback(() => {
     const updatedModules = {...organizedModules};
     
     Object.keys(updatedModules).forEach(ueName => {
@@ -299,14 +294,14 @@ const Notes = () => {
     });
   
     return updatedModules;
-  };
+  }, [organizedModules, simulatedGrades]);
   
   useEffect(() => {
     if (Object.keys(simulatedGrades).length > 0) {
       const updatedModules = recalculateAllUEAverages();
       setOrganizedModules(updatedModules);
     }
-  }, [simulatedGrades]);
+  }, [simulatedGrades, recalculateAllUEAverages]);
 
   const addSimulatedGrade = (moduleName, ueName, note, coefficient) => {
     setSimulatedGrades(prev => ({
@@ -433,16 +428,28 @@ const Notes = () => {
             synchronisées automatiquement avec WebAurion ! 🚀
           </div>
           <div className="upload-section">
-            <label className="upload-button">
-              <Upload className="upload-icon" />
-              Importer un CSV
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
-                style={{ display: "none" }}
-              />
-            </label>
+            <div
+              className={`drop-zone ${isDragging ? 'drag-active' : ''}`}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <Upload size={32} color={isDragging ? '#007bff' : '#666'} />
+              <p className="drop-message">
+                Glissez et déposez votre fichier CSV ici
+              </p>
+              <span className="or-separator">ou</span>
+              <label className="upload-button">
+                <Upload className="upload-icon" />
+                Sélectionner un fichier
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                />
+              </label>
+            </div>
           </div>
           <div className="tutorial-steps">
             <div className="step">
@@ -521,7 +528,7 @@ const Notes = () => {
               <p className="loadingo-text">
                 Sers-toi un café, on bombarde WebAurion pour toi...
               </p>
-              <div className="bomb-container">
+              <div class="bomb-container">
                 <div className="bomb">💣</div>
                 <div class="bomb">💣</div>
                 <div className="bomb">💣</div>

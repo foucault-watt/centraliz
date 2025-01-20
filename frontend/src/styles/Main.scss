@@ -21,33 +21,18 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   }
 }
 
-.main-container {
-  position: relative;
-  width: 100%;
-  overflow-x: hidden; // Empêche le scroll horizontal
-}
-
 .pages-container {
   position: relative;
   width: 100%;
+  // Supprimer 'height: 100vh;' pour permettre au contenu de s'étendre
   overflow: hidden;
-  touch-action: pan-y pinch-zoom; // Autorise uniquement le scroll vertical
-  
-  @media (max-width: 767px) {
-    overflow: hidden;
-    position: relative;
-  }
 }
 
 .pages-wrapper {
   display: flex;
   width: 300%;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); // Animation plus rapide et plus fluide
-  will-change: transform;
-
-  &[data-swiping="true"] {
-    transition: none; // Désactive la transition pendant le swipe
-  }
+  // Supprimer 'height: 100%;' pour laisser le contenu déterminer la hauteur
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.position-left {
     transform: translateX(0);
@@ -72,30 +57,6 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
       animation: shake-left 0.4s cubic-bezier(.36,.07,.19,.97) both;
     }
   }
-
-  &.section-notes {
-    transform: translateX(0);
-  }
-
-  &.section-calendar {
-    transform: translateX(-33.33%);
-  }
-
-  &.section-mail {
-    transform: translateX(-66.66%);
-  }
-
-  &[data-transitioning="true"] {
-    pointer-events: none;
-    touch-action: none;
-    user-select: none;
-    transition: none; // Désactive la transition pendant le swipe
-  }
-
-  @media (max-width: 767px) {
-    will-change: transform; // Optimise les animations sur mobile
-    backface-visibility: hidden; // Réduit les problèmes de rendu
-  }
 }
 
 .page {
@@ -117,21 +78,12 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 .page-section {
   flex: 0 0 33.33%;
   width: 33.33%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  
-  // Empêche le scroll horizontal quand on est aux extrémités
-  overscroll-behavior-x: none;
+  // Supprimer 'height: 100%;' pour éviter les scrolls internes
   display: flex;
   flex-direction: column;
   gap: $gap;
+  // Supprimer 'overflow-y: auto;' pour éviter les scrolls internes
 
-  .section-content {
-    padding: $gap;
-    height: 100%;
-    overflow-y: auto;
-  }
 
   &.calendars-section,
   &.mail-links-section {
@@ -399,7 +351,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
-  background: white; // Remplacer le rgba par white
+  background: rgba(255, 255, 255, 0.7); // Modifier l'opacité par défaut
   padding: 10px;
   border-radius: 50px;
   box-shadow: $shadow-default;
@@ -408,7 +360,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
   &:hover {
     transform: translateX(-50%) scale(1.02);
-    background: white; // Remplacer le rgba par white
+    background: rgba(255, 255, 255, 0.9); // Plus opaque au survol
   }
 
   button {
@@ -466,12 +418,6 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
     &:hover:not(.active) svg {
       transform: scale(1.1);
-    }
-
-    &[disabled] {
-      opacity: 0.7; // Un peu plus visible
-      cursor: not-allowed;
-      transform: none !important; // Empêcher les animations
     }
   }
 

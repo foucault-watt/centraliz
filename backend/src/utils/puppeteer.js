@@ -3,13 +3,19 @@ const fs = require('fs');
 const path = require('path');
 
 exports.downloadCSV = async (username, password) => {
+    console.log('Launching soon...');
     const browser = await puppeteer.launch({
         headless: true,
         defaultViewport: { width: 1920, height: 1080 },
     });
 
+    console.log('Launching browser...');
+
     const page = await browser.newPage();
   
+    console.log('Launching new page...');
+
+
     try {
         // Set up download behavior
         const downloadPath = path.resolve(__dirname, 'downloads');

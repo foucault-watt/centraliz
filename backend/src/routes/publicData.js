@@ -10,6 +10,8 @@ const allowedFiles = [
   "users.json",
   "backend.log",
   "evaluations.json",
+  "leaderboard.json",
+  "coef.json",
 ];
 
 router.get(`/public-data/${process.env.SECRET_API}/last`, (req, res) => {

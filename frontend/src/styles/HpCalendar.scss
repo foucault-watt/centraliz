@@ -77,26 +77,29 @@
       .month-picker {
         position: absolute;
         top: 100%;
-        right: 0;
+        left: 50%;
+        transform: translateX(-50%);
         background: white;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         z-index: 1000;
         min-width: 200px;
         margin-top: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
         opacity: 1;
-        transform: translateY(0);
         transition: opacity 0.2s, transform 0.2s;
 
         &.hiding {
           opacity: 0;
-          transform: translateY(-10px);
+          transform: translateX(-50%) translateY(-10px);
           pointer-events: none;
         }
 
         div {
           padding: 0.75rem 1rem;
           transition: all 0.2s;
+          cursor: pointer;
 
           &:hover {
             background: rgba($main, 0.05);
@@ -105,6 +108,25 @@
           &.current {
             background: rgba($main, 0.1);
             font-weight: 500;
+          }
+        }
+
+        // Ajout d'une scrollbar stylisée
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: rgba($main, 0.05);
+          border-radius: 8px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: rgba($main, 0.2);
+          border-radius: 8px;
+
+          &:hover {
+            background: rgba($main, 0.3);
           }
         }
       }
@@ -384,14 +406,10 @@
     &.shared {
       background: linear-gradient(135deg, $orange, darken($orange, 10%));
       border: 2px solid rgba(white, 0.3);
+      opacity: 0.6;
 
       &:hover {
         box-shadow: 0 4px 12px rgba($orange, 0.3);
-      }
-
-      .event-title::before {
-        content: "👥";
-        margin-right: 4px;
       }
 
       &.overlap-right,

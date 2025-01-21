@@ -6,7 +6,7 @@
   position: sticky;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
-  overflow: hidden; // Empêche le débordement
+  overflow: visible; // Permet d'afficher la tooltip au-dessus
 
   &.scrolled {
     padding: 0.2rem 0;

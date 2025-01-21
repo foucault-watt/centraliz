@@ -57,6 +57,11 @@ const parseICalData = (icalData) => {
   }
 };
 
+const monthsOrder = [
+  'août', 'septembre', 'octobre', 'novembre', 'décembre',
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet'
+];
+
 const HpCalendar = () => {
   const [icalData, setIcalData] = useState("");
   const [currentDate, setCurrentDate] = useState(() => {
@@ -519,6 +524,35 @@ const Event = React.memo(({ event, handleSelectEvent }) => {
     }
   };
 
+  const getCurrentAcademicYear = (date) => {
+    const month = date.month();
+    const year = date.year();
+    // Si on est entre août et décembre, on est dans l'année académique qui commence
+    // Si on est entre janvier et juillet, on est dans l'année académique qui a commencé l'année précédente
+    return month >= 7 ? year : year - 1;
+  };
+
+  const getMonthsList = () => {
+    const currentMonth = currentDate.month();
+    const currentYear = currentDate.year();
+    
+    // Déterminer l'année académique de base
+    const baseAcademicYear = currentMonth >= 7 ? currentYear : currentYear - 1;
+    
+    return monthsOrder.map(monthName => {
+      const monthIndex = monthsOrder.findIndex(m => m === monthName);
+      const isFirstHalf = monthIndex >= 5; // janvier à juillet
+      const year = isFirstHalf ? baseAcademicYear + 1 : baseAcademicYear;
+      
+      return {
+        month: monthName,
+        year,
+        display: `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`,
+        monthIndex: monthIndex >= 5 ? monthIndex - 5 : monthIndex + 7 // Convertir l'index pour moment.js
+      };
+    });
+  };
+
   const handleMonthSelect = (monthOffset) => {
     setCurrentDate((prev) => moment(prev).add(monthOffset, "months"));
     setShowMonthPicker(false);
@@ -592,16 +626,21 @@ const fetchUserCalendar = async (userId) => {
               {currentDate.format("MMMM")} <CircleChevronDown size={18} />
             </h2>
             {showMonthPicker && (
-              <div className="month-picker">
-                {[-2, -1, 0, 1, 2].map((offset) => (
+              <div className={`month-picker ${showMonthPicker ? '' : 'hiding'}`}>
+                {getMonthsList().map(({ month, year, display, monthIndex }) => (
                   <div
-                    key={offset}
-                    onClick={() => handleMonthSelect(offset)}
-                    className={offset === 0 ? "current" : ""}
+                    key={`${month}-${year}`}
+                    onClick={() => {
+                      const newDate = moment(currentDate).year(year).month(monthIndex);
+                      setCurrentDate(newDate);
+                      setShowMonthPicker(false);
+                    }}
+                    className={
+                      currentDate.format('MMMM YYYY').toLowerCase() === 
+                      `${month} ${year}` ? 'current' : ''
+                    }
                   >
-                    {moment(currentDate)
-                      .add(offset, "months")
-                      .format("MMMM YYYY")}
+                    {display}
                   </div>
                 ))}
               </div>

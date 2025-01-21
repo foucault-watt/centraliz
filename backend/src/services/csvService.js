@@ -6,6 +6,7 @@ exports.downloadCSV = async (req, res) => {
     const { username, password } = req.body;
   
     try {
+        console.log('Launching soon -dz...');
         const csvPath = await puppeteer.downloadCSV(username, password);
         res.json({ success: true, filePath: csvPath });
     } catch (error) {

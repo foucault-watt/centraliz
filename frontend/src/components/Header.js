@@ -1,4 +1,4 @@
-import { Menu, Info } from "lucide-react";
+import { Info, Menu } from "lucide-react";
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 import SlideMenu from "./SlideMenu";
@@ -11,11 +11,14 @@ export default function Header() {
 
   const getRankingInfo = async (username) => {
     try {
-      const response = await fetch(`/api/ranking/${encodeURIComponent(username)}`);
-      if (!response.ok) throw new Error('Erreur réseau');
+      const response = await fetch(`/api/ranking/`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Erreur réseau");
       return await response.json();
     } catch (error) {
-      console.error('Erreur lors de la récupération du classement:', error);
+      console.error("Erreur lors de la récupération du classement:", error);
       return null;
     }
   };
@@ -65,14 +68,15 @@ export default function Header() {
 
       {rankingInfo && (
         <div className="header-ranking">
-          <span className="ranking-text">
-            {rankingInfo.message}
-          </span>
+          <span className="ranking-text">{rankingInfo.message}</span>
           <div className="info-icon">
             <Info size={18} />
             <div className="info-tooltip">
               <p>Calculé sur le nombre de jours de connexion uniques</p>
-              <p>Votre score : <strong>{rankingInfo.userScore}</strong> jours de connexion</p>
+              <p>
+                Votre score : <strong>{rankingInfo.userScore}</strong> jours de
+                connexion
+              </p>
             </div>
           </div>
         </div>

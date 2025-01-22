@@ -3,12 +3,12 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
-router.get('/:userName', (req, res) => {
+router.get('/', (req, res) => {
   try {
     // Charger les données utilisateur
     const usersPath = path.join(__dirname, '../data/users.json');
     const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-    const user = users[req.params.userName];
+    const user = users[req.session.user.userName];
 
     if (!user || !user.group) {
       return res.status(404).json({ error: 'Utilisateur ou groupe non trouvé' });

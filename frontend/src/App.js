@@ -1,11 +1,10 @@
 import React, { createContext, useEffect, useState } from "react";
 import Header from "./components/Header.js";
+import LoginPage from "./components/LoginPage.js"; // Ajoutez cette ligne
 import Main from "./components/Main.js";
 import Onboarding from "./components/Onboarding.js"; // Ajoutez cette ligne
-import LoginPage from "./components/LoginPage.js"; // Ajoutez cette ligne
 
 export const UserContext = createContext();
-
 
 const App = () => {
   const [userName, setUserName] = useState(null);
@@ -31,7 +30,11 @@ const App = () => {
           setDisplayName(data.user.displayName);
 
           const calendarResponse = await fetch(
-            `${process.env.REACT_APP_URL_BACK}/api/check-user/${data.user.userName}`
+            `${process.env.REACT_APP_URL_BACK}/api/check-user/`,
+            {
+              method: "GET",
+              credentials: "include", // Indispensable pour que le cookie de session soit envoyé
+            }
           );
           const calendarData = await calendarResponse.json();
           setNeedsOnboarding(!calendarData.exists);
@@ -49,7 +52,12 @@ const App = () => {
   if (isLoading) {
     return (
       <div className="loading-container">
-        <img src={"logo-title.svg"} className="logo-loading" alt="logo" rel="preload" />
+        <img
+          src={"logo-title.svg"}
+          className="logo-loading"
+          alt="logo"
+          rel="preload"
+        />
         <span className="title-loading">
           <b>Centraliz</b>
         </span>
@@ -58,15 +66,15 @@ const App = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />;  // Afficher la page de connexion au lieu de rediriger
+    return <LoginPage />; // Afficher la page de connexion au lieu de rediriger
   }
 
   return (
     <UserContext.Provider value={{ userName, displayName }}>
       {needsOnboarding ? (
-        <Onboarding 
-          userName={userName} 
-          onComplete={() => setNeedsOnboarding(false)} 
+        <Onboarding
+          userName={userName}
+          onComplete={() => setNeedsOnboarding(false)}
         />
       ) : (
         <div className="App">

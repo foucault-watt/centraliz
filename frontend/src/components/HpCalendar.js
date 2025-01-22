@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { ArrowLeft, ArrowRight, CircleChevronDown, Search, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleChevronDown, X } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
 import React, {
@@ -58,8 +58,18 @@ const parseICalData = (icalData) => {
 };
 
 const monthsOrder = [
-  'août', 'septembre', 'octobre', 'novembre', 'décembre',
-  'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet'
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
 ];
 
 const HpCalendar = () => {
@@ -89,7 +99,7 @@ const HpCalendar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [users, setUsers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [sharedEvents, setSharedEvents] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);
@@ -122,7 +132,11 @@ const HpCalendar = () => {
     const checkExistingCalendar = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/check-user/${userName}`
+          `${process.env.REACT_APP_URL_BACK}/api/check-user/`,
+          {
+            method: "GET",
+            credentials: "include", // Indispensable pour que le cookie de session soit envoyé
+          }
         );
         const data = await response.json();
 
@@ -146,7 +160,11 @@ const HpCalendar = () => {
     const fetchEvaluationConfig = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/eva/config?userName=${userName}`
+          `${process.env.REACT_APP_URL_BACK}/api/eva/config`,
+          {
+            method: "GET",
+            credentials: "include", // Indispensable pour que le cookie de session soit envoyé
+          }
         );
         if (!response.ok) {
           throw new Error("Configuration non disponible");
@@ -213,24 +231,26 @@ const HpCalendar = () => {
     setAnswers({});
     setErrorMessage("");
     setSubmitSuccess(false);
-  
+
     setSelectedEvent(event);
-    
+
     // Si c'est un événement partagé, ne pas permettre l'évaluation
-    if (event.className?.includes('shared')) {
+    if (event.className?.includes("shared")) {
       setHasEvaluated(true); // Utiliser hasEvaluated pour masquer le bouton d'évaluation
       setShowModal(true);
       return;
     }
-  
+
     try {
       const cleanTitle = event.title.split("\n")[0];
       const response = await fetch(
         `${
           process.env.REACT_APP_URL_BACK
-        }/api/eva/check?userName=${displayName}&eventTitle=${encodeURIComponent(
-          cleanTitle
-        )}`
+        }/api/eva/check?eventTitle=${encodeURIComponent(cleanTitle)}`,
+        {
+          method: "GET",
+          credentials: "include", // Indispensable pour que le cookie de session soit envoyé
+        }
       );
       const data = await response.json();
       setHasEvaluated(data.hasEvaluated);
@@ -254,9 +274,10 @@ const HpCalendar = () => {
       }
 
       // Vérifier d'abord si une configuration existe pour le groupe
-      fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/eva/config?userName=${userName}`
-      )
+      fetch(`${process.env.REACT_APP_URL_BACK}/api/eva/config`, {
+        method: "GET",
+        credentials: "include", // Indispensable pour que le cookie de session soit envoyé
+      })
         .then((response) => {
           if (!response.ok) {
             throw new Error(
@@ -316,11 +337,11 @@ const HpCalendar = () => {
         `${process.env.REACT_APP_URL_BACK}/api/eva`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userName: displayName, // On envoie le displayName
             eventTitle: cleanTitle,
             answers,
           }),
@@ -362,7 +383,9 @@ const HpCalendar = () => {
       if (!allEvents?.length) return [];
 
       const cellStart = moment(day).hour(hour).minute(0);
-      const cellEnd = moment(day).hour(hour + 1).minute(0);
+      const cellEnd = moment(day)
+        .hour(hour + 1)
+        .minute(0);
 
       // Filtrer d'abord tous les événements de cette cellule
       const cellEvents = allEvents
@@ -374,37 +397,37 @@ const HpCalendar = () => {
         .map((event) => {
           const eventStart = moment(event.start);
           const startHour = eventStart.hour() + eventStart.minute() / 60;
-          const endHour = moment(event.end).hour() + moment(event.end).minute() / 60;
+          const endHour =
+            moment(event.end).hour() + moment(event.end).minute() / 60;
 
           return {
             ...event,
             duration: endHour - startHour,
             topOffset: (startHour - hour) * 100,
             isStart: Math.floor(startHour) === hour,
-            isShared: event.className?.includes('shared') || false
+            isShared: event.className?.includes("shared") || false,
           };
         });
 
       // Détecter et marquer les chevauchements
-      return cellEvents.map(event => {
-        const overlappingEvents = cellEvents.filter(otherEvent => {
+      return cellEvents.map((event) => {
+        const overlappingEvents = cellEvents.filter((otherEvent) => {
           if (event === otherEvent) return false;
-          
+
           const eventStart = moment(event.start);
           const eventEnd = moment(event.end);
           const otherStart = moment(otherEvent.start);
           const otherEnd = moment(otherEvent.end);
 
-          return (
-            eventStart.isBefore(otherEnd) && 
-            eventEnd.isAfter(otherStart)
-          );
+          return eventStart.isBefore(otherEnd) && eventEnd.isAfter(otherStart);
         });
 
         if (overlappingEvents.length > 0) {
           return {
             ...event,
-            className: `${event.className} ${event.isShared ? 'overlap-right' : 'overlap-left'}`
+            className: `${event.className} ${
+              event.isShared ? "overlap-right" : "overlap-left"
+            }`,
           };
         }
 
@@ -459,41 +482,41 @@ const HpCalendar = () => {
   );
 
   // Modifier le composant Event
-const Event = React.memo(({ event, handleSelectEvent }) => {
-  const style = {
-    height: `calc(${event.duration * 100}% - 2px)`,
-    top: `${event.topOffset}%`,
-    zIndex: event.className?.includes('shared') ? 2 : 1,
-  };
+  const Event = React.memo(({ event, handleSelectEvent }) => {
+    const style = {
+      height: `calc(${event.duration * 100}% - 2px)`,
+      top: `${event.topOffset}%`,
+      zIndex: event.className?.includes("shared") ? 2 : 1,
+    };
 
-  // Vérifier si on est en mode "partagé" (si sharedEvents existe et n'est pas vide)
-  const isInSharedMode = sharedEvents && sharedEvents.length > 0;
+    // Vérifier si on est en mode "partagé" (si sharedEvents existe et n'est pas vide)
+    const isInSharedMode = sharedEvents && sharedEvents.length > 0;
 
-  return (
-    <div
-      className={`calendar-event ${event.className}`}
-      onClick={() => handleSelectEvent(event)}
-      style={style}
-      title={event.sharedBy ? `Partagé par ${event.sharedBy}` : undefined}
-    >
-      <div className="event-title">{event.title}</div>
-      {/* N'afficher les détails supplémentaires que si on n'est pas en mode partagé */}
-      {!isInSharedMode && (
-        <>
-          {event.location && (
-            <div className="event-location">{event.location}</div>
-          )}
-          {event.courseType && (
-            <div className="event-type">{event.courseType}</div>
-          )}
-          {event.professor && (
-            <div className="event-professor">{event.professor}</div>
-          )}
-        </>
-      )}
-    </div>
-  );
-});
+    return (
+      <div
+        className={`calendar-event ${event.className}`}
+        onClick={() => handleSelectEvent(event)}
+        style={style}
+        title={event.sharedBy ? `Partagé par ${event.sharedBy}` : undefined}
+      >
+        <div className="event-title">{event.title}</div>
+        {/* N'afficher les détails supplémentaires que si on n'est pas en mode partagé */}
+        {!isInSharedMode && (
+          <>
+            {event.location && (
+              <div className="event-location">{event.location}</div>
+            )}
+            {event.courseType && (
+              <div className="event-type">{event.courseType}</div>
+            )}
+            {event.professor && (
+              <div className="event-professor">{event.professor}</div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  });
 
   const navigateWeek = (direction) => {
     if (isMobile) {
@@ -535,20 +558,22 @@ const Event = React.memo(({ event, handleSelectEvent }) => {
   const getMonthsList = () => {
     const currentMonth = currentDate.month();
     const currentYear = currentDate.year();
-    
+
     // Déterminer l'année académique de base
     const baseAcademicYear = currentMonth >= 7 ? currentYear : currentYear - 1;
-    
-    return monthsOrder.map(monthName => {
-      const monthIndex = monthsOrder.findIndex(m => m === monthName);
+
+    return monthsOrder.map((monthName) => {
+      const monthIndex = monthsOrder.findIndex((m) => m === monthName);
       const isFirstHalf = monthIndex >= 5; // janvier à juillet
       const year = isFirstHalf ? baseAcademicYear + 1 : baseAcademicYear;
-      
+
       return {
         month: monthName,
         year,
-        display: `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`,
-        monthIndex: monthIndex >= 5 ? monthIndex - 5 : monthIndex + 7 // Convertir l'index pour moment.js
+        display: `${
+          monthName.charAt(0).toUpperCase() + monthName.slice(1)
+        } ${year}`,
+        monthIndex: monthIndex >= 5 ? monthIndex - 5 : monthIndex + 7, // Convertir l'index pour moment.js
       };
     });
   };
@@ -577,33 +602,39 @@ const Event = React.memo(({ event, handleSelectEvent }) => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/users`);
-            if (!response.ok) throw new Error('Erreur lors de la récupération des utilisateurs');
-            const data = await response.json();
-            setUsers(data.filter(user => user.userName !== userName));
-        } catch (error) {
-            console.error('Erreur:', error);
-        }
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_URL_BACK}/api/users`
+        );
+        if (!response.ok)
+          throw new Error("Erreur lors de la récupération des utilisateurs");
+        const data = await response.json();
+        setUsers(data.filter((user) => user.userName !== userName));
+      } catch (error) {
+        console.error("Erreur:", error);
+      }
     };
     fetchUsers();
-}, [userName]);
+  }, [userName]);
 
-const fetchUserCalendar = async (userId) => {
+  const fetchUserCalendar = async (userId) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/hp-data?userId=${userId}`);
-        if (!response.ok) throw new Error('Erreur lors de la récupération du calendrier');
-        const data = await response.text();
-        const parsedEvents = parseICalData(data).map(event => ({
-            ...event,
-            className: `${event.className} shared`,
-            sharedBy: users.find(u => u.userName === userId)?.displayName
-        }));
-        setSharedEvents(parsedEvents); // Remplacer au lieu d'ajouter
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/hp-data?userId=${userId}`
+      );
+      if (!response.ok)
+        throw new Error("Erreur lors de la récupération du calendrier");
+      const data = await response.text();
+      const parsedEvents = parseICalData(data).map((event) => ({
+        ...event,
+        className: `${event.className} shared`,
+        sharedBy: users.find((u) => u.userName === userId)?.displayName,
+      }));
+      setSharedEvents(parsedEvents); // Remplacer au lieu d'ajouter
     } catch (error) {
-        console.error('Erreur:', error);
+      console.error("Erreur:", error);
     }
-};
+  };
 
   return (
     <div className="hp-calendar">
@@ -626,18 +657,24 @@ const fetchUserCalendar = async (userId) => {
               {currentDate.format("MMMM")} <CircleChevronDown size={18} />
             </h2>
             {showMonthPicker && (
-              <div className={`month-picker ${showMonthPicker ? '' : 'hiding'}`}>
+              <div
+                className={`month-picker ${showMonthPicker ? "" : "hiding"}`}
+              >
                 {getMonthsList().map(({ month, year, display, monthIndex }) => (
                   <div
                     key={`${month}-${year}`}
                     onClick={() => {
-                      const newDate = moment(currentDate).year(year).month(monthIndex);
+                      const newDate = moment(currentDate)
+                        .year(year)
+                        .month(monthIndex);
                       setCurrentDate(newDate);
                       setShowMonthPicker(false);
                     }}
                     className={
-                      currentDate.format('MMMM YYYY').toLowerCase() === 
-                      `${month} ${year}` ? 'current' : ''
+                      currentDate.format("MMMM YYYY").toLowerCase() ===
+                      `${month} ${year}`
+                        ? "current"
+                        : ""
                     }
                   >
                     {display}
@@ -651,76 +688,91 @@ const fetchUserCalendar = async (userId) => {
           </button>
         </div>
         <div className="user-selector">
-  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-    <input
-      type="text"
-      className="search-input"
-      placeholder={selectedUser ? users.find(u => u.userName === selectedUser)?.displayName : "Comparer le calendrier..."}
-      value={searchQuery}
-      onChange={(e) => {
-        setSearchQuery(e.target.value);
-        setShowUsersList(true);
-      }}
-      onFocus={() => setShowUsersList(true)}
-    />
-    {selectedUser && (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedUser(null);
-          setSharedEvents([]);
-          setSearchQuery('');
-        }}
-        style={{
-          position: 'absolute',
-          right: '8px',
-          background: 'none',
-          border: 'none',
-          padding: '4px',
-          cursor: 'pointer'
-        }}
-        title="Désélectionner l'utilisateur"
-      >
-        <X size={16} />
-      </button>
-    )}
-  </div>
-  {showUsersList && (
-    <div className="users-list">
-      {users
-        .filter(user => 
-          user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.group?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        .map(user => (
           <div
-            key={user.userName}
-            className={`user-item ${selectedUser === user.userName ? 'selected' : ''}`}
-            onClick={() => {
-              if (selectedUser === user.userName) {
-                // Si on clique sur l'utilisateur déjà sélectionné, on désélectionne
-                setSelectedUser(null);
-                setSharedEvents([]); // Vider les événements partagés
-              } else {
-                // Sinon, on sélectionne le nouvel utilisateur
-                setSelectedUser(user.userName);
-                fetchUserCalendar(user.userName);
-              }
-              setShowUsersList(false);
-              setSearchQuery('');
+            style={{
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
             }}
           >
-            <div className="user-info">
-              <div className="name">{user.displayName}</div>
-              {user.group && <div className="group">{user.group}</div>}
-            </div>
+            <input
+              type="text"
+              className="search-input"
+              placeholder={
+                selectedUser
+                  ? users.find((u) => u.userName === selectedUser)?.displayName
+                  : "Comparer le calendrier..."
+              }
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowUsersList(true);
+              }}
+              onFocus={() => setShowUsersList(true)}
+            />
+            {selectedUser && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedUser(null);
+                  setSharedEvents([]);
+                  setSearchQuery("");
+                }}
+                style={{
+                  position: "absolute",
+                  right: "8px",
+                  background: "none",
+                  border: "none",
+                  padding: "4px",
+                  cursor: "pointer",
+                }}
+                title="Désélectionner l'utilisateur"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
-        ))
-      }
-    </div>
-  )}
-</div>
-
+          {showUsersList && (
+            <div className="users-list">
+              {users
+                .filter(
+                  (user) =>
+                    user.displayName
+                      ?.toLowerCase()
+                      .includes(searchQuery.toLowerCase()) ||
+                    user.group
+                      ?.toLowerCase()
+                      .includes(searchQuery.toLowerCase())
+                )
+                .map((user) => (
+                  <div
+                    key={user.userName}
+                    className={`user-item ${
+                      selectedUser === user.userName ? "selected" : ""
+                    }`}
+                    onClick={() => {
+                      if (selectedUser === user.userName) {
+                        // Si on clique sur l'utilisateur déjà sélectionné, on désélectionne
+                        setSelectedUser(null);
+                        setSharedEvents([]); // Vider les événements partagés
+                      } else {
+                        // Sinon, on sélectionne le nouvel utilisateur
+                        setSelectedUser(user.userName);
+                        fetchUserCalendar(user.userName);
+                      }
+                      setShowUsersList(false);
+                      setSearchQuery("");
+                    }}
+                  >
+                    <div className="user-info">
+                      <div className="name">{user.displayName}</div>
+                      {user.group && <div className="group">{user.group}</div>}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
       </div>
       <div className="calendar-grid">
         <div className="time-column">
@@ -776,7 +828,7 @@ const fetchUserCalendar = async (userId) => {
                 </div>
               )}
             </div>
-            {selectedEvent.className?.includes('shared') ? (
+            {selectedEvent.className?.includes("shared") ? (
               <div className="evaluation-notice">
                 Vous ne pouvez pas évaluer les cours de quelqu'un d'autre
               </div>
@@ -846,7 +898,9 @@ const fetchUserCalendar = async (userId) => {
                 )}
               </div>
             ))}
-            {errorMessage && <div className="error-message">{errorMessage}</div>}
+            {errorMessage && (
+              <div className="error-message">{errorMessage}</div>
+            )}
             {submitSuccess && (
               <div className="success-message">
                 ✓ Évaluation enregistrée avec succès !

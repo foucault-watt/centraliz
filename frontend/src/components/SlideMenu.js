@@ -11,14 +11,11 @@ import {
   MessageCircle,
   Mail,
 } from "lucide-react";
-import { useContext } from 'react';
-import { UserContext } from '../App';
 
 const SlideMenu = ({ isOpen, onClose }) => {
   const [activeSection, setActiveSection] = React.useState('main');
   const [feedback, setFeedback] = React.useState("");
   const [submitStatus, setSubmitStatus] = React.useState("");
-  const { userName } = useContext(UserContext);
 
 
   React.useEffect(() => {
@@ -44,9 +41,9 @@ const SlideMenu = ({ isOpen, onClose }) => {
         `${process.env.REACT_APP_URL_BACK}/api/feedback`,
         {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            username: userName,
             text: sanitizedFeedback,
           }),
         }

@@ -4,7 +4,8 @@ const evaService = require("../services/evaService");
 
 router.get("/config", (req, res) => {
   try {
-    const { userName } = req.query;
+    const userName = req.session.user.userName;
+    console.log("usegerName:", userName);
     if (!userName) {
       return res.status(400).json({ error: "userName est requis" });
     }
@@ -12,13 +13,17 @@ router.get("/config", (req, res) => {
     // Vérifier que l'utilisateur existe et obtenir son groupe
     const userGroup = evaService.getUserGroup(userName);
     if (!userGroup) {
-      return res.status(404).json({ error: "Utilisateur non trouvé ou pas de groupe assigné" });
+      return res
+        .status(404)
+        .json({ error: "Utilisateur non trouvé ou pas de groupe assigné" });
     }
 
     // Obtenir la configuration pour ce groupe
     const config = evaService.getEvaluationConfig(userGroup);
     if (!config) {
-      return res.status(404).json({ error: "Pas de configuration pour ce groupe" });
+      return res
+        .status(404)
+        .json({ error: "Pas de configuration pour ce groupe" });
     }
 
     // Log pour débug
@@ -26,17 +31,23 @@ router.get("/config", (req, res) => {
     res.status(200).json(config);
   } catch (error) {
     console.error("Erreur dans /config:", error);
-    res.status(500).json({ error: "Erreur lors de la récupération de la configuration", details: error.message });
+    res.status(500).json({
+      error: "Erreur lors de la récupération de la configuration",
+      details: error.message,
+    });
   }
 });
 
 router.post("/", async (req, res) => {
-  const { userName: displayName, eventTitle, answers } = req.body;
+  const displayName = req.session.user.displayName;
+  const { eventTitle, answers } = req.body;
   try {
     // Trouver le userName correspondant au displayName
-    const users = require('../data/users.json');
-    const userName = Object.keys(users).find(key => users[key].displayName === displayName);
-    
+    const users = require("../data/users.json");
+    const userName = Object.keys(users).find(
+      (key) => users[key].displayName === displayName
+    );
+
     if (!userName) {
       return res.status(400).json({ error: "Utilisateur non trouvé" });
     }
@@ -44,21 +55,25 @@ router.post("/", async (req, res) => {
     // Récupérer la configuration pour le groupe de l'utilisateur
     const userGroup = evaService.getUserGroup(userName);
     if (!userGroup) {
-      return res.status(400).json({ error: "Groupe non trouvé pour cet utilisateur" });
+      return res
+        .status(400)
+        .json({ error: "Groupe non trouvé pour cet utilisateur" });
     }
 
     const config = evaService.getEvaluationConfig(userGroup);
     if (!config) {
-      return res.status(400).json({ error: "Pas de configuration pour ce groupe" });
+      return res
+        .status(400)
+        .json({ error: "Pas de configuration pour ce groupe" });
     }
 
     // Valider et sauvegarder l'évaluation
-    await evaService.saveEvaluation({ 
+    await evaService.saveEvaluation({
       userName: displayName,
-      eventTitle, 
+      eventTitle,
       answers,
       userGroup, // Ajouter le groupe ici
-      config // Passer la configuration ici
+      config, // Passer la configuration ici
     });
 
     res.status(200).json({ message: "Évaluation enregistrée" });
@@ -69,7 +84,8 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/check", async (req, res) => {
-  const { userName, eventTitle } = req.query;
+  const eventTitle = req.query;
+  const userName = req.session.user.userName;
   try {
     const hasEvaluated = await evaService.hasEvaluated(userName, eventTitle);
     res.status(200).json({ hasEvaluated });
@@ -81,16 +97,21 @@ router.get("/check", async (req, res) => {
 router.get("/export", async (req, res) => {
   try {
     const workbook = await evaService.generateExcelReport();
-    
-    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+
+    const today = new Date().toISOString().split("T")[0]; // Format YYYY-MM-DD
     const filename = `centraliz_evaluations_${today}.xlsx`;
-    
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-    
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+
     await workbook.xlsx.write(res);
   } catch (error) {
-    res.status(500).json({ error: "Erreur lors de la génération du rapport Excel" });
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la génération du rapport Excel" });
   }
 });
 

@@ -1,7 +1,7 @@
 import axios from "axios";
-import { Upload, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Upload } from "lucide-react";
 import Papa from "papaparse";
-import React, { useCallback, useEffect, useState, useContext } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 
 const Notes = () => {
@@ -201,10 +201,13 @@ const Notes = () => {
   useEffect(() => {
     const fetchCoefficients = async () => {
       try {
-        const response = await axios.get(`/api/coef/${userName}`);
-        setCoefficients(response.data);
+        const response = await fetch(`/api/coef/`, {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        setCoefficients(data);
         // Récupérer le groupe depuis la réponse
-        const userGroupFromResponse = Object.keys(response.data.groups)[0];
+        const userGroupFromResponse = Object.keys(data.groups)[0];
         setUserGroup(userGroupFromResponse);
       } catch (error) {
         console.error("Erreur lors de la récupération des coefficients:", error);

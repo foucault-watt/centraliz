@@ -6,40 +6,6 @@ import LoginPage from "./components/LoginPage.js"; // Ajoutez cette ligne
 
 export const UserContext = createContext();
 
-const isBot = () => {
-  const userAgent = navigator.userAgent.toLowerCase();
-  console.log('Current UserAgent:', userAgent); // Aide au débogage
-  
-  const bingBotPatterns = [
-    'bingbot',
-    'msnbot',
-    'adidxbot',
-    'bingpreview'
-  ];
-  
-  const otherBotPatterns = [
-    'bot',
-    'crawl',
-    'spider',
-    'slurp',
-    'mediapartners',
-    'google'
-  ];
-  
-  // Vérifie d'abord spécifiquement les bots Bing
-  if (bingBotPatterns.some(pattern => userAgent.includes(pattern))) {
-    console.log('Bing bot detected');
-    return true;
-  }
-  
-  // Vérifie ensuite les autres patterns de bots
-  if (otherBotPatterns.some(pattern => userAgent.includes(pattern))) {
-    console.log('Other bot detected');
-    return true;
-  }
-  
-  return false;
-};
 
 const App = () => {
   const [userName, setUserName] = useState(null);
@@ -49,11 +15,6 @@ const App = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
-    if (isBot()) {
-      window.location.href = "/bot-index.html";
-      return;
-    }
-
     const checkAuthStatus = async () => {
       try {
         const response = await fetch(

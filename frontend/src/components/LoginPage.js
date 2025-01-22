@@ -67,7 +67,7 @@ const LoginPage = () => {
             <div className="benefit-card">
               <Users className="benefit-icon" />
               <h3>Fait pour Vous</h3>
-              <p>Développé par des étudiants pour des étudiants</p>
+              <p>Développé par un étudiant pour des étudiants</p>
             </div>
             <div className="benefit-card">
               <Shield className="benefit-icon" />
@@ -76,8 +76,8 @@ const LoginPage = () => {
             </div>
             <div className="benefit-card">
               <Star className="benefit-icon" />
-              <h3>Personnalisable</h3>
-              <p>Adaptez l'interface à vos besoins</p>
+              <h3>Design</h3>
+              <p>Une application moderne pour tous les usages</p>
             </div>
           </div>
         </section>
@@ -87,13 +87,13 @@ const LoginPage = () => {
           <div className="latest-features-grid">
             <div className="latest-feature-card">
               <Coffee className="feature-icon" />
-              <h3>Mode Sombre</h3>
-              <p>Nouveau thème sombre pour plus de confort</p>
+              <h3>Cacul des notes</h3>
+              <p>Les notes sont calculés avec les bons coefs</p>
             </div>
             <div className="latest-feature-card">
               <Gift className="feature-icon" />
-              <h3>Widgets Personnalisables</h3>
-              <p>Organisez votre dashboard comme vous le souhaitez</p>
+              <h3>Comparez votre calendrier</h3>
+              <p>Selectionnez un prof, une salle ou un autre étudiant pour voir son calendrier</p>
             </div>
           </div>
         </section>
@@ -119,11 +119,11 @@ const LoginPage = () => {
           <Heart size={16} className="heart-icon" /> Développé avec passion pour la communauté de Centrale Lille
         </p>
         <div className="footer-links">
-          <a href="/mentions-legales">Mentions légales</a>
+          Mentions légales
           <span className="separator">•</span>
-          <a href="/confidentialite">Confidentialité</a>
+          Confidentialité
           <span className="separator">•</span>
-          <a href="/contact">Contact</a>
+          Contact
         </div>
       </footer>
     </div>

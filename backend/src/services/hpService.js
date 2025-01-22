@@ -57,6 +57,24 @@ async function fetchHpData(userId) {
     }
 }
 
+async function fetchExternalCalendar(icalLink) {
+    try {
+        const response = await axios.get(icalLink);
+        const data = response.data;
+        
+        if (typeof data === 'string' && 
+            data.includes('BEGIN:VCALENDAR') && 
+            data.includes('BEGIN:VEVENT')) {
+            return data;
+        } else {
+            throw new Error('Les données reçues ne sont pas un iCal valide');
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération du calendrier externe:", error);
+        throw error;
+    }
+}
+
 function checkUser(userId) {
     try {
         const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
@@ -150,5 +168,6 @@ module.exports = {
     checkUser,
     saveUser,
     validateIcal,
-    getAllUsers
+    getAllUsers,
+    fetchExternalCalendar
 };

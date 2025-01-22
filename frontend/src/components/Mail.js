@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify"; // Ajouter l'importation de DOMPurify
 import React, {
   useCallback,
   useContext,
@@ -7,7 +8,6 @@ import React, {
 } from "react";
 import { UserContext } from "../App";
 import ZimbraAuth from "./ZimbraAuth";
-import DOMPurify from 'dompurify'; // Ajouter l'importation de DOMPurify
 
 function Mail() {
   const { userName } = useContext(UserContext);
@@ -68,13 +68,16 @@ function Mail() {
       );
       if (response.ok) {
         const data = await response.json();
-        setMailContents(prev => ({
+        setMailContents((prev) => ({
           ...prev,
-          [mailId]: data.content
+          [mailId]: data.content,
         }));
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération du contenu du mail:", error);
+      console.error(
+        "Erreur lors de la récupération du contenu du mail:",
+        error
+      );
     }
   };
 
@@ -115,7 +118,9 @@ function Mail() {
 
   const extractHtmlFragment = (rawContent) => {
     // Extrait le contenu entre <!--StartFragment--> et <!--EndFragment-->
-    const match = rawContent.match(/<!--StartFragment-->([\s\S]*?)<!--EndFragment-->/i);
+    const match = rawContent.match(
+      /<!--StartFragment-->([\s\S]*?)<!--EndFragment-->/i
+    );
     const fragment = match ? match[1] : rawContent;
     return DOMPurify.sanitize(fragment, { FORBID_STYLE: true }); // Sanitiser le contenu
   };
@@ -183,15 +188,17 @@ function Mail() {
                   className={`mail-item ${
                     expandedMailIndices.includes(index) ? "expanded" : ""
                   }`}
-                  onClick={() => {
-                    if (expandedMailIndices.includes(index)) {
-                      setExpandedMailIndices(
-                        expandedMailIndices.filter((i) => i !== index)
-                      );
-                    } else {
-                      setExpandedMailIndices([...expandedMailIndices, index]);
-                      if (!mailContents[mail.id]) {
-                        fetchMailContent(mail.id);
+                  onClick={(e) => {
+                    if (!window.getSelection().toString()) {
+                      if (expandedMailIndices.includes(index)) {
+                        setExpandedMailIndices(
+                          expandedMailIndices.filter((i) => i !== index)
+                        );
+                      } else {
+                        setExpandedMailIndices([...expandedMailIndices, index]);
+                        if (!mailContents[mail.id]) {
+                          fetchMailContent(mail.id);
+                        }
                       }
                     }
                   }}
@@ -206,7 +213,7 @@ function Mail() {
                       {mailContents[mail.id] ? (
                         <div
                           dangerouslySetInnerHTML={{
-                            __html: extractHtmlFragment(mailContents[mail.id])
+                            __html: extractHtmlFragment(mailContents[mail.id]),
                           }}
                         />
                       ) : (

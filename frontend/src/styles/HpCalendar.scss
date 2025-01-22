@@ -190,6 +190,95 @@
             background: rgba($main, 0.1);
           }
         }
+
+        .selector-tabs {
+          display: flex;
+          gap: 0.5rem;
+          padding: 0.5rem;
+          border-bottom: 1px solid rgba($main, 0.1);
+
+          button {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            background: rgba($main, 0.05);
+            color: $second;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+
+            &:hover {
+              background: rgba($main, 0.1);
+            }
+
+            &.active {
+              background: $main;
+              color: white;
+            }
+          }
+        }
+
+        .list-content {
+          max-height: 300px;
+          overflow-y: auto;
+
+          .back-button {
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: $second;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 1px solid rgba($main, 0.1);
+
+            &:hover {
+              background: rgba($main, 0.05);
+            }
+
+            svg {
+              width: 18px;
+              height: 18px;
+            }
+          }
+        }
+
+        .category-menu {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          padding: 0.75rem;
+
+          .category-item {
+            padding: 0.75rem 1rem;
+            background: rgba($main, 0.05);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+
+            &:hover {
+              background: rgba($main, 0.1);
+              transform: translateX(4px);
+            }
+
+            .category-name {
+              font-weight: 500;
+              color: $second;
+            }
+
+            .category-count {
+              background: rgba($main, 0.1);
+              padding: 0.25rem 0.5rem;
+              border-radius: 12px;
+              font-size: 0.8rem;
+              color: $main;
+            }
+          }
+        }
       }
 
       button {

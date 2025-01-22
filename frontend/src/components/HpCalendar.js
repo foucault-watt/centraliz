@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { ArrowLeft, ArrowRight, CircleChevronDown, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleChevronDown, X, Users, Briefcase, DoorClosed } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
 import React, {
@@ -87,7 +87,7 @@ const HpCalendar = () => {
     // Sur desktop, on garde le comportement existant
     return moment().startOf("week").add(1, "day");
   });
-  const { userName, displayName } = useContext(UserContext);
+  const { userName } = useContext(UserContext);
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
@@ -99,10 +99,15 @@ const HpCalendar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [users, setUsers] = useState([]);
+  const [professors, setProfessors] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
-  const [sharedEvents, setSharedEvents] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);
+  const [selectedType, setSelectedType] = useState('students'); // 'students', 'professors', 'rooms'
+  const [sharedEvents, setSharedEvents] = useState([]);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const closeModal = () => {
     setShowModal(false);
@@ -617,6 +622,29 @@ const HpCalendar = () => {
     fetchUsers();
   }, [userName]);
 
+  useEffect(() => {
+    const fetchProfessorsAndRooms = async () => {
+      try {
+        const [profResponse, roomResponse] = await Promise.all([
+          fetch(`${process.env.REACT_APP_URL_BACK}/api/professors`),
+          fetch(`${process.env.REACT_APP_URL_BACK}/api/rooms`)
+        ]);
+        
+        if (!profResponse.ok || !roomResponse.ok) throw new Error('Erreur de chargement');
+        
+        const profData = await profResponse.json();
+        const roomData = await roomResponse.json();
+        
+        setProfessors(profData);
+        setRooms(roomData);
+      } catch (error) {
+        console.error("Erreur:", error);
+      }
+    };
+    
+    fetchProfessorsAndRooms();
+  }, []);
+
   const fetchUserCalendar = async (userId) => {
     try {
       const response = await fetch(
@@ -634,6 +662,31 @@ const HpCalendar = () => {
     } catch (error) {
       console.error("Erreur:", error);
     }
+  };
+
+  const fetchExternalCalendar = async (icalLink, displayName) => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/external-calendar?icalLink=${encodeURIComponent(icalLink)}`
+      );
+      if (!response.ok) throw new Error("Erreur lors de la récupération du calendrier");
+      const data = await response.text();
+      const parsedEvents = parseICalData(data).map((event) => ({
+        ...event,
+        className: `${event.className} shared`,
+        sharedBy: displayName,
+      }));
+      setSharedEvents(parsedEvents);
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  };
+
+  // Ajouter cette fonction pour gérer le clic sur une catégorie
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setShowCategoryMenu(false);
+    setSearchQuery('');
   };
 
   return (
@@ -700,13 +753,18 @@ const HpCalendar = () => {
               className="search-input"
               placeholder={
                 selectedUser
-                  ? users.find((u) => u.userName === selectedUser)?.displayName
-                  : "Comparer le calendrier..."
+                  ? selectedType === 'students'
+                    ? users.find((u) => u.userName === selectedUser)?.displayName
+                    : selectedType === 'professors'
+                    ? professors.find((p) => p.ical_link === selectedUser)?.prof
+                    : rooms.find((r) => r.ical_link === selectedUser)?.salle
+                  : "Rechercher..."
               }
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setShowUsersList(true);
+                if (!showUsersList) setShowUsersList(true);
+                if (showCategoryMenu) setShowCategoryMenu(false);
               }}
               onFocus={() => setShowUsersList(true)}
             />
@@ -734,42 +792,130 @@ const HpCalendar = () => {
           </div>
           {showUsersList && (
             <div className="users-list">
-              {users
-                .filter(
-                  (user) =>
-                    user.displayName
-                      ?.toLowerCase()
-                      .includes(searchQuery.toLowerCase()) ||
-                    user.group
-                      ?.toLowerCase()
-                      .includes(searchQuery.toLowerCase())
-                )
-                .map((user) => (
-                  <div
-                    key={user.userName}
-                    className={`user-item ${
-                      selectedUser === user.userName ? "selected" : ""
-                    }`}
+              {showCategoryMenu ? (
+                <div className="category-menu">
+                  <div 
+                    className="category-item"
+                    onClick={() => handleCategorySelect('students')}
+                  >
+                    <div className="category-name">
+                      <Users size={18} /> Étudiants
+                    </div>
+                    <span className="category-count">{users.length}</span>
+                  </div>
+                  <div 
+                    className="category-item"
+                    onClick={() => handleCategorySelect('professors')}
+                  >
+                    <div className="category-name">
+                      <Briefcase size={18} /> Professeurs
+                    </div>
+                    <span className="category-count">{professors.length}</span>
+                  </div>
+                  <div 
+                    className="category-item"
+                    onClick={() => handleCategorySelect('rooms')}
+                  >
+                    <div className="category-name">
+                      <DoorClosed size={18} /> Salles
+                    </div>
+                    <span className="category-count">{rooms.length}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="list-content">
+                  <div 
+                    className="back-button"
                     onClick={() => {
-                      if (selectedUser === user.userName) {
-                        // Si on clique sur l'utilisateur déjà sélectionné, on désélectionne
-                        setSelectedUser(null);
-                        setSharedEvents([]); // Vider les événements partagés
-                      } else {
-                        // Sinon, on sélectionne le nouvel utilisateur
-                        setSelectedUser(user.userName);
-                        fetchUserCalendar(user.userName);
-                      }
-                      setShowUsersList(false);
-                      setSearchQuery("");
+                      setShowCategoryMenu(true);
+                      setSelectedCategory(null);
                     }}
                   >
-                    <div className="user-info">
-                      <div className="name">{user.displayName}</div>
-                      {user.group && <div className="group">{user.group}</div>}
-                    </div>
+                    <ArrowLeft /> Retour aux catégories
                   </div>
-                ))}
+                  {selectedCategory === 'students' && users
+                    .filter(user => 
+                      user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      user.group?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map(user => (
+                      <div
+                        key={user.userName}
+                        className={`user-item ${selectedUser === user.userName ? "selected" : ""}`}
+                        onClick={() => {
+                          if (selectedUser === user.userName) {
+                            setSelectedUser(null);
+                            setSharedEvents([]);
+                          } else {
+                            setSelectedUser(user.userName);
+                            fetchUserCalendar(user.userName);
+                          }
+                          setShowUsersList(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <div className="user-info">
+                          <div className="name">{user.displayName}</div>
+                          {user.group && <div className="group">{user.group}</div>}
+                        </div>
+                      </div>
+                    ))}
+
+                  {selectedCategory === 'professors' && professors
+                    .filter(prof => 
+                      prof.prof.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map(prof => (
+                      <div
+                        key={prof.position}
+                        className={`user-item ${selectedUser === prof.ical_link ? "selected" : ""}`}
+                        onClick={() => {
+                          if (selectedUser === prof.ical_link) {
+                            setSelectedUser(null);
+                            setSharedEvents([]);
+                          } else {
+                            setSelectedUser(prof.ical_link);
+                            fetchExternalCalendar(prof.ical_link, prof.prof);
+                          }
+                          setShowUsersList(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <div className="user-info">
+                          <div className="name">{prof.prof}</div>
+                          <div className="group">Professeur</div>
+                        </div>
+                      </div>
+                    ))}
+
+                  {selectedCategory === 'rooms' && rooms
+                    .filter(room => 
+                      room.salle.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map(room => (
+                      <div
+                        key={room.position}
+                        className={`user-item ${selectedUser === room.ical_link ? "selected" : ""}`}
+                        onClick={() => {
+                          if (selectedUser === room.ical_link) {
+                            setSelectedUser(null);
+                            setSharedEvents([]);
+                          } else {
+                            setSelectedUser(room.ical_link);
+                            fetchExternalCalendar(room.ical_link, room.salle);
+                          }
+                          setShowUsersList(false);
+                          setSearchQuery("");
+                        }}
+                      >
+                        <div className="user-info">
+                          <div className="name">{room.salle}</div>
+                          <div className="group">Salle</div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
           )}
         </div>

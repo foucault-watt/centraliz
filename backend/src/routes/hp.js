@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const hpService = require("../services/hpService");
+const fs = require('fs');
+const path = require('path');
 
 router.get("/hp-data", async (req, res) => {
   try {
@@ -67,6 +69,38 @@ router.get("/users", async (req, res) => {
     res
       .status(500)
       .json({ error: "Erreur lors de la récupération des utilisateurs" });
+  }
+});
+
+router.get("/professors", async (req, res) => {
+  try {
+    const profData = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '../data/ical-prof.json'), 'utf-8')
+    );
+    res.json(profData);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la récupération des professeurs" });
+  }
+});
+
+router.get("/rooms", async (req, res) => {
+  try {
+    const roomData = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '../data/ical-salle.json'), 'utf-8')
+    );
+    res.json(roomData);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la récupération des salles" });
+  }
+});
+
+router.get("/external-calendar", async (req, res) => {
+  try {
+    const { icalLink } = req.query;
+    const data = await hpService.fetchExternalCalendar(icalLink);
+    res.send(data);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur lors de la récupération du calendrier externe" });
   }
 });
 

@@ -46,7 +46,7 @@ $fade-duration: 0.3s;
     margin-top: 10px;
     color: $main;
     text-decoration: underline;
-    
+
     &:hover {
       color: darken($main, 10%);
     }
@@ -66,11 +66,11 @@ $fade-duration: 0.3s;
   margin: 0 auto;
   gap: 20px;
   padding: 20px;
-  
+
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (min-width: 1200px) {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -92,7 +92,7 @@ $fade-duration: 0.3s;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   }
 
   &-header {
@@ -104,7 +104,7 @@ $fade-duration: 0.3s;
     cursor: pointer;
     @include transition(background-color);
     position: relative;
-    
+
     &.expanded {
       background-color: rgba($main, 0.12);
     }
@@ -143,12 +143,15 @@ $fade-duration: 0.3s;
     max-height: 0;
     overflow: hidden;
     @include transition(max-height, 0.3s, ease-out);
-    background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
     transform-origin: top;
     transition: all $expand-duration $expand-timing;
     opacity: 0;
     transform: scaleY(0);
-
 
     &.expanded {
       padding: 15px 15px 0 15px;
@@ -161,7 +164,7 @@ $fade-duration: 0.3s;
       opacity: 0;
       transform: translateY(20px);
       transition: all $fade-duration ease-out;
-      
+
       @for $i from 1 through 10 {
         &:nth-child(#{$i}) {
           transition-delay: $i * 0.05s;
@@ -244,7 +247,7 @@ $fade-duration: 0.3s;
 
     width: 150px; // Définir une largeur fixe pour mobile
     flex: none; // Empêcher l'expansion sur mobile
-    
+
     @media (min-width: 768px) {
       width: auto;
       flex: 1;
@@ -299,7 +302,7 @@ $fade-duration: 0.3s;
     border-radius: 4px;
     background: rgba($day, 0.5);
     font-size: 0.9em;
-    
+
     &:focus {
       outline: none;
       border-color: $main;
@@ -365,12 +368,12 @@ $fade-duration: 0.3s;
     justify-content: center;
     transition: all 0.3s ease;
     background-color: rgba($main, 0.02);
-    
+
     &.drag-active {
       border-color: $main;
       background-color: rgba($main, 0.05);
       transform: scale(1.02);
-      
+
       .drop-message {
         color: $main;
       }
@@ -398,7 +401,6 @@ $fade-duration: 0.3s;
   color: $second;
 }
 
-
 // Form Styles
 .login-form {
   display: flex;
@@ -411,7 +413,7 @@ $fade-duration: 0.3s;
   border-radius: 5px;
   border: 1px solid $day-border;
   @include box-shadow();
-  
+
   input {
     padding: 10px;
     margin-bottom: 15px;
@@ -469,7 +471,7 @@ $fade-duration: 0.3s;
   .bomb {
     font-size: 2rem;
     animation: dropBomb 1.2s $expand-timing infinite;
-    
+
     @for $i from 1 through 3 {
       &:nth-child(#{$i}) {
         animation-delay: $i * 0.2s;
@@ -544,7 +546,7 @@ $fade-duration: 0.3s;
   border-radius: 10px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   margin-bottom: 25px;
 
   @media (min-width: 768px) {
@@ -571,12 +573,12 @@ $fade-duration: 0.3s;
     gap: 20px;
     background-color: rgba(255, 255, 255, 0.02);
     padding: 10px;
-    
+
     @media (min-width: 768px) {
       padding: 20px;
       grid-template-columns: repeat(2, 1fr);
     }
-    
+
     @media (min-width: 1200px) {
       grid-template-columns: repeat(3, 1fr);
     }
@@ -603,12 +605,12 @@ $fade-duration: 0.3s;
     align-items: flex-start;
     padding: 12px 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    
+
     &:last-child {
       border-bottom: none;
       padding-bottom: 0;
     }
-    
+
     &:first-child {
       padding-top: 0;
     }
@@ -631,7 +633,7 @@ $fade-duration: 0.3s;
 
     .step-content {
       flex-grow: 1;
-      
+
       .step-title {
         font-weight: bold;
         color: $second;
@@ -686,10 +688,14 @@ $fade-duration: 0.3s;
     margin-bottom: 15px;
     display: flex;
     align-items: center;
-    
+
     &::before {
       content: "🧭";
       margin-right: 8px;
+    }
+
+    &:not(:first-child) {
+      margin-top: 20px;
     }
   }
 
@@ -733,7 +739,7 @@ $fade-duration: 0.3s;
         border: 1px solid rgba($main, 0.2);
         border-radius: 6px;
         background: rgba($day, 0.5);
-        
+
         &:focus {
           outline: none;
           border-color: $main;
@@ -751,17 +757,23 @@ $fade-duration: 0.3s;
         cursor: pointer;
         transition: all 0.2s;
         color: white;
-        
+
         &:hover {
           background-color: darken($main, 5%);
           transform: translateY(-1px);
         }
-        
+
         &:active {
           transform: translateY(0);
         }
       }
     }
+  }
+
+  .simulated-grades {
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba($main, 0.1);
+    padding-bottom: 20px;
   }
 }
 

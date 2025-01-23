@@ -108,6 +108,7 @@ const HpCalendar = () => {
   const [sharedEvents, setSharedEvents] = useState([]);
   const [showCategoryMenu, setShowCategoryMenu] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [slideDirection, setSlideDirection] = useState(''); // 'left' ou 'right'
 
   const closeModal = () => {
     setShowModal(false);
@@ -682,12 +683,70 @@ const HpCalendar = () => {
     }
   };
 
+  const fetchCalendarByName = async (name, type) => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/calendar/${type}/${encodeURIComponent(name)}`
+      );
+      if (!response.ok) throw new Error("Erreur lors de la récupération du calendrier");
+      const data = await response.text();
+      const parsedEvents = parseICalData(data).map((event) => ({
+        ...event,
+        className: `${event.className} shared`,
+        sharedBy: name,
+      }));
+      setSharedEvents(parsedEvents);
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  };
+
   // Ajouter cette fonction pour gérer le clic sur une catégorie
   const handleCategorySelect = (category) => {
+    setSlideDirection('left');
     setSelectedCategory(category);
     setShowCategoryMenu(false);
     setSearchQuery('');
+    // Focus automatique sur la barre de recherche
+    setTimeout(() => {
+      document.querySelector('.search-input')?.focus();
+    }, 100);
   };
+
+  const handleBackToCategories = () => {
+    setSlideDirection('right');
+    setTimeout(() => {
+      setShowCategoryMenu(true);
+      setSelectedCategory(null);
+    }, 10); // Petit délai pour l'animation
+  };
+
+  // Nouvelle fonction utilitaire de recherche
+  function normalize(str = "") {
+    return str
+      .normalize("NFD")                 // Enlever les accents
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase(); 
+  }
+
+  function matchesSearch(itemString, search) {
+    return normalize(itemString).includes(normalize(search));
+  }
+
+  const filteredUsers = users.filter(u =>
+    matchesSearch(u.displayName ?? "", searchQuery) ||
+    matchesSearch(u.group ?? "", searchQuery)
+  );
+
+  const filteredProfessors = professors.filter(p =>
+    matchesSearch(p.prof, searchQuery)
+  );
+
+  const filteredRooms = rooms.filter(r => {
+    // Si aucune recherche, on renvoie toutes les salles
+    if (!searchQuery) return true;
+    return r.salle && matchesSearch(r.salle, searchQuery);
+  });
 
   return (
     <div className="hp-calendar">
@@ -753,18 +812,22 @@ const HpCalendar = () => {
               className="search-input"
               placeholder={
                 selectedUser
-                  ? selectedType === 'students'
+                  ? selectedCategory === 'students'
                     ? users.find((u) => u.userName === selectedUser)?.displayName
-                    : selectedType === 'professors'
-                    ? professors.find((p) => p.ical_link === selectedUser)?.prof
-                    : rooms.find((r) => r.ical_link === selectedUser)?.salle
-                  : "Rechercher..."
+                    : selectedCategory === 'professors'
+                    ? professors.find((p) => p.prof === selectedUser)?.prof
+                    : rooms.find((r) => r.salle === selectedUser)?.salle
+                  : selectedCategory
+                    ? `Rechercher un${selectedCategory === 'rooms' ? 'e' : ''} ${
+                        selectedCategory === 'students' ? 'étudiant' :
+                        selectedCategory === 'professors' ? 'prof' : 'salle'
+                      }...`
+                    : "Choisir une catégorie..."
               }
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 if (!showUsersList) setShowUsersList(true);
-                if (showCategoryMenu) setShowCategoryMenu(false);
               }}
               onFocus={() => setShowUsersList(true)}
             />
@@ -792,53 +855,46 @@ const HpCalendar = () => {
           </div>
           {showUsersList && (
             <div className="users-list">
-              {showCategoryMenu ? (
-                <div className="category-menu">
-                  <div 
-                    className="category-item"
-                    onClick={() => handleCategorySelect('students')}
-                  >
-                    <div className="category-name">
-                      <Users size={18} /> Étudiants
+              <div className={`sliding-container ${slideDirection}`}>
+                {showCategoryMenu ? (
+                  <div className="category-menu">
+                    <div 
+                      className="category-item"
+                      onClick={() => handleCategorySelect('students')}
+                    >
+                      <div className="category-name">
+                        <Users size={18} /> Étudiants
+                      </div>
+                      <span className="category-count">{users.length}</span>
                     </div>
-                    <span className="category-count">{users.length}</span>
-                  </div>
-                  <div 
-                    className="category-item"
-                    onClick={() => handleCategorySelect('professors')}
-                  >
-                    <div className="category-name">
-                      <Briefcase size={18} /> Professeurs
+                    <div 
+                      className="category-item"
+                      onClick={() => handleCategorySelect('professors')}
+                    >
+                      <div className="category-name">
+                        <Briefcase size={18} /> Profs
+                      </div>
+                      <span className="category-count">{professors.length}</span>
                     </div>
-                    <span className="category-count">{professors.length}</span>
-                  </div>
-                  <div 
-                    className="category-item"
-                    onClick={() => handleCategorySelect('rooms')}
-                  >
-                    <div className="category-name">
-                      <DoorClosed size={18} /> Salles
+                    <div 
+                      className="category-item"
+                      onClick={() => handleCategorySelect('rooms')}
+                    >
+                      <div className="category-name">
+                        <DoorClosed size={18} /> Salles
+                      </div>
+                      <span className="category-count">{rooms.length}</span>
                     </div>
-                    <span className="category-count">{rooms.length}</span>
                   </div>
-                </div>
-              ) : (
-                <div className="list-content">
-                  <div 
-                    className="back-button"
-                    onClick={() => {
-                      setShowCategoryMenu(true);
-                      setSelectedCategory(null);
-                    }}
-                  >
-                    <ArrowLeft /> Retour aux catégories
-                  </div>
-                  {selectedCategory === 'students' && users
-                    .filter(user => 
-                      user.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      user.group?.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(user => (
+                ) : (
+                  <div className="list-content">
+                    <div 
+                      className="back-button"
+                      onClick={handleBackToCategories}
+                    >
+                      <ArrowLeft /> Retour aux catégories
+                    </div>
+                    {selectedCategory === 'students' && filteredUsers.map(user => (
                       <div
                         key={user.userName}
                         className={`user-item ${selectedUser === user.userName ? "selected" : ""}`}
@@ -861,21 +917,17 @@ const HpCalendar = () => {
                       </div>
                     ))}
 
-                  {selectedCategory === 'professors' && professors
-                    .filter(prof => 
-                      prof.prof.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(prof => (
+                    {selectedCategory === 'professors' && filteredProfessors.map(prof => (
                       <div
                         key={prof.position}
-                        className={`user-item ${selectedUser === prof.ical_link ? "selected" : ""}`}
+                        className={`user-item ${selectedUser === prof.prof ? "selected" : ""}`}
                         onClick={() => {
-                          if (selectedUser === prof.ical_link) {
+                          if (selectedUser === prof.prof) {
                             setSelectedUser(null);
                             setSharedEvents([]);
                           } else {
-                            setSelectedUser(prof.ical_link);
-                            fetchExternalCalendar(prof.ical_link, prof.prof);
+                            setSelectedUser(prof.prof);
+                            fetchCalendarByName(prof.prof, 'prof');
                           }
                           setShowUsersList(false);
                           setSearchQuery("");
@@ -888,34 +940,31 @@ const HpCalendar = () => {
                       </div>
                     ))}
 
-                  {selectedCategory === 'rooms' && rooms
-                    .filter(room => 
-                      room.salle.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(room => (
+                    {selectedCategory === 'rooms' && filteredRooms.map(room => (
                       <div
                         key={room.position}
-                        className={`user-item ${selectedUser === room.ical_link ? "selected" : ""}`}
+                        className={`user-item ${selectedUser === room.salle ? "selected" : ""}`}
                         onClick={() => {
-                          if (selectedUser === room.ical_link) {
+                          if (selectedUser === room.salle) {
                             setSelectedUser(null);
                             setSharedEvents([]);
                           } else {
-                            setSelectedUser(room.ical_link);
-                            fetchExternalCalendar(room.ical_link, room.salle);
+                            setSelectedUser(room.salle);
+                            fetchCalendarByName(room.salle, 'salle');
                           }
                           setShowUsersList(false);
                           setSearchQuery("");
                         }}
                       >
                         <div className="user-info">
-                          <div className="name">{room.salle}</div>
+                          <div className="name">{room.salle || 'Salle non définie'}</div>
                           <div className="group">Salle</div>
                         </div>
                       </div>
                     ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

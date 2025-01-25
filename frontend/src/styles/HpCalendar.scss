@@ -144,7 +144,7 @@
         border-radius: 6px;
         background: rgba($main, 0.05);
         padding-right: 30px; // Ajouter de l'espace pour la croix
-        
+
         &:focus {
           outline: none;
           border-color: $main;
@@ -540,58 +540,95 @@
   .event-details {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin: 1rem 0;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba($main, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba($main, 0.1);
 
     .event-main-title {
-      font-size: 1.2rem;
+      font-size: 1.4rem;
       font-weight: 600;
-      color: $main;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid rgba($second, 0.1);
+      color: $second;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid rgba($main, 0.1);
+      text-align: center;
     }
 
-    .event-professor-detail,
-    .event-location-detail {
+    .detail-row {
       display: flex;
-      gap: 0.5rem;
       align-items: center;
-      padding: 0.5rem;
-      background: rgba($second, 0.05);
-      border-radius: 6px;
+      gap: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border: 1px solid rgba($second, 0.1);
 
-      .label {
-        font-size: 0.9rem;
-        color: $second;
-        opacity: 0.8;
-        min-width: 85px;
+      &:hover {
+        transform: translateX(4px);
+        border-color: rgba($main, 0.2);
       }
 
-      .value {
-        font-weight: 500;
-        color: $second;
-      }
-    }
-
-    .event-type-detail {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      padding: 0.5rem;
-      background: rgba($main, 0.05);
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-
-      .label {
-        font-size: 0.9rem;
-        color: $second;
-        opacity: 0.8;
-        min-width: 85px;
-      }
-
-      .value {
-        font-weight: 500;
+      .icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba($main, 0.1);
+        border-radius: 8px;
         color: $main;
+        flex-shrink: 0;
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .detail-content {
+        flex: 1;
+
+        .label {
+          font-size: 0.85rem;
+          color: rgba($second, 0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 2px;
+        }
+
+        .value {
+          font-size: 1.1rem;
+          color: $second;
+          font-weight: 500;
+        }
+      }
+
+      &.type-detail {
+        background: linear-gradient(
+          135deg,
+          rgba($main, 0.1),
+          rgba($main, 0.05)
+        );
+
+        .icon-container {
+          background: rgba($main, 0.2);
+        }
+
+        .value {
+          color: $main;
+        }
+      }
+
+      &.professor-detail .icon-container {
+        background: rgba($green, 0.1);
+        color: $green;
+      }
+
+      &.location-detail .icon-container {
+        background: rgba($orange, 0.1);
+        color: $orange;
       }
     }
   }
@@ -599,25 +636,24 @@
 
 // Modal
 .modal-overlay {
-  position: absolute;
+  position: fixed; // Changé de 'absolute' à 'fixed'
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw; // Utiliser vw au lieu de %
+  height: 100vh; // Utiliser vh au lieu de %
   background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
   animation: fadeIn 0.3s ease-out;
-  z-index: 1000;
-  border-radius: 12px;
+  z-index: 9999; // Augmenter le z-index
 }
 
 .modal-content {
+  position: relative; // Garder en relatif
   background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
   padding: 2rem;
   border-radius: 16px;
-  position: relative;
   max-width: 500px;
   width: 90%;
   animation: slideDown 0.3s ease-out;
@@ -625,6 +661,17 @@
   border: 1px solid rgba(255, 255, 255, 0.8);
   max-height: 85vh;
   overflow-y: auto;
+  margin: 20px; // Ajouter une marge pour éviter le collage aux bords
+
+  // Assurer que le modal reste au-dessus de tout
+  z-index: 10000;
+
+  // Empêcher le débordement sur mobile
+  @media (max-width: 768px) {
+    width: calc(100% - 40px);
+    margin: 20px;
+    max-height: calc(100vh - 40px);
+  }
 
   h2 {
     color: $second;
@@ -703,6 +750,95 @@
 
     &:hover {
       background: rgba($main, 0.3);
+    }
+  }
+
+  > .event-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba($main, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba($main, 0.1);
+    margin: 1rem 0;
+
+    .event-main-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: $second;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid rgba($main, 0.1);
+      text-align: center;
+    }
+
+    .detail-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border: 1px solid rgba($second, 0.1);
+
+      &:hover {
+        transform: translateX(4px);
+        border-color: rgba($main, 0.2);
+      }
+
+      .icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba($main, 0.1);
+        border-radius: 8px;
+        color: $main;
+        flex-shrink: 0;
+
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .detail-content {
+        flex: 1;
+
+        .label {
+          font-size: 0.85rem;
+          color: rgba($second, 0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 2px;
+        }
+
+        .value {
+          font-size: 1.1rem;
+          color: $second;
+          font-weight: 500;
+        }
+      }
+
+      .icon-container {
+        background: rgba($main, 0.2);
+      }
+
+      .value {
+        color: $main;
+      }
+
+      &.professor-detail .icon-container {
+        background: rgba($green, 0.1);
+        color: $green;
+      }
+
+      &.location-detail .icon-container {
+        background: rgba($orange, 0.1);
+        color: $orange;
+      }
     }
   }
 }

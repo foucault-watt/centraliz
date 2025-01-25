@@ -147,6 +147,139 @@
           ]
         }
       ]
+    },
+    "IE1": {
+      "UE": [
+        {
+          "Automatique et informatique": [
+            {
+              "coef": 9,
+              "enseignements": [
+                {
+                  "Application d'entreprise": 1,
+                  "SED": 2,
+                  "Création de sites web statiques": 2,
+                  "Algorithmie": 2,
+                  "Initiation à la programmation": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Culture générale, professionnelle et SHS": [
+            {
+              "coef": 3,
+              "enseignements": [
+                {
+                  "Théorie des organisations": 1,
+                  "Macroéconomie": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Développement et expériences": [
+            {
+              "coef": 7,
+              "enseignements": [
+                {
+                  "Cycles de conférences": 1,
+                  "Projet : De l'annalyse d'un produit vers l'innovation": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Electricité, Electronique, Onde et Télecom": [
+            {
+              "coef": 5,
+              "enseignements": [
+                {
+                  "Electronique": 1,
+                  "Equipement électrique": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Affaires": [
+            {
+              "coef": 6,
+              "enseignements": [
+                {
+                  "communication personnelle": 2,
+                  "intro au marché": 1,
+                  "structure financière de l'entreprise": 1,
+                  "comptabilité d'entreprise": 1,
+                  "droit des sociétés": 2,
+                  "l'offre et le conso": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Management et entrepreneuriat": [
+            {
+              "coef": 6,
+              "enseignements": [
+                {
+                  "comprendre enjeux inno": 2,
+                  "projet nv produit": 1,
+                  "enjeux entrepreneuriat": 2,
+                  "La performande d'un projet": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Langues et international": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Anglais": 4,
+                  "Espagnol": 4,
+                  "Français": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Mathématiques": [
+            {
+              "coef": 10,
+              "enseignements": [
+                {
+                  "AMI": 1,
+                  "Mathématiques 1": 5,
+                  "Mathématiques 2": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Mécanique et matériau": [
+            {
+              "coef": 6,
+              "enseignements": [
+                {
+                  "Science des matériaux": 1,
+                  "Conception et Production de systèmes": 1,
+                  "Statique et cinématique des solides": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   }
 }

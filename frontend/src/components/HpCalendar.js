@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { ArrowLeft, ArrowRight, CircleChevronDown, X, Users, Briefcase, DoorClosed } from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleChevronDown, X, Users, Briefcase, DoorClosed, GraduationCap, MapPin, BookOpen } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
 import React, {
@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 import { UserContext } from "../App";
+import ReactDOM from 'react-dom';
 
 moment.locale("fr");
 
@@ -84,7 +85,12 @@ const HpCalendar = () => {
       }
       return today;
     }
-    // Sur desktop, on garde le comportement existant
+    // Sur desktop
+    if (today.day() === 0 || today.day() === 6) {
+      // Si on est samedi ou dimanche, on va à la semaine prochaine
+      return moment().add(1, 'week').startOf("week").add(1, "day");
+    }
+    // Sinon on reste sur la semaine courante
     return moment().startOf("week").add(1, "day");
   });
   const { userName } = useContext(UserContext);
@@ -748,6 +754,145 @@ const HpCalendar = () => {
     return r.salle && matchesSearch(r.salle, searchQuery);
   });
 
+  // Ajouter cette fonction juste avant le return du composant HpCalendar
+  const renderModals = () => {
+    if (!showModal && !showEvaluationModal) return null;
+
+    return ReactDOM.createPortal(
+      <>
+        {showModal && selectedEvent && (
+          <div className="modal-overlay" onClick={closeModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Détails de l'événement</h2>
+              <div className="event-details">
+                <div className="event-main-title">{selectedEvent.title}</div>
+                
+                <div className="detail-row type-detail">
+                  <div className="icon-container">
+                    <BookOpen />
+                  </div>
+                  <div className="detail-content">
+                    <div className="label">Type de cours</div>
+                    <div className="value">{selectedEvent.courseType}</div>
+                  </div>
+                </div>
+                
+                {selectedEvent.professor && (
+                  <div className="detail-row professor-detail">
+                    <div className="icon-container">
+                      <GraduationCap />
+                    </div>
+                    <div className="detail-content">
+                      <div className="label">Professeur</div>
+                      <div className="value">{selectedEvent.professor}</div>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedEvent.location && (
+                  <div className="detail-row location-detail">
+                    <div className="icon-container">
+                      <MapPin />
+                    </div>
+                    <div className="detail-content">
+                      <div className="label">Salle</div>
+                      <div className="value">{selectedEvent.location}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* ... reste du code du modal ... */}
+              {selectedEvent.className?.includes("shared") ? (
+                <div className="evaluation-notice">
+                  Vous ne pouvez pas évaluer les cours de quelqu'un d'autre
+                </div>
+              ) : (
+                <>
+                  {errorMessage ? (
+                    <div className="error-message">{errorMessage}</div>
+                  ) : hasEvaluated ? (
+                    <div className="evaluation-notice">
+                      Vous avez déjà évalué cet enseignement
+                    </div>
+                  ) : (
+                    <button onClick={handleEvaluate}>Évaluer</button>
+                  )}
+                </>
+              )}
+              <button onClick={closeModal}>Fermer</button>
+            </div>
+          </div>
+        )}
+        {showEvaluationModal && evaluationConfig && (
+          <div className="modal-overlay" onClick={closeModal}>
+            <div className="modal-content evaluation" onClick={(e) => e.stopPropagation()}>
+              <h2>Évaluation de l'enseignement</h2>
+              <div className="required-notice">* Questions obligatoires</div>
+              {evaluationConfig.questions.map((question) => (
+                <div key={question.id} className="question">
+                  <label className={question.required ? "required" : ""}>
+                    {question.text}
+                    {question.required && " *"}
+                  </label>
+                  {question.type === "likert" ? (
+                    <div className="likert-scale horizontal">
+                      {question.options.map((option, index) => (
+                        <label key={index}>
+                          <input
+                            type="radio"
+                            name={`question_${question.id}`}
+                            value={index}
+                            onChange={() =>
+                              handleAnswerChange(question.id, index)
+                            }
+                            checked={answers[question.id] === index}
+                          />
+                          {option}
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <textarea
+                      maxLength={question.maxLength}
+                      value={answers[question.id] || ""}
+                      onChange={(e) =>
+                        handleAnswerChange(
+                          question.id,
+                          e.target.value,
+                          question.maxLength
+                        )
+                      }
+                      placeholder={`Votre réponse... ${
+                        question.required ? "(obligatoire)" : "(optionnel)"
+                      } (${question.maxLength} caractères max)`}
+                    />
+                  )}
+                </div>
+              ))}
+              {errorMessage && (
+                <div className="error-message">{errorMessage}</div>
+              )}
+              {submitSuccess && (
+                <div className="success-message">
+                  ✓ Évaluation enregistrée avec succès !
+                </div>
+              )}
+              <button
+                id="submitButton"
+                onClick={submitEvaluation}
+                className={submitSuccess ? "success" : ""}
+              >
+                {submitSuccess ? "✓ Envoyé" : "Envoyer"}
+              </button>
+            </div>
+          </div>
+        )}
+      </>,
+      document.body
+    );
+  };
+
   return (
     <div className="hp-calendar">
       <div className="calendar-header">
@@ -1000,117 +1145,7 @@ const HpCalendar = () => {
         )}
       </div>
 
-      {showModal && selectedEvent && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Détails de l'événement</h2>
-            <div className="event-details">
-              <div className="event-main-title">{selectedEvent.title}</div>
-              <div className="event-type-detail">
-                <span className="label">Type :</span>
-                <span className="value">{selectedEvent.courseType}</span>
-              </div>
-              {selectedEvent.professor && (
-                <div className="event-professor-detail">
-                  <span className="label">Professeur :</span>
-                  <span className="value">{selectedEvent.professor}</span>
-                </div>
-              )}
-              {selectedEvent.location && (
-                <div className="event-location-detail">
-                  <span className="label">Salle :</span>
-                  <span className="value">{selectedEvent.location}</span>
-                </div>
-              )}
-            </div>
-            {selectedEvent.className?.includes("shared") ? (
-              <div className="evaluation-notice">
-                Vous ne pouvez pas évaluer les cours de quelqu'un d'autre
-              </div>
-            ) : (
-              <>
-                {errorMessage ? (
-                  <div className="error-message">{errorMessage}</div>
-                ) : hasEvaluated ? (
-                  <div className="evaluation-notice">
-                    Vous avez déjà évalué cet enseignement
-                  </div>
-                ) : (
-                  <button onClick={handleEvaluate}>Évaluer</button>
-                )}
-              </>
-            )}
-            <button onClick={closeModal}>Fermer</button>
-          </div>
-        </div>
-      )}
-      {showEvaluationModal && evaluationConfig && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div
-            className="modal-content evaluation"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2>Évaluation de l'enseignement</h2>
-            <div className="required-notice">* Questions obligatoires</div>
-            {evaluationConfig.questions.map((question) => (
-              <div key={question.id} className="question">
-                <label className={question.required ? "required" : ""}>
-                  {question.text}
-                  {question.required && " *"}
-                </label>
-                {question.type === "likert" ? (
-                  <div className="likert-scale horizontal">
-                    {question.options.map((option, index) => (
-                      <label key={index}>
-                        <input
-                          type="radio"
-                          name={`question_${question.id}`}
-                          value={index}
-                          onChange={() =>
-                            handleAnswerChange(question.id, index)
-                          }
-                          checked={answers[question.id] === index}
-                        />
-                        {option}
-                      </label>
-                    ))}
-                  </div>
-                ) : (
-                  <textarea
-                    maxLength={question.maxLength}
-                    value={answers[question.id] || ""}
-                    onChange={(e) =>
-                      handleAnswerChange(
-                        question.id,
-                        e.target.value,
-                        question.maxLength
-                      )
-                    }
-                    placeholder={`Votre réponse... ${
-                      question.required ? "(obligatoire)" : "(optionnel)"
-                    } (${question.maxLength} caractères max)`}
-                  />
-                )}
-              </div>
-            ))}
-            {errorMessage && (
-              <div className="error-message">{errorMessage}</div>
-            )}
-            {submitSuccess && (
-              <div className="success-message">
-                ✓ Évaluation enregistrée avec succès !
-              </div>
-            )}
-            <button
-              id="submitButton"
-              onClick={submitEvaluation}
-              className={submitSuccess ? "success" : ""}
-            >
-              {submitSuccess ? "✓ Envoyé" : "Envoyer"}
-            </button>
-          </div>
-        </div>
-      )}
+      {renderModals()}
     </div>
   );
 };

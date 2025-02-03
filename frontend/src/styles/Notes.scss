@@ -21,16 +21,7 @@ $fade-duration: 0.3s;
   text-align: center;
 }
 
-.info-message {
-  background-color: #fff3cd;
-  color: #856404;
-  padding: 12px;
-  margin-bottom: 20px;
-  border-radius: 5px;
-  border: 1px solid #ffeeba;
-  font-size: 0.9em;
-  text-align: center;
-}
+// Removed: .info-message, .upload-section, .tutorial-steps, .tuto-export-webaurion
 
 .warning-message {
   background-color: #fff3cd;
@@ -311,96 +302,6 @@ $fade-duration: 0.3s;
   }
 }
 
-// Upload section styles
-.upload-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 5px;
-
-  .upload-button {
-    position: relative; // Ajouté
-    display: flex;
-    align-items: center;
-    padding: 12px 25px;
-    background-color: $main;
-    color: $day;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    @include transition(background-color);
-
-    &:hover {
-      background-color: darken($main, 10%);
-    }
-
-    .upload-icon {
-      margin-right: 10px;
-      width: 20px;
-      height: 20px;
-    }
-
-    // Nouveaux styles pour l'input file
-    input[type="file"] {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-      z-index: 2;
-    }
-  }
-
-  // Nouvelle zone de drop
-  .drop-zone {
-    position: relative;
-    width: 100%;
-    max-width: 500px;
-    min-height: 150px;
-    border: 2px dashed rgba($main, 0.3);
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    background-color: rgba($main, 0.02);
-
-    &.drag-active {
-      border-color: $main;
-      background-color: rgba($main, 0.05);
-      transform: scale(1.02);
-
-      .drop-message {
-        color: $main;
-      }
-    }
-
-    .drop-message {
-      margin: 15px 0;
-      color: $second;
-      font-size: 0.9em;
-      text-align: center;
-      transition: color 0.3s ease;
-    }
-
-    .or-separator {
-      margin: 15px 0;
-      color: rgba($second, 0.5);
-      font-size: 0.8em;
-    }
-  }
-}
-
-.upload-message {
-  margin: 5px 0 10px 0 !important;
-  font-size: 0.9rem;
-  color: $second;
-}
-
 // Form Styles
 .login-form {
   display: flex;
@@ -532,14 +433,6 @@ $fade-duration: 0.3s;
   }
 }
 
-.tuto-export-webaurion {
-  max-width: 100%;
-  height: 300px;
-  margin: 10px auto;
-  display: block;
-  border-radius: 10px;
-}
-
 .ue-section {
   grid-column: 1 / -1;
   background-color: rgba(255, 255, 255, 0.05);
@@ -588,86 +481,6 @@ $fade-duration: 0.3s;
     font-size: 0.8em;
     opacity: 0.7;
     margin-right: 10px;
-  }
-}
-
-.tutorial-steps {
-  background: $day;
-  border: 1px solid $day-border;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 15px 0;
-  max-width: 600px;
-  margin: 15px auto;
-
-  .step {
-    display: flex;
-    align-items: flex-start;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
-    &:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    &:first-child {
-      padding-top: 0;
-    }
-
-    .step-number {
-      background: $main;
-      color: white;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9em;
-      font-weight: bold;
-      flex-shrink: 0;
-      margin-right: 12px;
-      margin-top: 2px;
-    }
-
-    .step-content {
-      flex-grow: 1;
-
-      .step-title {
-        font-weight: bold;
-        color: $second;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        .external-link {
-          color: $main;
-          display: flex;
-          align-items: center;
-          font-size: 0.9em;
-          text-decoration: none;
-          opacity: 0.8;
-          transition: opacity 0.2s;
-
-          &:hover {
-            opacity: 1;
-          }
-
-          svg {
-            margin-left: 4px;
-          }
-        }
-      }
-
-      .step-description {
-        color: $second;
-        font-size: 0.9em;
-        line-height: 1.4;
-        margin: 0;
-      }
-    }
   }
 }
 
@@ -846,5 +659,196 @@ $fade-duration: 0.3s;
         }
       }
     }
+  }
+}
+
+.page-title {
+  font-size: 2.5rem;
+  color: $main;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  text-align: center;
+  animation: slideDown 0.6s ease-out;
+}
+
+.page-subtitle {
+  color: $second;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  opacity: 0.8;
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 15px;
+  border: 1px solid rgba($main, 0.1);
+  animation: slideUp 0.6s ease-out;
+
+  .input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 1rem;
+      background: transparent;
+      border: 2px solid rgba($main, 0.2);
+      border-radius: 8px;
+      color: $second;
+      transition: all 0.3s ease;
+
+      &:focus {
+        border-color: $main;
+        outline: none;
+        
+        & + label {
+          transform: translateY(-24px) scale(0.8);
+          color: $main;
+        }
+      }
+
+      &:not(:placeholder-shown) + label {
+        transform: translateY(-24px) scale(0.8);
+      }
+    }
+
+    label {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba($second, 0.6);
+      pointer-events: none;
+      transition: all 0.3s ease;
+      transform-origin: left;
+    }
+  }
+
+  .submit-button {
+    width: 100%;
+    padding: 12px;
+    background: $main;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    span {
+      position: relative;
+      z-index: 1;
+    }
+  }
+}
+
+.loading-container-notes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.loading-animation {
+  display: flex;
+  gap: 8px;
+
+  .loading-bar {
+    width: 4px;
+    height: 24px;
+    background: rgba($main, 0.8); // Changement ici pour utiliser la couleur principale avec transparence
+    border-radius: 2px;
+    animation: loadingBars 1.2s ease-in-out infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+.loading-text {
+  margin-top: 2rem;
+  color: $second;
+  font-size: 1.1rem;
+  text-align: center;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes loadingBars {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(2);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
   }
 }

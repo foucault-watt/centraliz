@@ -66,7 +66,7 @@ exports.downloadCSV = async (username, password) => {
         await page.click(exportSelector);
         console.log('Clicked on the export element');
 
-        const csvSelector = "#form\\:j_idt170 > ul > li:nth-child(3) > a";
+        const csvSelector = "#form\\:j_idt158 > ul > li:nth-child(3) > a";
         await page.waitForSelector(csvSelector, { visible: true, timeout: 10000 });
         await page.click(csvSelector);
         console.log('Clicked on the csv element');

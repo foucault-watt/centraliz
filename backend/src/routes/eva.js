@@ -5,7 +5,6 @@ const evaService = require("../services/evaService");
 router.get("/config", (req, res) => {
   try {
     const userName = req.session.user.userName;
-    console.log("usegerName:", userName);
     if (!userName) {
       return res.status(400).json({ error: "userName est requis" });
     }

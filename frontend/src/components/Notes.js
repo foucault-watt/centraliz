@@ -1,5 +1,4 @@
 import axios from "axios";
-import { ArrowUpRight, Upload } from "lucide-react";
 import Papa from "papaparse";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
@@ -7,7 +6,6 @@ import { UserContext } from "../App";
 const Notes = () => {
   const [expandedModules, setExpandedModules] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isCSVUploaded, setIsCSVUploaded] = useState(false);
   const [error, setError] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -205,10 +203,10 @@ const Notes = () => {
   }, [username, password, processGrades]);
 
   useEffect(() => {
-    if (isLoggedIn && !isCSVUploaded) {
+    if (isLoggedIn) {
       fetchCSVData();
     }
-  }, [isLoggedIn, isCSVUploaded, fetchCSVData]);
+  }, [isLoggedIn, fetchCSVData]);
 
   useEffect(() => {
     const fetchCoefficients = async () => {
@@ -233,66 +231,6 @@ const Notes = () => {
       fetchCoefficients();
     }
   }, [userName]);
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    processUploadedFile(file);
-  };
-
-  const processUploadedFile = (file) => {
-    if (file && file.type === "text/csv") {
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        const csvData = e.target.result;
-
-        Papa.parse(csvData, {
-          header: true,
-          complete: (results) => {
-            processGrades(results.data);
-            setIsCSVUploaded(true);
-            setIsLoggedIn(true);
-            setIsLoading(false);
-          },
-          error: () => {
-            setError(
-              "CSV invalide. Veuillez vérifier le fichier et réessayer."
-            );
-          },
-        });
-      };
-
-      reader.readAsText(file);
-    } else {
-      setError("Veuillez sélectionner un fichier CSV valide.");
-    }
-  };
-
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    processUploadedFile(file);
-  };
 
   const recalculateAllUEAverages = useCallback(() => {
     if (!coefficients || !userGroup) {
@@ -524,117 +462,52 @@ const Notes = () => {
 
   return (
     <div className="container">
+      <h1 className="page-title">Mes notes</h1>
+      <p className="page-subtitle">Consultez et simulez vos notes en temps réel</p>
+      
       {!isLoggedIn && (
-        <>
-          <h2 className="module-title">Calcul des notes</h2>
-          <div className="info-message">
-            🚧 Cette fonctionnalité est en cours de développement. L'importation
-            manuelle du CSV est temporaire, bientôt les notes seront
-            synchronisées automatiquement avec WebAurion ! 🚀
-          </div>
-          <div className="upload-section">
-            <div
-              className={`drop-zone ${isDragging ? "drag-active" : ""}`}
-              onDragEnter={handleDragEnter}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <Upload size={32} color={isDragging ? "#007bff" : "#666"} />
-              <p className="drop-message">
-                Glissez et déposez votre fichier CSV ici
-              </p>
-              <span className="or-separator">ou</span>
-              <label className="upload-button">
-                <Upload className="upload-icon" />
-                Sélectionner un fichier
-                <input type="file" accept=".csv" onChange={handleFileUpload} />
-              </label>
-            </div>
-          </div>
-          <div className="tutorial-steps">
-            <div className="step">
-              <div className="step-number">1</div>
-              <div className="step-content">
-                <div className="step-title">
-                  Accéder à WebAurion
-                  <a
-                    href="https://webaurion.centralelille.fr/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="external-link"
-                  >
-                    Ouvrir WebAurion
-                    <ArrowUpRight size={16} />
-                  </a>
-                </div>
-                <p className="step-description">
-                  Connectez-vous avec vos identifiants ENT sur WebAurion
-                </p>
-              </div>
-            </div>
-            <div className="step">
-              <div className="step-number">2</div>
-              <div className="step-content">
-                <div className="step-title">Exporter vos notes</div>
-                <p className="step-description">
-                  Dans vos "Notes aux épreuves", cliquez sur "Exporter".
-                  Sélectionnez le format "<strong>CSV en UTF-8</strong>"
-                </p>
-              </div>
-            </div>
-            <div className="step">
-              <div className="step-number">3</div>
-              <div className="step-content">
-                <div className="step-title">Importer le fichier</div>
-                <p className="step-description">
-                  Utilisez le bouton "Importer un CSV" ci-dessus pour charger le
-                  fichier que vous venez de télécharger
-                </p>
-              </div>
-            </div>
-            <video
-              src={process.env.PUBLIC_URL + "/export-webaurion.mp4"}
-              className="tuto-export-webaurion"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          </div>
+        <div className="login-container">
           <form className="login-form" onSubmit={handleLogin}>
-            <input
-              type="text"
-              placeholder="Nom d'utilisateur ENT"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Mot de passe ENT"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button type="submit">Se connecter</button>
+            <div className="input-group">
+              <input
+                type="text"
+                placeholder=" "
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+              <label>Nom d'utilisateur ENT</label>
+              <span className="input-line"></span>
+            </div>
+            <div className="input-group">
+              <input
+                type="password"
+                placeholder=" "
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <label>Mot de passe ENT</label>
+              <span className="input-line"></span>
+            </div>
+            <button type="submit" className="submit-button">
+              <span>Se connecter</span>
+              <div className="button-loader"></div>
+            </button>
           </form>
-        </>
+        </div>
       )}
 
-      {(isLoggedIn || isCSVUploaded) && (
+      {isLoggedIn && (
         <>
           {isLoading && (
-            <div className="loadingo-container">
-              <p className="loadingo-text">
-                Sers-toi un café, on bombarde WebAurion pour toi...
-              </p>
-              <div class="bomb-container">
-                <div className="bomb">💣</div>
-                <div class="bomb">💣</div>
-                <div className="bomb">💣</div>
+            <div className="loading-container-notes">
+              <div className="loading-animation">
+                <div className="loading-bar"></div>
+                <div className="loading-bar"></div>
+                <div className="loading-bar"></div>
               </div>
-              <div className="explosion">💥</div>
+              <p className="loading-text">Récupération de vos notes en cours...</p>
             </div>
           )}
           {error && <p className="error">{error}</p>}

@@ -5,7 +5,6 @@ const path = require("path");
 
 router.get("/ranking/", (req, res) => {
   const username = req.session.user.displayName;
-  console.log(username);
 
   try {
     const leaderboardPath = path.join(__dirname, "../data/leaderboard.json");

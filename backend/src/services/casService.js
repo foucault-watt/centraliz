@@ -37,8 +37,6 @@ exports.callback = async (req, res) => {
       return res.status(401).send("Échec de l'authentification CAS.");
     }
 
-    console.log("[CAS Service] Données extraites:", { userName, displayName }); // Debug log
-
     // Sauvegarde ou mise à jour des informations utilisateur
     const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
     if (!users[userName]) {

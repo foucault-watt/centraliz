@@ -59,6 +59,16 @@
     }
   }
 
+  input[type="password"] {
+    position: relative;
+    z-index: 10; // Assure que l'input est au-dessus des autres éléments
+    pointer-events: auto !important; // Force les événements de souris
+    user-select: text !important; // Permet la sélection de texte
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+  }
+
   p {
     margin-top: 15px;
     text-align: center;

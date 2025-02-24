@@ -70,7 +70,7 @@
               "enseignements": [
                 {
                   "Communication 3": 2,
-                  "Développement durable et Responsabilité sociétale 2": 1,
+                  "Développement durable et Responsabilité sociétale 2": 2,
                   "Finances et gestion 3": 1,
                   "Finances et gestion 4": 1,
                   "Marketing 3": 1,
@@ -266,7 +266,7 @@
           ]
         },
         {
-          "Mécanique et matériau": [
+          "Mécanique et matériaux": [
             {
               "coef": 6,
               "enseignements": [

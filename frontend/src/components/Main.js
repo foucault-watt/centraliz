@@ -1,136 +1,192 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useSwipeable } from 'react-swipeable';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import Bdi from "./Bdi";
+import ClaCalendar from "./ClaCalendar";
+import HpCalendar from "./HpCalendar";
+import Links from "./Links";
+import Mail from "./Mail";
 import NavBar from "./NavBar";
 import Notes from "./Notes";
-import HpCalendar from "./HpCalendar";
-import ClaCalendar from "./ClaCalendar";
-import Mail from "./Mail";
-import Links from "./Links";
+
+// Créer un contexte pour les logos
+export const LogoVisibilityContext = createContext(null);
+
+const FloatingLogos = () => {
+  const { logoVisibility } = useContext(LogoVisibilityContext);
+  const [logos, setLogos] = useState([]);
+
+  useEffect(() => {
+    const generateLogos = () => {
+      const numberOfLogos = 30; // Augmentation du nombre de logos
+      const newLogos = [];
+      const sizes = ["small", "medium", "large"];
+
+      for (let i = 0; i < numberOfLogos; i++) {
+        newLogos.push({
+          id: i,
+          top: `${Math.random() * 100}%`,
+          left: `${Math.random() * 100}%`,
+          delay: Math.random() * -30,
+          size: sizes[Math.floor(Math.random() * sizes.length)],
+          type: Math.floor(Math.random() * 4) + 1, // 4 types d'animations différentes
+          zIndex: Math.floor(Math.random() * 10),
+        });
+      }
+
+      setLogos(newLogos);
+    };
+
+    generateLogos();
+
+    // Régénération périodique des positions
+    const interval = setInterval(generateLogos, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!logoVisibility) return null;
+
+  return (
+    <div className="floating-logos">
+      {logos.map((logo) => (
+        <div
+          key={logo.id}
+          className={`floating-logo ${logo.size} type-${logo.type}`}
+          style={{
+            top: logo.top,
+            left: logo.left,
+            animationDelay: `${logo.delay}s`,
+            zIndex: logo.zIndex,
+          }}
+        >
+          <img src="/rays-elit-480.png" alt="Logo flottant" />
+        </div>
+      ))}
+    </div>
+  );
+};
 
 function Main() {
-  const [currentPosition, setCurrentPosition] = useState('center');
+  const [currentPosition, setCurrentPosition] = useState("center-left");
   const [isTyping, setIsTyping] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [logoVisibility, setLogoVisibility] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const isInputFocused = () => {
-    const activeElement = document.activeElement;
-    return activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
-  };
-
-  const getNewPosition = useCallback((direction) => {
-    const positions = {
-      left: { right: 'center', left: 'center' },
-      center: { right: 'right', left: 'left' },
-      right: { right: 'center', left: 'center' }
-    };
-    return positions[currentPosition][direction];
-  }, [currentPosition]);
-
-  const handleNavigation = useCallback((direction, isButton = false) => {
-    if (isTyping || isBlocked) {
-      return;
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetch("/api/bdi/logo-visibility", {
+        credentials: "include",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setLogoVisibility(data.logoVisibility);
+        })
+        .catch((error) =>
+          console.error("Error loading logo visibility:", error)
+        );
     }
+  }, [isAuthenticated]);
 
-    if (isButton) {
-      // Navigation directe pour les boutons
-      setCurrentPosition(direction);
-      return;
-    }
-
-    // Navigation progressive pour les flèches
-    if (
-      (currentPosition === 'right' && direction === 'right') ||
-      (currentPosition === 'left' && direction === 'left')
-    ) {
-      setIsBlocked(true);
-      setTimeout(() => setIsBlocked(false), 400);
-      return;
-    }
-
-    const newPosition = getNewPosition(direction);
-    setCurrentPosition(newPosition);
-  }, [currentPosition, isTyping, isBlocked, getNewPosition]); // Ajout de getNewPosition
+  const handleNavigation = useCallback(
+    (newPosition) => {
+      if (isBlocked) return;
+      setCurrentPosition(newPosition);
+    },
+    [isBlocked]
+  );
 
   useEffect(() => {
     const updateMedia = () => {
       setIsDesktop(window.innerWidth > 768);
     };
     updateMedia();
-    window.addEventListener('resize', updateMedia);
-    return () => window.removeEventListener('resize', updateMedia);
+    window.addEventListener("resize", updateMedia);
+    return () => window.removeEventListener("resize", updateMedia);
   }, []);
 
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => handleNavigation('right'),
-    onSwipedRight: () => handleNavigation('left'),
-    preventDefaultTouchmoveEvent: true,
-    trackMouse: true
-  });
-
-  const handlers = isDesktop ? {} : swipeHandlers;
-
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (isInputFocused()) {
-        setIsTyping(true);
-        return;
-      }
-      setIsTyping(false);
-      if (e.key === 'ArrowLeft') handleNavigation('left');
-      if (e.key === 'ArrowRight') handleNavigation('right');
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleNavigation]); // Mise à jour des dépendances
-
   return (
-    <div className="main-container">
-      <NavBar 
-        currentPosition={currentPosition}
-        handleNavigation={handleNavigation}
-        isTyping={isTyping}
-      />
-      <div className="pages-container" {...handlers}>
-        <div className={`pages-wrapper position-${currentPosition} ${isBlocked ? 'blocked' : ''}`}>
-          <div className="page-section notes-section">
-            <div className="section-content">
-              <div className="div-notes">
-                <Notes />
+    <LogoVisibilityContext.Provider
+      value={{ logoVisibility, setLogoVisibility }}
+    >
+      <div className="main-container">
+        <FloatingLogos />
+        <NavBar
+          currentPosition={currentPosition}
+          handleNavigation={handleNavigation}
+          isTyping={isTyping}
+        />
+        <div className="pages-container">
+          <div
+            className={`pages-wrapper position-${currentPosition} ${
+              isBlocked ? "blocked" : ""
+            }`}
+            style={{
+              "--shake-base": `${getShakeBaseTransform(currentPosition)}`,
+            }}
+          >
+            <div className="page-section notes-section">
+              <div className="section-content">
+                <div className="div-notes">
+                  <Notes />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="page-section calendars-section">
-            <div className="section-content">
-              <div className="calendars-wrapper">
-                <div className="div-hp-calendar">
-                  <HpCalendar />
-                </div>
-                <div className="div-cla-calendar">
-                  <ClaCalendar />
+            <div className="page-section calendars-section">
+              <div className="section-content">
+                <div className="calendars-wrapper">
+                  <div className="div-hp-calendar">
+                    <HpCalendar />
+                  </div>
+                  <div className="div-cla-calendar">
+                    <ClaCalendar />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="page-section mail-links-section">
-            <div className="section-content">
-              <div className="mail-links-wrapper">
-                <div className="div-mail">
-                  <Mail />
+            <div className="page-section mail-links-section">
+              <div className="section-content">
+                <div className="mail-links-wrapper">
+                  <div className="div-mail">
+                    <Mail />
+                  </div>
+                  <div className="div-links">
+                    <Links />
+                  </div>
                 </div>
-                <div className="div-links">
-                  <Links />
+              </div>
+            </div>
+
+            <div className="page-section bdi-section">
+              <div className="section-content">
+                <div className="div-bdi">
+                  <Bdi />
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </LogoVisibilityContext.Provider>
   );
+}
+
+// Fonction utilitaire pour calculer la base de l'animation shake
+function getShakeBaseTransform(position) {
+  const transforms = {
+    left: "0%",
+    "center-left": "-25%",
+    "center-right": "-50%",
+    right: "-75%",
+  };
+  return transforms[position] || "0%";
 }
 
 export default Main;

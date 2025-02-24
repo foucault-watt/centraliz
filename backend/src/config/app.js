@@ -72,7 +72,6 @@ app.use("/api", statsRoutes);
 app.use("/api", rankRoutes);
 app.use('/api/coef', coefRoutes);
 
-
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
   res.send("CRASH");

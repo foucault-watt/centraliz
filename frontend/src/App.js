@@ -53,7 +53,7 @@ const App = () => {
     return (
       <div className="loading-container">
         <img
-          src={"logo-title.svg"}
+          src={"logo-title.png"}
           className="logo-loading"
           alt="logo"
           rel="preload"

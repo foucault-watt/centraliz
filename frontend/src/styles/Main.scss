@@ -30,20 +30,23 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
 .pages-wrapper {
   display: flex;
-  width: 300%;
-  // Supprimer 'height: 100%;' pour laisser le contenu déterminer la hauteur
+  width: 400%; // 4 pages = 400%
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.position-left {
-    transform: translateX(0);
+    transform: translateX(0%);
   }
 
-  &.position-center {
-    transform: translateX(-33.33%);
+  &.position-center-left {
+    transform: translateX(-25%); // Déplace d'une page
+  }
+
+  &.position-center-right {
+    transform: translateX(-50%); // Déplace de deux pages
   }
 
   &.position-right {
-    transform: translateX(-66.66%);
+    transform: translateX(-75%); // Déplace de trois pages
   }
 
   &.blocked {
@@ -76,8 +79,11 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
 .page-section {
-  flex: 0 0 33.33%;
-  width: 33.33%;
+  flex: 0 0 25%; // Chaque page prend exactement 25% de la largeur
+  width: 25%;
+  min-width: 25%; // Empêche le rétrécissement
+  max-width: 25%; // Empêche l'expansion
+  overflow-x: hidden;
   // Supprimer 'height: 100%;' pour éviter les scrolls internes
   display: flex;
   flex-direction: column;
@@ -197,21 +203,10 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes shake {
-  10%, 90% {
-    transform: translateX(-66.66%) translateX(-2px);
-  }
-  
-  20%, 80% {
-    transform: translateX(-66.66%) translateX(4px);
-  }
-
-  30%, 50%, 70% {
-    transform: translateX(-66.66%) translateX(-6px);
-  }
-
-  40%, 60% {
-    transform: translateX(-66.66%) translateX(6px);
-  }
+  10%, 90% { transform: translateX(calc(var(--shake-base) - 2px)); }
+  20%, 80% { transform: translateX(calc(var(--shake-base) + 4px)); }
+  30%, 50%, 70% { transform: translateX(calc(var(--shake-base) - 6px)); }
+  40%, 60% { transform: translateX(calc(var(--shake-base) + 6px)); }
 }
 
 @keyframes shake-right {
@@ -593,4 +588,74 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
     background: none;
     border: none;
   }
+}
+
+// Floating Logos
+.floating-logos {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  perspective: 1000px;
+}
+
+.floating-logo {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  will-change: transform, opacity;
+
+  img {
+    width: 100%;
+    height: 100%;
+    filter: saturate(1.2);
+    transition: filter 0.3s ease;
+  }
+
+  &.size-small { transform: scale(100); }
+  &.size-medium { transform: scale(300.8); }
+  &.size-large { transform: scale(200.4); }
+
+  @for $i from 1 through 4 {
+    &.type-#{$i} {
+      animation: 
+        float-#{$i} #{random(20) + 10}s infinite ease-in-out,
+        fade #{random(2) + 1}s ease-in-out infinite alternate;
+    }
+  }
+}
+
+// Nouvelles animations variées
+@keyframes float-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  25% { transform: translate3d(100px, 100px, 50px) rotate(90deg); }
+  50% { transform: translate3d(200px, 0, 100px) rotate(180deg); }
+  75% { transform: translate3d(100px, -100px, 50px) rotate(270deg); }
+}
+
+@keyframes float-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  25% { transform: translate3d(100px, 100px, 50px) scale(1.5); }
+  50% { transform: translate3d(200px, 0, 100px) scale(2); }
+  75% { transform: translate3d(100px, -100px, 50px) scale(1.5); }
+}
+
+@keyframes float-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-100px, 100px, -50px) scale(1.5); }
+}
+
+@keyframes float-4 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg); }
+  33% { transform: translate3d(50px, -150px, 100px) rotateX(120deg); }
+  66% { transform: translate3d(-50px, 150px, -100px) rotateX(240deg); }
+}
+
+@keyframes fade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
 }

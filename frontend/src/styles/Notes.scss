@@ -343,6 +343,47 @@ $fade-duration: 0.3s;
       background-color: darken($main, 10%);
     }
   }
+
+  .input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 1rem;
+      background: transparent;
+      border: 2px solid rgba($main, 0.2);
+      border-radius: 8px;
+      color: $second;
+      transition: all 0.3s ease;
+
+      &:focus {
+        border-color: $main;
+        outline: none;
+
+        & + label {
+          transform: translateY(-28px) scale(0.8);
+          color: $main;
+        }
+      }
+
+      &:not(:placeholder-shown) + label {
+        transform: translateY(-28px) scale(0.8);
+      }
+    }
+
+    label {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba($second, 0.6);
+      pointer-events: none;
+      transition: all 0.3s ease;
+      transform-origin: left;
+    }
+  }
 }
 
 .error {
@@ -714,15 +755,15 @@ $fade-duration: 0.3s;
       &:focus {
         border-color: $main;
         outline: none;
-        
+
         & + label {
-          transform: translateY(-24px) scale(0.8);
+          transform: translateY(-28px) scale(0.8);
           color: $main;
         }
       }
 
       &:not(:placeholder-shown) + label {
-        transform: translateY(-24px) scale(0.8);
+        transform: translateY(-28px) scale(0.8);
       }
     }
 
@@ -782,7 +823,10 @@ $fade-duration: 0.3s;
   .loading-bar {
     width: 4px;
     height: 24px;
-    background: rgba($main, 0.8); // Changement ici pour utiliser la couleur principale avec transparence
+    background: rgba(
+      $main,
+      0.8
+    ); // Changement ici pour utiliser la couleur principale avec transparence
     border-radius: 2px;
     animation: loadingBars 1.2s ease-in-out infinite;
 
@@ -836,7 +880,8 @@ $fade-duration: 0.3s;
 }
 
 @keyframes loadingBars {
-  0%, 100% {
+  0%,
+  100% {
     transform: scaleY(1);
   }
   50% {
@@ -845,7 +890,8 @@ $fade-duration: 0.3s;
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

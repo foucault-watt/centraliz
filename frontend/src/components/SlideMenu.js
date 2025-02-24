@@ -1,38 +1,39 @@
-import React from 'react';
 import {
-  X,
+  Download,
   Facebook,
   Github,
-  LinkedinIcon,
-  MessageSquare,
-  Send,
-  Download,
   Info,
-  MessageCircle,
+  LinkedinIcon,
   Mail,
+  MessageCircle,
+  MessageSquare,
+  Scale,
+  Send,
+  X,
 } from "lucide-react";
+import React from "react";
+import LegalNotice from "./LegalNotice";
 
 const SlideMenu = ({ isOpen, onClose }) => {
-  const [activeSection, setActiveSection] = React.useState('main');
+  const [activeSection, setActiveSection] = React.useState("main");
   const [feedback, setFeedback] = React.useState("");
   const [submitStatus, setSubmitStatus] = React.useState("");
 
-
   React.useEffect(() => {
     if (!isOpen) {
-      setActiveSection('main');
+      setActiveSection("main");
     }
   }, [isOpen]);
 
   const sanitizeFeedback = (text) => {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.appendChild(document.createTextNode(text));
     return div.innerHTML;
   };
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
-    
+
     const sanitizedFeedback = sanitizeFeedback(feedback);
     setSubmitStatus("Envoi en cours...");
 
@@ -53,11 +54,11 @@ const SlideMenu = ({ isOpen, onClose }) => {
         setSubmitStatus("Merci pour votre feedback!");
         setFeedback("");
         setTimeout(() => {
-          setActiveSection('main');
+          setActiveSection("main");
           setSubmitStatus("");
         }, 3000);
       } else {
-        throw new Error('Réponse serveur non valide');
+        throw new Error("Réponse serveur non valide");
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -70,7 +71,7 @@ const SlideMenu = ({ isOpen, onClose }) => {
     const ua = navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua);
     const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-    const isFirefox = ua.toLowerCase().indexOf('firefox') > -1;
+    const isFirefox = ua.toLowerCase().indexOf("firefox") > -1;
     const isChrome = /chrome/i.test(ua);
     const isAndroid = /android/i.test(ua);
 
@@ -86,18 +87,18 @@ const SlideMenu = ({ isOpen, onClose }) => {
     return "Dans votre navigateur : Utilisez le menu (⋮) puis 'Installer l'application' ou 'Ajouter à l'écran d'accueil'";
   };
 
-  console.log()
+  console.log();
 
   const menuSections = {
     install: {
-      title: "Installation",
+      title: "Installer l'app",
       icon: Download,
       content: () => (
         <div className="slide-menu__section">
-          <h3>Installation</h3>
+          <h3>Installer l'app</h3>
           <p>{getInstallInstructions()}</p>
         </div>
-      )
+      ),
     },
     about: {
       title: "À propos",
@@ -106,14 +107,13 @@ const SlideMenu = ({ isOpen, onClose }) => {
         <div className="slide-menu__section">
           <h3>À propos</h3>
           <p>
-            Centraliz est votre outil de productivité tout-en-un pour
-            Iteemiens, Centraliens et Chimistes.
-            Simplifiez votre organisation quotidienne en centralisant
-            vos calendriers, notes et mails.
+            Centraliz est votre outil de productivité tout-en-un pour Iteemiens,
+            Centraliens et Chimistes. Simplifiez votre organisation quotidienne
+            en centralisant vos calendriers, notes et mails.
           </p>
           <p className="version">Version {process.env.REACT_APP_VERSION}</p>
         </div>
-      )
+      ),
     },
     feedback: {
       title: "Feedback",
@@ -133,10 +133,12 @@ const SlideMenu = ({ isOpen, onClose }) => {
               <Send size={14} />
               <span>Envoyer</span>
             </button>
-            {submitStatus && <div className="status-message">{submitStatus}</div>}
+            {submitStatus && (
+              <div className="status-message">{submitStatus}</div>
+            )}
           </form>
         </div>
-      )
+      ),
     },
     contact: {
       title: "Contact",
@@ -144,31 +146,58 @@ const SlideMenu = ({ isOpen, onClose }) => {
       content: () => (
         <div className="slide-menu__section">
           <h3>Contact</h3>
-          <p><strong>Foucault Wattinne</strong></p>
+          <p>
+            <strong>Foucault Wattinne</strong>
+          </p>
           <a href="mailto:foucault.wattinne@iteem.centralelille.fr">
             foucault.wattinne@iteem.centralelille.fr
           </a>
           <div className="social-links">
-            <a href="https://github.com/foucault-watt/centraliz" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://github.com/foucault-watt/centraliz"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Github size={18} />
             </a>
-            <a href="https://linkedin.com/in/foucault-wattinne" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://linkedin.com/in/foucault-wattinne"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <LinkedinIcon size={18} />
             </a>
-            <a href="https://facebook.com/fukowatt" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://facebook.com/fukowatt"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Facebook size={18} />
             </a>
-            <a href="https://m.me/fukowatt" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://m.me/fukowatt"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <MessageSquare size={18} />
             </a>
           </div>
         </div>
-      )
-    }
+      ),
+    },
+    legal: {
+      title: "Mentions légales",
+      icon: Scale,
+      content: () => (
+        <div className="slide-menu__section">
+          <LegalNotice />
+        </div>
+      ),
+    },
   };
 
   const renderContent = () => {
-    if (activeSection === 'main') {
+    if (activeSection === "main") {
       return (
         <div className="slide-menu__main">
           {Object.entries(menuSections).map(([key, section]) => (
@@ -180,22 +209,22 @@ const SlideMenu = ({ isOpen, onClose }) => {
         </div>
       );
     }
-    
+
     const section = menuSections[activeSection];
     return section ? section.content() : null;
   };
 
   return (
-    <div className={`slide-menu ${isOpen ? 'open' : ''}`}>
+    <div className={`slide-menu ${isOpen ? "open" : ""}`}>
       <div className="slide-menu__overlay" onClick={onClose} />
       <div className="slide-menu__content">
         <button className="slide-menu__close" onClick={onClose}>
           <X size={24} />
         </button>
-        {activeSection !== 'main' && (
-          <button 
+        {activeSection !== "main" && (
+          <button
             className="slide-menu__back"
-            onClick={() => setActiveSection('main')}
+            onClick={() => setActiveSection("main")}
           >
             Retour
           </button>

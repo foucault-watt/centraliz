@@ -45,15 +45,23 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
     }
   };
 
+  const handlePasswordChange = (e) => {
+    e.stopPropagation(); // Arrêter la propagation
+    setPassword(e.target.value);
+  };
+
   return (
-    <div className="zimbra-auth-container">
+    <div className="zimbra-auth-container" onClick={(e) => e.stopPropagation()}>
       <h2>Accès à vos derniers mails</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
         <input
           type="password"
           value={password}
           placeholder="Entrez votre mot de passe ENT"
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          autoComplete="current-password"
           required
         />
         <div className="remember-me">

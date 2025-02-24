@@ -14,7 +14,7 @@
     border-left: 1px solid rgba($main, 0.1);
 
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: 0;
@@ -78,17 +78,13 @@
       letter-spacing: 0.5px;
 
       &::after {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(
-          135deg,
-          transparent,
-          rgba($main, 0.05)
-        );
+        background: linear-gradient(135deg, transparent, rgba($main, 0.05));
         opacity: 0;
         transition: opacity 0.3s ease;
       }
@@ -186,9 +182,9 @@
       transition: all 0.3s ease;
       position: relative;
       font-size: 0.85rem;
-      
+
       &::after {
-        content: '';
+        content: "";
         position: absolute;
         width: 100%;
         height: 1px;
@@ -218,7 +214,7 @@
       overflow: hidden;
 
       &::after {
-        content: '';
+        content: "";
         position: absolute;
         inset: 0;
         background: linear-gradient(
@@ -292,6 +288,42 @@
     &:hover {
       background: rgba($main, 0.1);
       transform: rotate(90deg);
+    }
+  }
+}
+
+.legal-notice {
+  h4 {
+    color: $main;
+    font-size: 0.9rem;
+    margin: 1.5rem 0 0.5rem;
+    font-weight: 600;
+  }
+
+  section {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  p {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0.5rem 0;
+    color: $second;
+  }
+
+  ul {
+    list-style: disc;
+    margin-left: 1.2rem;
+    margin-top: 0.5rem;
+
+    li {
+      font-size: 0.85rem;
+      color: $second;
+      margin-bottom: 0.3rem;
     }
   }
 }

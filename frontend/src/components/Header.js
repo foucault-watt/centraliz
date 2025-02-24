@@ -3,13 +3,24 @@ import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 import SlideMenu from "./SlideMenu";
 
+/**
+ * Composant Header - Barre de navigation principale de l'application
+ * Affiche le logo, le menu et les informations de classement de l'utilisateur
+ */
 export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
-  const { displayName } = useContext(UserContext);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [rankingInfo, setRankingInfo] = useState(null);
+  // États locaux
+  const [scrolled, setScrolled] = useState(false); // État de défilement de la page
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // État d'ouverture du menu
+  const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
 
-  const getRankingInfo = async (username) => {
+  // Récupération du nom d'utilisateur depuis le contexte
+  const { displayName } = useContext(UserContext);
+
+  /**
+   * Récupère les informations de classement depuis l'API
+   * @returns {Promise<Object|null>} Données de classement ou null en cas d'erreur
+   */
+  const getRankingInfo = async () => {
     try {
       const response = await fetch(`/api/ranking/`, {
         method: "GET",
@@ -23,66 +34,70 @@ export default function Header() {
     }
   };
 
+  // Effet pour gérer le scroll de la page
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 0);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Effet pour récupérer les informations de classement
   useEffect(() => {
     const fetchRanking = async () => {
       if (displayName) {
-        const info = await getRankingInfo(displayName);
+        const info = await getRankingInfo();
         setRankingInfo(info);
       }
     };
     fetchRanking();
   }, [displayName]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  // Gestion de l'ouverture/fermeture du menu
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <header className={`header ${scrolled ? "scrolled" : ""}`}>
-      <button
-        className="header__menu-button"
-        onClick={toggleMenu}
-        aria-label="Menu"
-      >
-        <Menu />
-      </button>
+    <>
+      <header className={`header ${scrolled ? "scrolled" : ""}`}>
+        {/* Bouton du menu hamburger */}
+        <button
+          className="header__menu-button"
+          onClick={toggleMenu}
+          aria-label="Menu"
+        >
+          <Menu />
+        </button>
 
-      <div
-        onClick={toggleMenu}
-        className="header-link"
-        style={{ cursor: "pointer" }}
-      >
-        <img src={"logo-title.svg"} className="header-logo" alt="logo" />
-        <h1 className="header-title">Centraliz</h1>
-        <span className="header-domain-suffix">.it</span>
-      </div>
+        {/* Logo et titre */}
+        <div
+          onClick={toggleMenu}
+          className="header-link"
+          style={{ cursor: "pointer" }}
+        >
+          <img src={"logo-title.png"} className="header-logo" alt="logo" />
+          <h1 className="header-title">Centraliz</h1>
+          <span className="header-domain-suffix">.it</span>
+        </div>
 
-      {rankingInfo && (
-        <div className="header-ranking">
-          <span className="ranking-text">{rankingInfo.message}</span>
-          <div className="info-icon">
-            <Info size={18} />
-            <div className="info-tooltip">
-              <p>Calculé sur le nombre de jours de connexion uniques</p>
-              <p>
-                Votre score : <strong>{rankingInfo.userScore}</strong> jours de
-                connexion
-              </p>
+        {/* Affichage du classement si disponible */}
+        {rankingInfo && (
+          <div className="header-ranking">
+            <span className="ranking-text">{rankingInfo.message}</span>
+            <div className="info-icon">
+              <Info size={18} />
+              <div className="info-tooltip">
+                <p>Calculé sur le nombre de jours de connexion uniques</p>
+                <p>
+                  Votre score : <strong>{rankingInfo.userScore}</strong> jours
+                  de connexion
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <SlideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-    </header>
+        {/* Menu latéral */}
+        <SlideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      </header>
+    </>
   );
 }

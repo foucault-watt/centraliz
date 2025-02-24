@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const QuickChart = require('quickchart-js'); // Importer QuickChart
 
-router.get(`/stats`, async (req, res) => {
+router.get(`/stat`, async (req, res) => {
   console.log('Route /stats appelée'); // Ajout du log
   const filePath = path.join(__dirname, "../data/logins.json");
   

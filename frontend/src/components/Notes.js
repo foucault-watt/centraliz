@@ -7,7 +7,6 @@ const Notes = () => {
   const [expandedModules, setExpandedModules] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { userName } = useContext(UserContext);
@@ -17,7 +16,6 @@ const Notes = () => {
   const [activeUE, setActiveUE] = useState(null);
   const [unlistedModules, setUnlistedModules] = useState([]);
   const [simulatedGrades, setSimulatedGrades] = useState({});
-  const [isDragging, setIsDragging] = useState(false);
 
   const processGrades = useCallback(
     (grades) => {
@@ -176,10 +174,15 @@ const Notes = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const downloadResponse = await axios.post("/api/download-csv", {
-        username,
-        password,
-      });
+      const downloadResponse = await axios.post(
+        "/api/download-csv",
+        {
+          password,
+        },
+        {
+          credentials: true,
+        }
+      );
 
       if (downloadResponse.data.success) {
         const csvDataResponse = await axios.get(
@@ -200,7 +203,7 @@ const Notes = () => {
       setError("Erreur de chargement des notes. Veuillez réessayer plus tard.");
       setIsLoading(false);
     }
-  }, [username, password, processGrades]);
+  }, [password, processGrades]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -282,9 +285,7 @@ const Notes = () => {
         moduleData.epreuves.forEach((epreuve) => {
           const note = parseFloat(epreuve["Notes"].replace(",", ".")) || 0;
           const coeff =
-            parseFloat(
-              epreuve["Coefficient de l'Épreuve dans le Module"]
-            ) || 0;
+            parseFloat(epreuve["Coefficient de l'Épreuve dans le Module"]) || 0;
           if (epreuve["Notes"] !== ("V" || "NV") && coeff !== 0) {
             basePoints += note * coeff;
             baseCoeff += coeff;
@@ -449,10 +450,12 @@ const Notes = () => {
 
   const handleLogin = (event) => {
     event.preventDefault();
-    if (username && password) {
+    if (password) {
       setIsLoggedIn(true);
+      // Ajout : retirer le focus du champ password après connexion
+      event.target.querySelector('input[type="password"]').blur();
     } else {
-      alert("Veuillez entrer un nom d'utilisateur et un mot de passe.");
+      alert("Veuillez entrer un mot de passe.");
     }
   };
 
@@ -463,28 +466,21 @@ const Notes = () => {
   return (
     <div className="container">
       <h1 className="page-title">Mes notes</h1>
-      <p className="page-subtitle">Consultez et simulez vos notes en temps réel</p>
-      
+      <p className="page-subtitle">
+        Consultez et simulez vos notes en temps réel
+      </p>
+
       {!isLoggedIn && (
         <div className="login-container">
           <form className="login-form" onSubmit={handleLogin}>
-            <div className="input-group">
-              <input
-                type="text"
-                placeholder=" "
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-              <label>Nom d'utilisateur ENT</label>
-              <span className="input-line"></span>
-            </div>
             <div className="input-group">
               <input
                 type="password"
                 placeholder=" "
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                // Ajout : stopper la propagation des touches pour éviter que l'écouteur global ne bloque la saisie
+                onKeyDown={(e) => e.stopPropagation()}
                 required
               />
               <label>Mot de passe ENT</label>
@@ -507,7 +503,9 @@ const Notes = () => {
                 <div className="loading-bar"></div>
                 <div className="loading-bar"></div>
               </div>
-              <p className="loading-text">Récupération de vos notes en cours...</p>
+              <p className="loading-text">
+                Récupération de vos notes en cours...
+              </p>
             </div>
           )}
           {error && <p className="error">{error}</p>}
@@ -626,6 +624,9 @@ const Notes = () => {
                                                     e.target.value
                                                   )
                                                 }
+                                                onKeyDown={(e) =>
+                                                  e.stopPropagation()
+                                                }
                                               />
                                             </div>
                                             <div className="grade-actions">
@@ -705,6 +706,7 @@ const Notes = () => {
                                             );
                                         }}
                                         required
+                                        onKeyDown={(e) => e.stopPropagation()}
                                       />
                                     </div>
                                     <div className="form-bottom">
@@ -715,6 +717,7 @@ const Notes = () => {
                                         min="0"
                                         placeholder="Coef"
                                         required
+                                        onKeyDown={(e) => e.stopPropagation()}
                                       />
                                       <button type="submit">Ajouter</button>
                                     </div>
@@ -852,6 +855,9 @@ const Notes = () => {
                                                           e.target.value
                                                         )
                                                       }
+                                                      onKeyDown={(e) =>
+                                                        e.stopPropagation()
+                                                      }
                                                     />
                                                   </div>
                                                   <div className="grade-actions">
@@ -937,6 +943,9 @@ const Notes = () => {
                                                   );
                                               }}
                                               required
+                                              onKeyDown={(e) =>
+                                                e.stopPropagation()
+                                              }
                                             />
                                           </div>
                                           <div className="form-bottom">
@@ -947,6 +956,9 @@ const Notes = () => {
                                               min="0"
                                               placeholder="Coef"
                                               required
+                                              onKeyDown={(e) =>
+                                                e.stopPropagation()
+                                              }
                                             />
                                             <button type="submit">
                                               Ajouter

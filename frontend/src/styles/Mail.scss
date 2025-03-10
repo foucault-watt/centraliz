@@ -1,4 +1,4 @@
-// Mixins (repris du style existant)
+// Mixins
 @mixin transition($property: all, $duration: 0.3s, $timing: ease) {
   transition: $property $duration $timing;
 }
@@ -7,12 +7,24 @@
   box-shadow: $x $y $blur $color;
 }
 
-// Styles pour le conteneur principal
+// Variables
+$animation-duration: 0.3s;
+$border-radius: 10px;
+$spacing-sm: 10px;
+$spacing-md: 15px;
+$spacing-lg: 20px;
+
+// Module général des mails
+.mail-module {
+  margin-bottom: $spacing-lg;
+}
+
+// Style Authentification Zimbra
 .zimbra-auth-container {
   margin: 0 auto;
-  padding: 25px;
+  padding: $spacing-lg;
   background-color: lighten($day, 10%);
-  border-radius: 10px;
+  border-radius: $border-radius;
   border: 1px solid $day-border;
   @include box-shadow(0, 4px, 12px, rgba(0, 0, 0, 0.1));
 
@@ -20,6 +32,7 @@
     color: $second;
     text-align: center;
     font-size: 1.5em;
+    margin-bottom: $spacing-md;
   }
 
   form {
@@ -43,7 +56,7 @@
     }
 
     button {
-      margin-top: 10px;
+      margin-top: $spacing-sm;
       padding: 12px;
       background-color: $main;
       color: white;
@@ -59,38 +72,45 @@
     }
   }
 
+  // Correction pour les champs de mot de passe
   input[type="password"] {
     position: relative;
-    z-index: 10; // Assure que l'input est au-dessus des autres éléments
-    pointer-events: auto !important; // Force les événements de souris
-    user-select: text !important; // Permet la sélection de texte
+    z-index: 10;
+    pointer-events: auto !important;
+    user-select: text !important;
     -webkit-user-select: text !important;
     -moz-user-select: text !important;
     -ms-user-select: text !important;
   }
 
   p {
-    margin-top: 15px;
+    margin-top: $spacing-md;
     text-align: center;
     color: $second;
 
     &.error {
       color: $red;
     }
-
     &.success {
       color: $green;
     }
   }
 }
 
-// Styles pour la liste des emails
+// Conteneur de la liste de mails
+.mail-container {
+  position: relative;
+}
+
+// Liste des mails
 .mail-list {
   height: 915px;
   overflow-y: auto;
-  padding: 0 10px 0 0;
+  padding: 0 $spacing-sm 0 0;
   list-style: none;
+  margin: 0;
 
+  // Personnalisation de la scrollbar
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -108,117 +128,14 @@
       background: darken($main, 10%);
     }
   }
-
-  // Removed repeated .mail-header rules; relying on global .mail-header
-
-  .mail-item {
-    margin-bottom: 15px;
-    padding: 20px 20px 20px 20px;
-    background-color: lighten($day, 8%);
-    border-radius: 10px;
-    border: 1px solid $day-border;
-    overflow: hidden;
-    @include box-shadow();
-    @include transition(transform);
-
-    .mail-item :last-child {
-      margin-bottom: 0;
-    }
-
-    .mail-content {
-      padding-bottom: 0 !important;
-    }
-
-    .view-on-zimbra {
-      text-decoration: none !important;
-      margin-top: 12px;
-      padding: 8px 15px;
-      background-color: $main;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 1em;
-      cursor: pointer;
-      display: inline-block;
-      @include transition(background-color);
-
-      &:hover {
-        background-color: darken($main, 10%);
-      }
-    }
-
-    &:hover {
-      transform: translateY(-2px);
-      @include box-shadow(0, 6px, 15px, rgba(0, 0, 0, 0.12));
-    }
-
-    h2 {
-      color: $second;
-      margin: 0 0 12px 0;
-      font-size: 1.2em;
-    }
-
-    p {
-      color: $second;
-      line-height: 1.5;
-      margin-bottom: 10px;
-    }
-
-    .mail-meta {
-      display: flex;
-      justify-content: space-between;
-      padding-top: 12px;
-      border-top: 1px solid $day-border;
-      font-size: 0.85em;
-      color: lighten($second, 20%);
-
-      span {
-        &:first-child {
-          font-weight: 500;
-        }
-      }
-    }
-  }
-}
-
-// État de chargement
-.loading {
-  text-align: center;
-  color: $second;
-  padding: 20px;
-  font-style: italic;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-// Animation pour le chargement du contenu
-.content-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-
-  &::after {
-    content: "";
-    width: 20px;
-    height: 20px;
-    border: 2px solid $main;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 0.6s linear infinite;
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 // En-tête des mails
 .mail-header {
   max-width: 800px;
-  padding-bottom: 15px;
+  padding-bottom: $spacing-md;
   border-bottom: 2px solid $second;
+  margin-bottom: $spacing-md;
 
   h2 {
     color: $second;
@@ -227,7 +144,151 @@
   }
 }
 
-// Animation de chargement
+// Items de mail individuels
+.mail-item {
+  margin-bottom: $spacing-md;
+  padding: $spacing-lg;
+  background-color: lighten($day, 8%);
+  border-radius: $border-radius;
+  border: 1px solid $day-border;
+  cursor: pointer;
+  overflow: hidden;
+  @include box-shadow();
+  @include transition(transform, $animation-duration);
+
+  &:hover {
+    transform: translateY(-2px);
+    @include box-shadow(0, 6px, 15px, rgba(0, 0, 0, 0.12));
+  }
+
+  &--expanded {
+    .mail-item__content {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+  }
+
+  &__title {
+    color: $second;
+    margin: 0 0 12px 0;
+    font-size: 1.2em;
+  }
+
+  &__meta {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid $day-border;
+    font-size: 0.85em;
+    color: lighten($second, 20%);
+  }
+
+  &__author {
+    font-weight: 500;
+  }
+
+  &__content {
+    margin-top: $spacing-md;
+    padding-top: $spacing-md;
+    border-top: 1px solid $day-border;
+  }
+
+  &__body {
+    line-height: 1.5;
+    color: $second;
+    margin-bottom: $spacing-md;
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    a {
+      color: $main;
+      text-decoration: underline;
+    }
+  }
+
+  &__action {
+    text-decoration: none !important;
+    margin-top: 12px;
+    padding: 8px 15px;
+    background-color: $main;
+    color: white !important;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    display: inline-block;
+    @include transition(background-color);
+
+    &:hover {
+      background-color: darken($main, 10%);
+    }
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: $spacing-sm;
+    height: 40px;
+
+    &::after {
+      content: "";
+      width: 20px;
+      height: 20px;
+      border: 2px solid $main;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+
+  &__error {
+    color: $red;
+    font-style: italic;
+  }
+}
+
+// Messages d'état
+.mail-status {
+  text-align: center;
+  color: $second;
+  padding: $spacing-md;
+}
+
+.mail-loading {
+  text-align: center;
+  color: $second;
+  padding: $spacing-md;
+  font-style: italic;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.mail-empty {
+  text-align: center;
+  color: lighten($second, 20%);
+  font-style: italic;
+  padding: $spacing-lg;
+}
+
+// Élément déclencheur pour le chargement infini
+.mail-loader-trigger {
+  text-align: center;
+  padding: $spacing-sm;
+  color: lighten($second, 30%);
+  height: 40px;
+}
+
+// Animations
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes pulse {
   0% {
     opacity: 0.6;
@@ -240,4 +301,11 @@
   }
 }
 
-$mail-count-max: 50;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

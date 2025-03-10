@@ -21,8 +21,22 @@ const SlideMenu = ({ isOpen, onClose }) => {
 
   React.useEffect(() => {
     if (!isOpen) {
-      setActiveSection("main");
+      // Reset to main section when menu closes
+      setTimeout(() => {
+        setActiveSection("main");
+      }, 300); // Wait for the close animation to finish
     }
+
+    // Prevent body scroll when menu is open
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen]);
 
   const sanitizeFeedback = (text) => {
@@ -89,6 +103,11 @@ const SlideMenu = ({ isOpen, onClose }) => {
 
   console.log();
 
+  // Gestion spécifique des formulaires pour empêcher la propagation des événements
+  const handleFormInteraction = (e) => {
+    e.stopPropagation();
+  };
+
   const menuSections = {
     install: {
       title: "Installer l'app",
@@ -121,15 +140,28 @@ const SlideMenu = ({ isOpen, onClose }) => {
       content: () => (
         <div className="slide-menu__section">
           <h3>Feedback</h3>
-          <form onSubmit={handleFeedbackSubmit}>
+          <form onSubmit={handleFeedbackSubmit} onClick={handleFormInteraction}>
             <textarea
               value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
+              onChange={(e) => {
+                e.stopPropagation();
+                setFeedback(e.target.value);
+              }}
+              onFocus={handleFormInteraction}
+              onBlur={handleFormInteraction}
+              onKeyDown={handleFormInteraction}
+              onKeyUp={handleFormInteraction}
+              onClick={handleFormInteraction}
               placeholder="Partagez vos suggestions..."
               required
               maxLength={800}
             />
-            <button type="submit">
+            <button
+              type="submit"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
               <Send size={14} />
               <span>Envoyer</span>
             </button>
@@ -201,7 +233,13 @@ const SlideMenu = ({ isOpen, onClose }) => {
       return (
         <div className="slide-menu__main">
           {Object.entries(menuSections).map(([key, section]) => (
-            <button key={key} onClick={() => setActiveSection(key)}>
+            <button
+              key={key}
+              onClick={(e) => {
+                e.stopPropagation(); // Empêcher la propagation du clic
+                setActiveSection(key);
+              }}
+            >
               <section.icon size={18} />
               <span>{section.title}</span>
             </button>
@@ -215,16 +253,35 @@ const SlideMenu = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className={`slide-menu ${isOpen ? "open" : ""}`}>
-      <div className="slide-menu__overlay" onClick={onClose} />
-      <div className="slide-menu__content">
-        <button className="slide-menu__close" onClick={onClose}>
+    <div
+      className={`slide-menu ${isOpen ? "open" : ""}`}
+      onClick={(e) => e.stopPropagation()} // Empêcher la propagation des clics au header
+    >
+      <div
+        className="slide-menu__overlay"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+      />
+      <div className="slide-menu__content" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="slide-menu__close"
+          onClick={(e) => {
+            e.stopPropagation(); // Empêcher la propagation du clic
+            onClose();
+          }}
+          aria-label="Fermer le menu"
+        >
           <X size={24} />
         </button>
         {activeSection !== "main" && (
           <button
             className="slide-menu__back"
-            onClick={() => setActiveSection("main")}
+            onClick={(e) => {
+              e.stopPropagation(); // Empêcher la propagation du clic
+              setActiveSection("main");
+            }}
           >
             Retour
           </button>

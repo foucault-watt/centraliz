@@ -1,17 +1,60 @@
 .slide-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  visibility: hidden;
+  pointer-events: none;
+
+  &.open {
+    visibility: visible;
+    pointer-events: auto;
+
+    .slide-menu__overlay {
+      opacity: 1;
+    }
+
+    .slide-menu__content {
+      transform: translateX(0);
+    }
+  }
+
   &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
     backdrop-filter: blur(3px);
-    transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
   }
 
   &__content {
-    box-shadow: -4px 0 6px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 320px;
+    max-width: 85%;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     background: linear-gradient(
       to bottom,
       lighten($background, 3%),
       $background
     );
-    border-left: 1px solid rgba($main, 0.1);
+    border-right: 1px solid rgba($main, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 20px;
+    padding-top: 60px;
+    z-index: 1001;
 
     &::before {
       content: "";
@@ -117,6 +160,11 @@
     margin-top: 2rem !important;
     margin: 1rem;
 
+    form {
+      position: relative;
+      z-index: 10;
+    }
+
     p {
       line-height: 1.5;
       color: rgba($second, 0.9);
@@ -135,6 +183,8 @@
       resize: vertical;
       margin-bottom: 1rem;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      z-index: 10;
 
       &::placeholder {
         color: rgba($second, 0.6);
@@ -150,6 +200,7 @@
         outline: none;
         background-color: rgba($main, 0.2);
         box-shadow: 0 0 0 2px rgba($main, 0.1);
+        z-index: 20;
       }
     }
 
@@ -280,10 +331,20 @@
   }
 
   &__close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
     color: $second;
     transition: all 0.3s ease;
     border-radius: 50%;
     padding: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1002;
 
     &:hover {
       background: rgba($main, 0.1);

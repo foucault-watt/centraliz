@@ -1,6 +1,5 @@
-// frontend/src/components/ZimbraAuth.js
 import React, { useContext, useState } from "react";
-import { UserContext } from "../App";
+import { UserContext } from "../../App";
 
 const ZimbraAuth = ({ setIsAuthenticated }) => {
   const { userName } = useContext(UserContext);

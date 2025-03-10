@@ -369,7 +369,10 @@ const Notes = () => {
       const note = parseFloat(epreuve["Notes"].replace(",", ".")) || 0;
       const coeff =
         parseFloat(epreuve["Coefficient de l'Épreuve dans le Module"]) || 0;
-      if (epreuve["Notes"] !== ("V" || "NV") && coeff !== 0) {
+      const letterGrade = ["A", "B", "C", "D", "E", "F"].includes(
+        epreuve["Notes"]
+      );
+      if (epreuve["Notes"] !== ("V" || "NV") && !letterGrade && coeff !== 0) {
         basePoints += note * coeff;
         baseCoeff += coeff;
       }
@@ -384,6 +387,10 @@ const Notes = () => {
 
     const hasNumericNotes = baseCoeff > 0;
     const onlyV = module.vCount > 0 && module.nvCount === 0 && !hasNumericNotes;
+    const letterGrade =
+      module.epreuves.filter((epreuve) =>
+        ["A", "B", "C", "D", "E", "F"].includes(epreuve["Notes"])
+      ).length > 0;
     const hasNV = module.nvCount > 0;
 
     if (hasNumericNotes) {
@@ -394,7 +401,7 @@ const Notes = () => {
       };
     } else if (hasNV) {
       return { value: "Non Validé", class: "rouge" };
-    } else if (onlyV) {
+    } else if (onlyV || letterGrade) {
       return { value: "Validé", class: "vert" };
     } else {
       return { value: "N/A", class: "" };
@@ -474,13 +481,13 @@ const Notes = () => {
         <div className="login-container">
           <form className="login-form" onSubmit={handleLogin}>
             <div className="input-group">
+              <input type="hidden" value={userName} />
               <input
                 type="password"
                 placeholder=" "
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 // Ajout : stopper la propagation des touches pour éviter que l'écouteur global ne bloque la saisie
-                onKeyDown={(e) => e.stopPropagation()}
                 required
               />
               <label>Mot de passe ENT</label>
@@ -498,14 +505,17 @@ const Notes = () => {
         <>
           {isLoading && (
             <div className="loading-container-notes">
-              <div className="loading-animation">
-                <div className="loading-bar"></div>
-                <div className="loading-bar"></div>
-                <div className="loading-bar"></div>
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div className="progress-fill"></div>
+                </div>
+                <div className="loading-status">
+                  <div className="loading-status-dot"></div>
+                  <div className="loading-status-text">
+                    Récupération des notes en cours
+                  </div>
+                </div>
               </div>
-              <p className="loading-text">
-                Récupération de vos notes en cours...
-              </p>
             </div>
           )}
           {error && <p className="error">{error}</p>}

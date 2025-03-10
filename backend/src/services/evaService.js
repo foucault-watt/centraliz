@@ -153,7 +153,7 @@ const generateExcelReport = async () => {
     };
 
     // Création des en-têtes
-    const headers = ['Date', 'Événement'];
+    const headers = ['Date', 'Enseignement'];
     groupConfig.questions.forEach(question => {
       headers.push(question.text);
     });

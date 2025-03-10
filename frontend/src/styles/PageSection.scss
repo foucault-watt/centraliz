@@ -1,0 +1,26 @@
+@import "_settings.scss";
+
+// Styles pour les sections de page
+.page-section {
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    padding: 0;
+  }
+}
+
+// Contenu de section
+.section-content {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: $gap;
+  padding-top: 30px;
+  height: 100%;
+
+  @media (max-width: 768px) {
+    padding: $gap / 1.5;
+  }
+}

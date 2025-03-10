@@ -1,560 +1,160 @@
-// Variables
-$border-radius: 25px;
-$gap: 20px;
-$transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-$shadow-default: 0 8px 20px rgba(0, 0, 0, 0.08);
-$shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
+@import "_settings.scss";
 
 // Base styles
-.main {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: $gap;
-  padding: $gap;
-  max-width: 1600px;
-  margin: 0 auto;
-  min-height: 100vh;
-
-  > div {
-    animation: fadeIn 0.6s ease-out forwards;
-    animation-delay: calc(var(--animation-order) * 0.1s);
-  }
-}
-
-.pages-container {
-  position: relative;
+.main-container {
   width: 100%;
-  // Supprimer 'height: 100vh;' pour permettre au contenu de s'étendre
-  overflow: hidden;
-}
-
-.pages-wrapper {
-  display: flex;
-  width: 400%; // 4 pages = 400%
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &.position-left {
-    transform: translateX(0%);
-  }
-
-  &.position-center-left {
-    transform: translateX(-25%); // Déplace d'une page
-  }
-
-  &.position-center-right {
-    transform: translateX(-50%); // Déplace de deux pages
-  }
-
-  &.position-right {
-    transform: translateX(-75%); // Déplace de trois pages
-  }
-
-  &.blocked {
-    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-
-    &.position-right {
-      animation: shake-right 0.4s cubic-bezier(.36,.07,.19,.97) both;
-    }
-    
-    &.position-left {
-      animation: shake-left 0.4s cubic-bezier(.36,.07,.19,.97) both;
-    }
-  }
-}
-
-.page {
-  flex: 0 0 33.33%;
-  width: 33.33%;
-  overflow-y: auto;
-  padding: $gap;
-
-  .page-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: $gap;
-  }
-}
-
-.page-section {
-  flex: 0 0 25%; // Chaque page prend exactement 25% de la largeur
-  width: 25%;
-  min-width: 25%; // Empêche le rétrécissement
-  max-width: 25%; // Empêche l'expansion
   overflow-x: hidden;
-  // Supprimer 'height: 100%;' pour éviter les scrolls internes
-  display: flex;
-  flex-direction: column;
-  gap: $gap;
-  // Supprimer 'overflow-y: auto;' pour éviter les scrolls internes
-
-
-  &.calendars-section,
-  &.mail-links-section {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $gap;
-
-    @media (max-width: 768px) {
-      flex-direction: column;
-    }
-
-    > div {
-      flex: 1 1 calc(50% - #{$gap} / 2);
-
-      @media (max-width: 768px) {
-        flex: 1 1 100%;
-      }
-    }
-  }
-
-  &.calendars-section {
-    .div-hp-calendar,
-    .div-cla-calendar {
-      flex: 1;
-      width: calc(50% - #{$gap}/2);
-
-      @media (max-width: 768px) {
-        width: 100%;
-      }
-    }
-  }
-
-  &.mail-links-section {
-    .div-mail {
-      flex: 2 1 calc(66.66% - #{$gap} / 2);
-    }
-
-    .div-links {
-      flex: 1 1 calc(33.33% - #{$gap} / 2);
-    }
-  }
 }
 
-
-%card {
-  border-radius: $border-radius;
-  padding: 15px;
-  box-shadow: $shadow-default;
-  transition: $transition;
-
-  &:hover {
-    transform: translateY(-8px) scale(1.01);
-    box-shadow: $shadow-hover;
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: $border-radius;
-    background: inherit;
-    z-index: -1;
-    opacity: 0.7;
-  }
-}
-
-.div-hp-calendar {
-  @extend %card;
-  grid-column: span 8;
-  background: $background-module;
-}
-
-.div-cla-calendar {
-  @extend %card;
-  grid-column: span 4;
-  background: $background-module;
-}
-
-.div-notes {
-  @extend %card;
-  grid-column: span 4;
-  background: $background-module;
-}
-
-.div-mail {
-  @extend %card;
-  grid-column: span 6;
-  background: $background-module;
-}
-
-.div-links {
-  @extend %card;
-  grid-column: span 2;
-  background: $background-module;
-  padding: 15px !important;
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shake {
-  10%, 90% { transform: translateX(calc(var(--shake-base) - 2px)); }
-  20%, 80% { transform: translateX(calc(var(--shake-base) + 4px)); }
-  30%, 50%, 70% { transform: translateX(calc(var(--shake-base) - 6px)); }
-  40%, 60% { transform: translateX(calc(var(--shake-base) + 6px)); }
-}
-
-@keyframes shake-right {
-  10%, 90% { transform: translateX(-66.66%) translateX(-2px); }
-  20%, 80% { transform: translateX(-66.66%) translateX(4px); }
-  30%, 50%, 70% { transform: translateX(-66.66%) translateX(-6px); }
-  40%, 60% { transform: translateX(-66.66%) translateX(6px); }
-}
-
-@keyframes shake-left {
-  10%, 90% { transform: translateX(0) translateX(-2px); }
-  20%, 80% { transform: translateX(0) translateX(4px); }
-  30%, 50%, 70% { transform: translateX(0) translateX(-6px); }
-  40%, 60% { transform: translateX(0) translateX(6px); }
-}
-
-// Media Queries
-@media (max-width: 1024px) {
-  .main {
-    grid-template-columns: repeat(8, 1fr);
-    padding: $gap / 1.5;
-    gap: $gap / 1.5;
-  }
-}
-
-@media (max-width: 768px) {
-  .main {
-    grid-template-columns: repeat(4, 1fr);
-    padding: $gap / 2;
-    gap: $gap / 2;
-  }
-
-  %card {
-    padding: 20px;
-  }
-
-  .div-hp-calendar,
-  .div-cla-calendar,
-  .div-notes,
-  .div-mail,
-  .div-links {
-    grid-column: span 4;
-  }
-
-  .section {
-    padding: $gap / 2;
-  }
-  
-  .floating-nav {
-    button {
-      padding: 6px 12px;
-      font-size: 0.9em;
-    }
-  }
-
-  .page-section {
-    &.calendars-section,
-    &.mail-links-section {
-      .page-content {
-        flex-direction: column;
-      }
-    }
-  }
-
-  .div-hp-calendar,
-  .div-cla-calendar,
-  .div-mail,
-  .div-links {
-    width: 100% !important;
-  }
-  
-  .floating-nav .nav-text {
-    display: none;
-  }
-
-  .floating-nav button {
-    display: flex;
-    flex-direction: column; // Optionnel: aligner les icônes verticalement
-    justify-content: center;
-    align-items: center;
-  }
-
-  .floating-nav button .lucide-icon { // Assurez-vous que les icônes ont une classe appropriée
-    margin-bottom: 4px;
-  }
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  margin-top: 12px;
-  
-  input[type="checkbox"] {
-    margin-right: 3px;
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-  }
-
-  label {
-    color: #5a6776;
-    cursor: pointer;
-  }
-}
-
-.content-wrapper {
-  display: flex;
-  width: 300%;
-  transform: translateX(-33.33%);
-  transition: transform 0.5s ease-in-out;
-
-  &.position-left {
-    transform: translateX(0);
-  }
-
-  &.position-center {
-    transform: translateX(-33.33%);
-  }
-
-  &.position-right {
-    transform: translateX(-66.66%);
-  }
-}
-
-.section {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: $gap;
-  padding: $gap;
-}
-
-.floating-nav {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.7); // Modifier l'opacité par défaut
-  padding: 10px;
-  border-radius: 50px;
-  box-shadow: $shadow-default;
-  z-index: 1000;
-  transition: transform 0.3s ease-out, background-color 0.3s ease-out; // Ajouter la transition pour le background
-
-  &:hover {
-    transform: translateX(-50%) scale(1.02);
-    background: rgba(255, 255, 255, 0.9); // Plus opaque au survol
-  }
-
-  button {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 25px;
-    background: transparent;
-    color: $second;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      background: rgba($main, 0.1);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      transition: width 0.4s ease-out, height 0.4s ease-out;
-      z-index: -1;
-    }
-
-    &:hover::before {
-      width: 150%;
-      height: 150%;
-    }
-
-    &.active {
-      background: $main;
-      color: white;
-      transform: scale(1.05);
-
-      &:hover {
-        transform: scale(1.08);
-      }
-    }
-
-    .nav-text {
-      opacity: 1;
-      transform: translateX(0);
-      transition: all 0.3s ease-out;
-    }
-
-    svg {
-      transition: transform 0.3s ease-out;
-    }
-
-    &:hover:not(.active) svg {
-      transform: scale(1.1);
-    }
-  }
-
-  @media (max-width: 768px) {
-    button .nav-text {
-      opacity: 0;
-      transform: translateX(-10px);
-    }
-  }
-}
-
-
-.section-content {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding-top: 30px !important;
-  padding: $gap;
-}
-
-@mixin flex-wrapper {
-  display: flex;
-  gap: $gap;
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-}
-
+// Wrappers de contenu
 .calendars-wrapper,
 .mail-links-wrapper {
   @include flex-wrapper;
-  width: 100%;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
 }
 
 .calendars-wrapper {
-  > div {
-    flex: 1;
+  .div-hp-calendar {
+    flex: 2;
+    min-width: 0;
   }
 
-  .div-hp-calendar {
-    flex: 2; // Prend 2/3 de l'espace disponible
-    min-width: 0; // Permet au flex de réduire correctement
-  }
-  
   .div-cla-calendar {
-    flex: 1; // Prend 1/3 de l'espace disponible
-    min-width: 0; // Permet au flex de réduire correctement
+    flex: 1;
+    min-width: 0;
   }
 }
 
 .mail-links-wrapper {
   .div-mail {
     flex: 2;
+    min-width: 0;
   }
-  
+
   .div-links {
     flex: 1;
+    min-width: 0;
   }
 }
 
-// Supprimer ou modifier les styles existants qui peuvent interférer
-.page-section {
-  flex: 0 0 33.33%;
-  width: 33.33%;
-  background: $background;
+// Application du style de carte aux différents éléments
+.div-hp-calendar,
+.div-cla-calendar,
+.div-notes,
+.div-mail,
+.div-links {
+  @extend %card;
+  background: $background-module;
 }
 
-// ...existing code...
+// Navigation styles
+.app-navigation {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 10px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: $shadow-default;
+  transition: $transition;
+  max-width: 95%;
+  overflow: hidden;
 
-.page-section {
-  // ...existing code...
+  &:hover {
+    box-shadow: $shadow-hover;
+  }
 
-  &.calendars-section {
-    .calendars-wrapper {
-      display: flex;
-      gap: $gap;
+  .nav-items {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
 
-      @media (max-width: 768px) {
-        flex-direction: column;
-      }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 20px;
+    background: transparent;
+    border: none;
+    color: $second;
+    font-weight: 500;
+    cursor: pointer;
+    transition: $transition;
+    position: relative;
+    overflow: hidden;
+    min-width: 44px;
 
-      .div-hp-calendar {
-        flex: 2; // Prend 2/3 de l'espace disponible
-        min-width: 0;
-      }
-      
-      .div-cla-calendar {
-        flex: 1; // Prend 1/3 de l'espace disponible
-        min-width: 0;
+    svg {
+      position: relative;
+      margin: auto;
+    }
+
+    @media (min-width: 769px) {
+      padding: 12px 16px;
+
+      .nav-label {
+        margin-left: 4px;
       }
     }
-  }
 
-  &.mail-links-section {
-    .mail-links-wrapper {
-      display: flex;
-      gap: $gap;
+    &:hover {
+      background: rgba($main, 0.1);
+    }
 
-      @media (max-width: 768px) {
-        flex-direction: column;
-      }
+    &.active {
+      background: $main;
+      color: white;
 
-      .div-mail {
-        flex: 2;
-        min-width: 0;
+      .nav-indicator {
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: white;
+        animation: pulse 1.5s infinite;
       }
-      
-      .div-links {
-        flex: 1;
-        min-width: 0;
-      }
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 }
 
-// Slide Menu Styles
-.slide-menu {
+// Menu mobile
+.mobile-nav {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1000;
+  z-index: 2000;
   visibility: hidden;
-  
+
   &.open {
     visibility: visible;
-    
-    .slide-menu__overlay {
-      opacity: 1;
-    }
-    
-    .slide-menu__content {
+
+    .mobile-nav-container {
       transform: translateX(0);
     }
+
+    .mobile-nav-overlay {
+      opacity: 1;
+    }
   }
-  
-  &__overlay {
+
+  .mobile-nav-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -564,98 +164,120 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
-  
-  &__content {
+
+  .mobile-nav-container {
     position: absolute;
     top: 0;
     left: 0;
-    width: 85%;
-    max-width: 400px;
+    width: 80%;
+    max-width: 300px;
     height: 100%;
     background: white;
-    padding: 20px;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
+    z-index: 2001;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
   }
 
-  &__close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
+  .mobile-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid $day-border;
+
+    h2 {
+      margin: 0;
+      color: $second;
+    }
+
+    .close-mobile-nav {
+      background: none;
+      border: none;
+      color: $second;
+      cursor: pointer;
+      padding: 5px;
+
+      &:hover {
+        color: $main;
+      }
+    }
   }
-}
 
-// Floating Logos
-.floating-logos {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  perspective: 1000px;
-}
+  .mobile-nav-items {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
-.floating-logo {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  opacity: 0;
-  will-change: transform, opacity;
-
-  img {
+  .mobile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     width: 100%;
-    height: 100%;
-    filter: saturate(1.2);
-    transition: filter 0.3s ease;
-  }
+    padding: 15px;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-size: 1.1em;
+    color: $second;
+    transition: $transition;
 
-  &.size-small { transform: scale(100); }
-  &.size-medium { transform: scale(300.8); }
-  &.size-large { transform: scale(200.4); }
+    &:hover {
+      background: rgba($main, 0.1);
+    }
 
-  @for $i from 1 through 4 {
-    &.type-#{$i} {
-      animation: 
-        float-#{$i} #{random(20) + 10}s infinite ease-in-out,
-        fade #{random(2) + 1}s ease-in-out infinite alternate;
+    &.active {
+      background: $main;
+      color: white;
     }
   }
 }
 
-// Nouvelles animations variées
-@keyframes float-1 {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-  25% { transform: translate3d(100px, 100px, 50px) rotate(90deg); }
-  50% { transform: translate3d(200px, 0, 100px) rotate(180deg); }
-  75% { transform: translate3d(100px, -100px, 50px) rotate(270deg); }
+// Animation pour le pulsing dot
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
 }
 
-@keyframes float-2 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  25% { transform: translate3d(100px, 100px, 50px) scale(1.5); }
-  50% { transform: translate3d(200px, 0, 100px) scale(2); }
-  75% { transform: translate3d(100px, -100px, 50px) scale(1.5); }
-}
+// Media queries
+@media (max-width: 768px) {
+  .nav-item .nav-label {
+    display: none;
+  }
 
-@keyframes float-3 {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-100px, 100px, -50px) scale(1.5); }
-}
+  .app-navigation {
+    padding: 6px;
 
-@keyframes float-4 {
-  0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg); }
-  33% { transform: translate3d(50px, -150px, 100px) rotateX(120deg); }
-  66% { transform: translate3d(-50px, 150px, -100px) rotateX(240deg); }
-}
+    .nav-items {
+      gap: 2px;
+      display: flex;
+      margin: auto;
+    }
 
-@keyframes fade {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.9; }
+    .nav-item {
+      padding: 12px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        margin: 0;
+      }
+    }
+  }
 }

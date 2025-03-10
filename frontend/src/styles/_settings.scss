@@ -5,11 +5,19 @@ $second: #2c3e50;
 $day: #f7f7f7;
 $day-border: #ddd;
 $green: #49c16b;
-$orange: #FF9800;
+$orange: #ff9800;
 $red: #e65656;
-$background: #EFECE6;
-$background-module: #FAFAFA;
+$background: #efece6;
+$background-module: #fafafa;
 
+// Variables communes pour les composants
+$border-radius: 25px;
+$gap: 20px;
+$transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+$transition-duration: 0.4s;
+$transition: all $transition-duration $transition-timing;
+$shadow-default: 0 8px 20px rgba(0, 0, 0, 0.08);
+$shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 
 * {
   padding: 0;
@@ -33,4 +41,33 @@ li {
   text-align: center;
   border-bottom: 2px solid $second;
   padding-bottom: 5px;
+}
+
+// Mixin pour les wrappers flexibles
+@mixin flex-wrapper {
+  display: flex;
+  gap: $gap;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+// Style de base pour les cartes
+%card {
+  border-radius: $border-radius;
+  padding: 15px;
+  box-shadow: $shadow-default;
+  transition: $transition;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-hover;
+  }
+
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
 }

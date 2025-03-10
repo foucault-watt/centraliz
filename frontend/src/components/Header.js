@@ -57,22 +57,25 @@ export default function Header() {
 
   return (
     <>
-      <header className={`header ${scrolled ? "scrolled" : ""}`}>
+      <header
+        className={`header ${scrolled ? "scrolled" : ""}`}
+        onClick={toggleMenu}
+        style={{ cursor: "pointer" }}
+      >
         {/* Bouton du menu hamburger */}
         <button
           className="header__menu-button"
-          onClick={toggleMenu}
+          onClick={(e) => {
+            e.stopPropagation(); // Empêcher la propagation du clic au header
+            toggleMenu();
+          }}
           aria-label="Menu"
         >
           <Menu />
         </button>
 
         {/* Logo et titre */}
-        <div
-          onClick={toggleMenu}
-          className="header-link"
-          style={{ cursor: "pointer" }}
-        >
+        <div className="header-link">
           <img src={"logo-title.png"} className="header-logo" alt="logo" />
           <h1 className="header-title">Centraliz</h1>
           <span className="header-domain-suffix">.it</span>
@@ -80,7 +83,10 @@ export default function Header() {
 
         {/* Affichage du classement si disponible */}
         {rankingInfo && (
-          <div className="header-ranking">
+          <div
+            className="header-ranking"
+            onClick={(e) => e.stopPropagation()} // Empêcher la fermeture du menu quand on clique sur les infos de classement
+          >
             <span className="ranking-text">{rankingInfo.message}</span>
             <div className="info-icon">
               <Info size={18} />
@@ -95,7 +101,7 @@ export default function Header() {
           </div>
         )}
 
-        {/* Menu latéral */}
+        {/* Menu latéral - toujours présent dans le DOM mais contrôlé par isOpen */}
         <SlideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       </header>
     </>

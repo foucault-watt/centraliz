@@ -1,56 +1,200 @@
+@import "./settings";
+
 @mixin transition($property: all, $duration: 0.3s, $timing: ease) {
   transition: $property $duration $timing;
 }
 
-.cla-calendar {
-  height: 500px;
-  overflow-y: auto;
-  
-  &::-webkit-scrollbar {
-    width: 8px;
+// Styles pour les onglets de calendriers
+.calendar-tabs {
+  display: flex;
+  justify-content: center;
+  margin: 10px;
+  gap: 10px;
+
+  .tab-button {
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 20px;
+    @include transition();
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+    &.active {
+      background-color: $main;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    &:hover:not(.active) {
+      background-color: darken(#f0f0f0, 5%);
+      transform: translateY(-1px);
+    }
   }
-  
+}
+
+// Style pour le conteneur de défilement horizontal
+.calendars-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  padding-bottom: 10px;
+  -webkit-overflow-scrolling: touch; // Défilement fluide sur iOS
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
   &::-webkit-scrollbar-track {
     background: $background;
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: $main;
     border-radius: 4px;
-    
+
     &:hover {
       background: darken($main, 10%);
     }
   }
 }
 
+// Style pour chaque calendrier
+.calendar-wrapper {
+  min-width: 100%;
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  padding: 0 5px;
+}
+
+.cla-calendar {
+  height: 500px;
+  overflow-y: auto;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  padding: 15px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $background;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $main;
+    border-radius: 4px;
+
+    &:hover {
+      background: darken($main, 10%);
+    }
+  }
+}
+
+.fablab-calendar {
+  // Styles spécifiques au calendrier FabLab si nécessaire
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
 .events-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  padding-right: 10px;
 }
 
 .event-item {
   padding: 15px;
-  border-radius: 8px;
+  border-radius: 10px;
   background-color: white;
-  
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 3px solid transparent;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+  }
+
+  &.ongoing {
+    border: 3px solid $main;
+    background-color: rgba($main, 0.03);
+    box-shadow: 0 4px 15px rgba($main, 0.15);
+    
+    .event-title {
+      color: $main;
+    }
+
+    .event-time {
+      color: $main-dark !important;
+    }
+  }
+
   .event-date {
     font-weight: 500;
     color: $second;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
 
     .event-time {
-      margin-left: 10px;
       color: $main !important;
+      font-weight: 600;
+
+      .event-recurring {
+        font-style: italic;
+        font-size: 0.9em;
+        opacity: 0.8;
+        margin-left: 3px;
+      }
     }
   }
-  
+
+  // Style pour les événements récurrents
+  &.recurring {
+    border-left: 3px solid $main;
+  }
+
   .event-title {
     font-size: 1.1em;
     font-weight: bold;
+    margin-bottom: 8px;
+    color: $second;
+  }
+
+  .event-description {
+    font-size: 0.9em;
+    color: rgba($second, 0.7);
+    margin-top: 8px;
+    white-space: pre-line; // Respecte les sauts de ligne
+    line-height: 1.4;
+    max-height: 100px;
+    overflow-y: auto;
+    padding-right: 5px;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $main;
+      border-radius: 4px;
+    }
   }
 }
 

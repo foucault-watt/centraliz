@@ -813,6 +813,125 @@ $fade-duration: 0.3s;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 300px;
+}
+
+.progress-container {
+  width: 80%;
+  max-width: 500px;
+  margin-bottom: 20px;
+}
+
+.progress-bar {
+  height: 12px;
+  background-color: rgba($second, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $main, lighten($main, 20%));
+  border-radius: 4px;
+  width: 0%;
+  position: relative;
+  animation: progress-animation 17s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  box-shadow: 0 0 10px rgba($main, 0.4);
+}
+
+.loading-status {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.loading-status-dot {
+  width: 14px;
+  height: 14px;
+  background-color: $main;
+  border-radius: 50%;
+  margin-right: 10px;
+  animation: pulse-dot 1.5s infinite;
+}
+
+.loading-status-text {
+  font-size: 0.9rem;
+  color: $second;
+  opacity: 0.8;
+}
+
+.loading-text {
+  margin-top: 1rem;
+  color: $second;
+  font-size: 1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+@keyframes progress-animation {
+  0% {
+    width: 0%;
+  }
+  10% {
+    width: 15%;
+  }
+  15% {
+    width: 15%; /* Premier arrêt */
+  }
+  25% {
+    width: 35%; /* Accélération */
+  }
+  35% {
+    width: 38%; /* Ralentissement */
+  }
+  40% {
+    width: 38%; /* Deuxième arrêt */
+  }
+  50% {
+    width: 60%; /* Forte accélération */
+  }
+  55% {
+    width: 65%;
+  }
+  65% {
+    width: 65%; /* Troisième arrêt */
+  }
+  75% {
+    width: 75%;
+  }
+  85% {
+    width: 85%; /* Ralentissement */
+  }
+  92% {
+    width: 90%; /* Quatrième arrêt */
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.loading-container-notes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 200px;
 }
 

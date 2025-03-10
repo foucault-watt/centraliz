@@ -1,0 +1,129 @@
+@import "_settings.scss";
+
+// Styles pour le conteneur de pages
+.pages-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+// Le conteneur des pages s'adapte en largeur
+.pages-wrapper {
+  display: flex;
+  transition: transform 0.5s $transition-timing;
+
+  &.position-left {
+    transform: translateX(0%);
+  }
+
+  &.position-center-left {
+    transform: translateX(-25%);
+  }
+
+  &.position-center-right {
+    transform: translateX(-50%);
+  }
+
+  &.position-right {
+    transform: translateX(-75%);
+  }
+
+  // Effet de transition
+  &.transitioning {
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+      z-index: 10;
+      animation: pageTransition 0.5s $transition-timing;
+    }
+  }
+
+  // Effet d'erreur
+  &.blocked {
+    animation: shake 0.4s $transition-timing both;
+
+    &.position-right {
+      animation: shake-right 0.4s $transition-timing both;
+    }
+
+    &.position-left {
+      animation: shake-left 0.4s $transition-timing both;
+    }
+  }
+}
+
+// Animations pour les transitions et effets
+@keyframes pageTransition {
+  0% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(calc(var(--shake-base) - 2px));
+  }
+  20%,
+  80% {
+    transform: translateX(calc(var(--shake-base) + 4px));
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(calc(var(--shake-base) - 6px));
+  }
+  40%,
+  60% {
+    transform: translateX(calc(var(--shake-base) + 6px));
+  }
+}
+
+@keyframes shake-right {
+  10%,
+  90% {
+    transform: translateX(-75%) translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(-75%) translateX(4px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-75%) translateX(-6px);
+  }
+  40%,
+  60% {
+    transform: translateX(-75%) translateX(6px);
+  }
+}
+
+@keyframes shake-left {
+  10%,
+  90% {
+    transform: translateX(0) translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(0) translateX(4px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(0) translateX(-6px);
+  }
+  40%,
+  60% {
+    transform: translateX(0) translateX(6px);
+  }
+}

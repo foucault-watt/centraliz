@@ -11,6 +11,8 @@ moment.locale("fr");
 const ClaCalendar = () => {
   // États pour gérer les événements et l'infinite scroll
   const [calendars, setCalendars] = useState({ cla: [], fablab: [] });
+  const [loading, setLoading] = useState({ cla: true, fablab: true });
+  const [errors, setErrors] = useState({ cla: null, fablab: null });
   const [visibleEvents, setVisibleEvents] = useState({ cla: 10, fablab: 10 });
   const [activeTab, setActiveTab] = useState("cla");
   const loaderCla = useRef(null);
@@ -21,20 +23,52 @@ const ClaCalendar = () => {
   useEffect(() => {
     const fetchCalendarsData = async () => {
       try {
+        setLoading({ cla: true, fablab: true });
+        setErrors({ cla: null, fablab: null });
+
         const response = await fetch(
           `${process.env.REACT_APP_URL_BACK}/api/calendars-data`
         );
         const data = await response.json();
 
-        setCalendars({
-          cla: parseICal(data.cla, "cla"),
-          fablab: parseICal(data.fablab, "fablab"),
-        });
+        // Traitement du calendrier CLA
+        if (data.cla && data.cla.success) {
+          setCalendars((prev) => ({
+            ...prev,
+            cla: parseICal(data.cla.data, "cla"),
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            cla: data.cla?.error || "Erreur de chargement du calendrier CLA",
+          }));
+        }
+        setLoading((prev) => ({ ...prev, cla: false }));
+
+        // Traitement du calendrier FabLab
+        if (data.fablab && data.fablab.success) {
+          setCalendars((prev) => ({
+            ...prev,
+            fablab: parseICal(data.fablab.data, "fablab"),
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            fablab:
+              data.fablab?.error || "Erreur de chargement du calendrier FabLab",
+          }));
+        }
+        setLoading((prev) => ({ ...prev, fablab: false }));
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des calendriers :",
           error
         );
+        setErrors({
+          cla: "Erreur de communication avec le serveur",
+          fablab: "Erreur de communication avec le serveur",
+        });
+        setLoading({ cla: false, fablab: false });
       }
     };
     fetchCalendarsData();
@@ -267,9 +301,107 @@ const ClaCalendar = () => {
     }
   };
 
+  // Rendu de l'état de chargement
+  const renderLoadingState = (calendarType) => (
+    <div className="calendar-loading">
+      <div className="loading-spinner"></div>
+      <p>
+        Chargement du calendrier {calendarType === "cla" ? "CLA" : "FabLab"}...
+      </p>
+    </div>
+  );
+
+  // Rendu d'un message d'erreur
+  const renderErrorState = (calendarType) => (
+    <div className="calendar-error">
+      <div className="error-icon">⚠️</div>
+      <h3>Impossible de charger le calendrier</h3>
+      <p>{errors[calendarType]}</p>
+    </div>
+  );
+
+  // Rendu des événements d'un calendrier
+  const renderCalendarEvents = (calendarType) => {
+    // Si en chargement, afficher l'animation
+    if (loading[calendarType]) {
+      return renderLoadingState(calendarType);
+    }
+
+    // Si erreur, afficher le message
+    if (errors[calendarType]) {
+      return renderErrorState(calendarType);
+    }
+
+    // Si aucun événement, afficher un message
+    if (calendars[calendarType].length === 0) {
+      return (
+        <div className="no-events">
+          <p>Aucun événement à venir</p>
+        </div>
+      );
+    }
+
+    // Rendu normal des événements
+    return (
+      <>
+        {getVisibleEvents(calendarType).map((event, index) => {
+          const eventType =
+            calendarType === "cla"
+              ? getEventType(event.start, event.end)
+              : null;
+          return (
+            <div
+              key={`${calendarType}-${index}`}
+              className={`event-item ${event.recurring ? "recurring" : ""} ${
+                event.ongoing ? "ongoing" : ""
+              }`}
+              style={
+                calendarType === "fablab" && event.color
+                  ? { borderLeft: `3px solid ${event.color}` }
+                  : {}
+              }
+            >
+              <div className="event-date">
+                {moment(event.start).format("dddd").charAt(0).toUpperCase() +
+                  moment(event.start).format("dddd").slice(1)}{" "}
+                {moment(event.start).format("DD MMMM")}
+                <span className="event-time">
+                  {eventType ? (
+                    <span className={eventType.className}>
+                      {eventType.type}
+                    </span>
+                  ) : (
+                    `${moment(event.start).format("HH:mm")} - ${
+                      event.end ? moment(event.end).format("HH:mm") : "NC"
+                    }`
+                  )}
+                  {event.recurring && (
+                    <span className="event-recurring"> (récurrent)</span>
+                  )}
+                </span>
+              </div>
+              <div className="event-title">{event.title}</div>
+              {calendarType === "fablab" && event.description && (
+                <div className="event-description">{event.description}</div>
+              )}
+            </div>
+          );
+        })}
+
+        <div ref={calendarType === "cla" ? loaderCla : loaderFablab} />
+
+        {!loading[calendarType] &&
+          !errors[calendarType] &&
+          visibleEvents[calendarType] < calendars[calendarType].length && (
+            <p className="loading-more">Chargement...</p>
+          )}
+      </>
+    );
+  };
+
   return (
     <>
-      <h2 className="module-title">Calendriers des événements</h2>
+      <h2 className="module-title">Plannings</h2>
 
       {/* Onglets de navigation */}
       <div className="calendar-tabs">
@@ -296,91 +428,14 @@ const ClaCalendar = () => {
         {/* Calendrier CLA */}
         <div className="calendar-wrapper">
           <div className="cla-calendar">
-            <div className="events-list">
-              {getVisibleEvents("cla").map((event, index) => {
-                const eventType = getEventType(event.start, event.end);
-                return (
-                  <div
-                    key={`cla-${index}`}
-                    className={`event-item ${
-                      event.recurring ? "recurring" : ""
-                    } ${event.ongoing ? "ongoing" : ""}`}
-                  >
-                    <div className="event-date">
-                      {moment(event.start)
-                        .format("dddd")
-                        .charAt(0)
-                        .toUpperCase() +
-                        moment(event.start).format("dddd").slice(1)}{" "}
-                      {moment(event.start).format("DD MMMM")}
-                      <span className="event-time">
-                        {eventType ? (
-                          <span className={eventType.className}>
-                            {eventType.type}
-                          </span>
-                        ) : (
-                          `${moment(event.start).format("HH:mm")} - ${
-                            event.end ? moment(event.end).format("HH:mm") : "NC"
-                          }`
-                        )}
-                        {event.recurring && (
-                          <span className="event-recurring"> (récurrent)</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="event-title">{event.title}</div>
-                  </div>
-                );
-              })}
-              <div ref={loaderCla} />
-              {visibleEvents.cla < calendars.cla.length && <p>Chargement...</p>}
-            </div>
+            <div className="events-list">{renderCalendarEvents("cla")}</div>
           </div>
         </div>
 
         {/* Calendrier FabLab */}
         <div className="calendar-wrapper">
           <div className="fablab-calendar cla-calendar">
-            <div className="events-list">
-              {getVisibleEvents("fablab").map((event, index) => (
-                <div
-                  key={`fablab-${index}`}
-                  className={`event-item ${
-                    event.recurring ? "recurring" : ""
-                  } ${event.ongoing ? "ongoing" : ""}`}
-                  style={
-                    event.color
-                      ? { borderLeft: `3px solid ${event.color}` }
-                      : {}
-                  }
-                >
-                  <div className="event-date">
-                    {moment(event.start)
-                      .format("dddd")
-                      .charAt(0)
-                      .toUpperCase() +
-                      moment(event.start).format("dddd").slice(1)}{" "}
-                    {moment(event.start).format("DD MMMM")}
-                    <span className="event-time">
-                      {`${moment(event.start).format("HH:mm")} - ${
-                        event.end ? moment(event.end).format("HH:mm") : "NC"
-                      }`}
-                      {event.recurring && (
-                        <span className="event-recurring"> (récurrent)</span>
-                      )}
-                    </span>
-                  </div>
-                  <div className="event-title">{event.title}</div>
-                  {event.description && (
-                    <div className="event-description">{event.description}</div>
-                  )}
-                </div>
-              ))}
-              <div ref={loaderFablab} />
-              {visibleEvents.fablab < calendars.fablab.length && (
-                <p>Chargement...</p>
-              )}
-            </div>
+            <div className="events-list">{renderCalendarEvents("fablab")}</div>
           </div>
         </div>
       </div>

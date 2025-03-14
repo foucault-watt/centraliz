@@ -703,6 +703,114 @@ $fade-duration: 0.3s;
   }
 }
 
+.grade-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding: 4px 0;
+
+  .grade-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: rgba($main, 0.05);
+    border: 1px solid transparent;
+
+    &:hover {
+      background: rgba($main, 0.1);
+      transform: translateX(2px);
+
+      .edit-icon {
+        opacity: 1;
+      }
+    }
+
+    &.editing {
+      background: rgba($main, 0.15);
+      border-color: rgba($main, 0.3);
+    }
+
+    .edit-icon {
+      opacity: 0;
+      color: $main;
+      font-size: 0.8em;
+      transition: opacity 0.2s;
+    }
+
+    input {
+      width: 60px;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: $second;
+      font-size: 1em;
+      text-align: center;
+
+      &:focus {
+        outline: none;
+      }
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    }
+
+    .grade-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .original-grade {
+        text-decoration: line-through;
+        opacity: 0.6;
+        color: $second;
+      }
+
+      .arrow {
+        color: $main;
+        font-size: 0.8em;
+        opacity: 0.6;
+      }
+
+      .modified-grade {
+        color: $main;
+        font-weight: bold;
+      }
+
+      .reset-grade {
+        background: none;
+        border: none;
+        color: $second;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 4px;
+        opacity: 0;
+        transition: all 0.2s ease;
+        font-size: 1.1em;
+
+        &:hover {
+          background: rgba($main, 0.1);
+          color: $main;
+        }
+      }
+    }
+
+    &:hover {
+      .reset-grade {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
 .page-title {
   font-size: 2.5rem;
   color: $main;

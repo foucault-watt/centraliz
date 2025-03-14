@@ -2,6 +2,7 @@ import axios from "axios";
 import Papa from "papaparse";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
+import ModuleDisplay from "./notes/ModuleDisplay";
 
 const Notes = () => {
   const [expandedModules, setExpandedModules] = useState({});
@@ -16,6 +17,7 @@ const Notes = () => {
   const [activeUE, setActiveUE] = useState(null);
   const [unlistedModules, setUnlistedModules] = useState([]);
   const [simulatedGrades, setSimulatedGrades] = useState({});
+  const [modifiedGrades, setModifiedGrades] = useState({});
 
   const processGrades = useCallback(
     (grades) => {
@@ -359,14 +361,39 @@ const Notes = () => {
     }));
   };
 
+  const handleGradeEdit = (moduleName, gradeIndex, newNote) => {
+    setModifiedGrades((prev) => {
+      const updated = { ...prev };
+      if (newNote === null) {
+        // Si null, supprimer la modification
+        if (updated[moduleName]) {
+          delete updated[moduleName][gradeIndex];
+          // Supprimer le module si plus aucune note modifiée
+          if (Object.keys(updated[moduleName]).length === 0) {
+            delete updated[moduleName];
+          }
+        }
+      } else {
+        // Ajouter/modifier la note
+        updated[moduleName] = {
+          ...updated[moduleName],
+          [gradeIndex]: parseFloat(newNote),
+        };
+      }
+      return updated;
+    });
+  };
+
   const calculateAverage = (module, moduleName) => {
     // Repartir de zéro pour éviter d'ajouter plusieurs fois
     let basePoints = 0;
     let baseCoeff = 0;
 
     // Ajouter les épreuves du module
-    module.epreuves.forEach((epreuve) => {
-      const note = parseFloat(epreuve["Notes"].replace(",", ".")) || 0;
+    module.epreuves.forEach((epreuve, index) => {
+      const modifiedNote = modifiedGrades[moduleName]?.[index];
+      const note =
+        modifiedNote ?? (parseFloat(epreuve["Notes"].replace(",", ".")) || 0);
       const coeff =
         parseFloat(epreuve["Coefficient de l'Épreuve dans le Module"]) || 0;
       const letterGrade = ["A", "B", "C", "D", "E", "F"].includes(
@@ -543,203 +570,23 @@ const Notes = () => {
                         );
                         const isExpanded = expandedModules[moduleName];
                         return (
-                          <div key={moduleName} className="module">
-                            <div
-                              className={`module-header ${
-                                isExpanded ? "expanded" : ""
-                              }`}
-                              onClick={() => toggleModule(moduleName)}
-                            >
-                              <h3>{moduleName}</h3>
-                              <div className="header-right">
-                                <span className={`moyenne ${average.class}`}>
-                                  {average.value}
-                                </span>
-                              </div>
-                            </div>
-                            <div
-                              className={`module-content ${
-                                isExpanded ? "expanded" : ""
-                              }`}
-                            >
-                              {moduleData.epreuves.map((epreuve, index) => (
-                                <div key={index} className="epreuve">
-                                  <h3>
-                                    {epreuve["Épreuve"].split("- ").pop()}
-                                  </h3>
-                                  <p>{epreuve["Type de contrôle"]}</p>
-                                  <p>{epreuve["Début"]}</p>
-                                  <p>
-                                    Coef{" "}
-                                    {
-                                      epreuve[
-                                        "Coefficient de l'Épreuve dans le Module"
-                                      ]
-                                    }{" "}
-                                    - <b>{epreuve["Notes"]}</b>
-                                  </p>
-                                </div>
-                              ))}
-
-                              {isExpanded && (
-                                <div className="simulate-grade">
-                                  {(simulatedGrades[moduleName] || []).length >
-                                    0 && (
-                                    <div className="simulated-grades">
-                                      <h4>Notes simulées</h4>
-                                      {simulatedGrades[moduleName].map(
-                                        (grade) => (
-                                          <div
-                                            key={grade.id}
-                                            className="simulated-grade"
-                                          >
-                                            <div
-                                              className="note-input-container"
-                                              data-value={`Note: ${grade.note}/20`}
-                                            >
-                                              <input
-                                                type="range"
-                                                value={grade.note}
-                                                min="0"
-                                                max="20"
-                                                step="0.25"
-                                                className="note-slider"
-                                                onChange={(e) => {
-                                                  updateSimulatedGrade(
-                                                    moduleName,
-                                                    grade.id,
-                                                    e.target.value
-                                                  );
-                                                  e.target
-                                                    .closest(
-                                                      ".note-input-container"
-                                                    )
-                                                    .setAttribute(
-                                                      "data-value",
-                                                      `Note: ${e.target.value}/20`
-                                                    );
-                                                }}
-                                              />
-                                              <input
-                                                type="number"
-                                                value={grade.note}
-                                                className="note-number"
-                                                step="0.25"
-                                                min="0"
-                                                max="20"
-                                                onChange={(e) =>
-                                                  updateSimulatedGrade(
-                                                    moduleName,
-                                                    grade.id,
-                                                    e.target.value
-                                                  )
-                                                }
-                                                onKeyDown={(e) =>
-                                                  e.stopPropagation()
-                                                }
-                                              />
-                                            </div>
-                                            <div className="grade-actions">
-                                              <span>
-                                                Coef: {grade.coefficient}
-                                              </span>
-                                              <button
-                                                onClick={() =>
-                                                  removeSimulatedGrade(
-                                                    moduleName,
-                                                    grade.id
-                                                  )
-                                                }
-                                              >
-                                                Supprimer
-                                              </button>
-                                            </div>
-                                          </div>
-                                        )
-                                      )}
-                                    </div>
-                                  )}
-
-                                  <h4>Simuler une note</h4>
-                                  <form
-                                    onSubmit={(e) => {
-                                      e.preventDefault();
-                                      const formData = new FormData(e.target);
-                                      const note = formData.get("note");
-                                      addSimulatedGrade(
-                                        moduleName,
-                                        null, // Remplacer ueName par null quand il n'y a pas d'UE
-                                        note,
-                                        formData.get("coefficient")
-                                      );
-                                      e.target.reset();
-                                    }}
-                                  >
-                                    <div
-                                      className="note-input-container"
-                                      data-value="Note: 0/20"
-                                    >
-                                      <input
-                                        type="range"
-                                        name="note"
-                                        min="0"
-                                        max="20"
-                                        step="0.25"
-                                        className="note-slider"
-                                        onChange={(e) => {
-                                          e.target.nextElementSibling.value =
-                                            e.target.value;
-                                          e.target
-                                            .closest(".note-input-container")
-                                            .setAttribute(
-                                              "data-value",
-                                              `Note: ${e.target.value}/20`
-                                            );
-                                        }}
-                                        defaultValue="0"
-                                      />
-                                      <input
-                                        type="number"
-                                        className="note-number"
-                                        step="0.25"
-                                        min="0"
-                                        max="20"
-                                        placeholder="Note"
-                                        onChange={(e) => {
-                                          e.target.previousElementSibling.value =
-                                            e.target.value;
-                                          e.target
-                                            .closest(".note-input-container")
-                                            .setAttribute(
-                                              "data-value",
-                                              `Note: ${e.target.value}/20`
-                                            );
-                                        }}
-                                        required
-                                        onKeyDown={(e) => e.stopPropagation()}
-                                      />
-                                    </div>
-                                    <div className="form-bottom">
-                                      <input
-                                        type="number"
-                                        name="coefficient"
-                                        step="1"
-                                        min="0"
-                                        placeholder="Coef"
-                                        required
-                                        onKeyDown={(e) => e.stopPropagation()}
-                                      />
-                                      <button type="submit">Ajouter</button>
-                                    </div>
-                                  </form>
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                          <ModuleDisplay
+                            key={moduleName}
+                            moduleData={moduleData}
+                            moduleName={moduleName}
+                            isExpanded={isExpanded}
+                            toggleModule={toggleModule}
+                            average={average}
+                            simulatedGrades={simulatedGrades}
+                            updateSimulatedGrade={updateSimulatedGrade}
+                            removeSimulatedGrade={removeSimulatedGrade}
+                            addSimulatedGrade={addSimulatedGrade}
+                            onGradeEdit={handleGradeEdit}
+                          />
                         );
                       }
                     )
-                  : // Affichage avec groupement UE (code existant)
+                  : // Affichage avec groupement UE
                     Object.entries(organizedModules).map(([ueName, ueData]) => (
                       <div key={ueName} className="ue-section">
                         <h2 className="ue-title">
@@ -763,222 +610,21 @@ const Notes = () => {
                               );
                               const isExpanded = expandedModules[moduleName];
                               return (
-                                <div key={moduleName} className="module">
-                                  <div
-                                    className={`module-header ${
-                                      isExpanded ? "expanded" : ""
-                                    }`}
-                                    onClick={() =>
-                                      toggleModule(moduleName, ueName)
-                                    }
-                                  >
-                                    <h3>{moduleName}</h3>
-                                    <div className="header-right">
-                                      <span className="coef">
-                                        Coef {moduleData.coef}
-                                      </span>
-                                      <span
-                                        className={`moyenne ${average.class}`}
-                                      >
-                                        {average.value}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div
-                                    className={`module-content ${
-                                      isExpanded ? "expanded" : ""
-                                    }`}
-                                  >
-                                    {moduleData.epreuves.map(
-                                      (epreuve, index) => (
-                                        <div key={index} className="epreuve">
-                                          <h3>
-                                            {epreuve["Épreuve"]
-                                              .split("- ")
-                                              .pop()}
-                                          </h3>
-                                          <p>{epreuve["Type de contrôle"]}</p>
-                                          <p>{epreuve["Début"]}</p>
-                                          <p>
-                                            Coef{" "}
-                                            {
-                                              epreuve[
-                                                "Coefficient de l'Épreuve dans le Module"
-                                              ]
-                                            }{" "}
-                                            - <b>{epreuve["Notes"]}</b>
-                                          </p>
-                                        </div>
-                                      )
-                                    )}
-
-                                    {isExpanded && (
-                                      <div className="simulate-grade">
-                                        {(simulatedGrades[moduleName] || [])
-                                          .length > 0 && (
-                                          <div className="simulated-grades">
-                                            <h4>Notes simulées</h4>
-                                            {simulatedGrades[moduleName].map(
-                                              (grade) => (
-                                                <div
-                                                  key={grade.id}
-                                                  className="simulated-grade"
-                                                >
-                                                  <div
-                                                    className="note-input-container"
-                                                    data-value={`Note: ${grade.note}/20`}
-                                                  >
-                                                    <input
-                                                      type="range"
-                                                      value={grade.note}
-                                                      min="0"
-                                                      max="20"
-                                                      step="0.25"
-                                                      className="note-slider"
-                                                      onChange={(e) => {
-                                                        updateSimulatedGrade(
-                                                          moduleName,
-                                                          grade.id,
-                                                          e.target.value
-                                                        );
-                                                        e.target
-                                                          .closest(
-                                                            ".note-input-container"
-                                                          )
-                                                          .setAttribute(
-                                                            "data-value",
-                                                            `Note: ${e.target.value}/20`
-                                                          );
-                                                      }}
-                                                    />
-                                                    <input
-                                                      type="number"
-                                                      value={grade.note}
-                                                      className="note-number"
-                                                      step="0.25"
-                                                      min="0"
-                                                      max="20"
-                                                      onChange={(e) =>
-                                                        updateSimulatedGrade(
-                                                          moduleName,
-                                                          grade.id,
-                                                          e.target.value
-                                                        )
-                                                      }
-                                                      onKeyDown={(e) =>
-                                                        e.stopPropagation()
-                                                      }
-                                                    />
-                                                  </div>
-                                                  <div className="grade-actions">
-                                                    <span>
-                                                      Coef: {grade.coefficient}
-                                                    </span>
-                                                    <button
-                                                      onClick={() =>
-                                                        removeSimulatedGrade(
-                                                          moduleName,
-                                                          grade.id
-                                                        )
-                                                      }
-                                                    >
-                                                      Supprimer
-                                                    </button>
-                                                  </div>
-                                                </div>
-                                              )
-                                            )}
-                                          </div>
-                                        )}
-
-                                        <h4>Simuler une note</h4>
-                                        <form
-                                          onSubmit={(e) => {
-                                            e.preventDefault();
-                                            const formData = new FormData(
-                                              e.target
-                                            );
-                                            const note = formData.get("note");
-                                            addSimulatedGrade(
-                                              moduleName,
-                                              ueName,
-                                              note,
-                                              formData.get("coefficient")
-                                            );
-                                            e.target.reset();
-                                          }}
-                                        >
-                                          <div
-                                            className="note-input-container"
-                                            data-value="Note: 0/20"
-                                          >
-                                            <input
-                                              type="range"
-                                              name="note"
-                                              min="0"
-                                              max="20"
-                                              step="0.25"
-                                              className="note-slider"
-                                              onChange={(e) => {
-                                                e.target.nextElementSibling.value =
-                                                  e.target.value;
-                                                e.target
-                                                  .closest(
-                                                    ".note-input-container"
-                                                  )
-                                                  .setAttribute(
-                                                    "data-value",
-                                                    `Note: ${e.target.value}/20`
-                                                  );
-                                              }}
-                                              defaultValue="0"
-                                            />
-                                            <input
-                                              type="number"
-                                              className="note-number"
-                                              step="0.25"
-                                              min="0"
-                                              max="20"
-                                              placeholder="Note"
-                                              onChange={(e) => {
-                                                e.target.previousElementSibling.value =
-                                                  e.target.value;
-                                                e.target
-                                                  .closest(
-                                                    ".note-input-container"
-                                                  )
-                                                  .setAttribute(
-                                                    "data-value",
-                                                    `Note: ${e.target.value}/20`
-                                                  );
-                                              }}
-                                              required
-                                              onKeyDown={(e) =>
-                                                e.stopPropagation()
-                                              }
-                                            />
-                                          </div>
-                                          <div className="form-bottom">
-                                            <input
-                                              type="number"
-                                              name="coefficient"
-                                              step="1"
-                                              min="0"
-                                              placeholder="Coef"
-                                              required
-                                              onKeyDown={(e) =>
-                                                e.stopPropagation()
-                                              }
-                                            />
-                                            <button type="submit">
-                                              Ajouter
-                                            </button>
-                                          </div>
-                                        </form>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
+                                <ModuleDisplay
+                                  key={moduleName}
+                                  moduleData={moduleData}
+                                  moduleName={moduleName}
+                                  isExpanded={isExpanded}
+                                  toggleModule={toggleModule}
+                                  average={average}
+                                  simulatedGrades={simulatedGrades}
+                                  updateSimulatedGrade={updateSimulatedGrade}
+                                  removeSimulatedGrade={removeSimulatedGrade}
+                                  addSimulatedGrade={addSimulatedGrade}
+                                  ueName={ueName}
+                                  moduleCoef={moduleData.coef}
+                                  onGradeEdit={handleGradeEdit}
+                                />
                               );
                             }
                           )}

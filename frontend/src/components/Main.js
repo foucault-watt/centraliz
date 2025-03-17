@@ -23,6 +23,7 @@ function Main() {
       setCurrentPageIndex(newIndex);
       setTimeout(() => {
         setIsTransitioning(false);
+        window.scrollTo(0, 0); // Scroll to top after page change
       }, 500);
     },
     [isTransitioning]

@@ -3,6 +3,7 @@ import Header from "./components/Header.js";
 import LoginPage from "./components/LoginPage.js"; // Ajoutez cette ligne
 import Main from "./components/Main.js";
 import Onboarding from "./components/Onboarding.js"; // Ajoutez cette ligne
+import LoginListe from "./components/LoginListe.js";
 
 export const UserContext = createContext();
 
@@ -66,7 +67,7 @@ const App = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />; // Afficher la page de connexion au lieu de rediriger
+    return <LoginListe />; // Afficher la page de connexion au lieu de rediriger
   }
 
   return (

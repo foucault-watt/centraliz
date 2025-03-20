@@ -410,8 +410,8 @@
   }
 }
 
-// Art'Cadia promo section
-.artcadia-promo {
+//  promo section
+.canart-promo {
   margin-bottom: 4rem;
   background: linear-gradient(
     135deg,
@@ -474,7 +474,7 @@
     position: relative;
     z-index: 1;
 
-    .artcadia-logo {
+    .canart-logo {
       width: 120px;
       height: 120px;
       background: linear-gradient(135deg, $orange, darken($orange, 15%));
@@ -916,7 +916,7 @@
     }
   }
 
-  .artcadia-promo {
+  .canart-promo {
     flex-direction: row;
     align-items: center;
     padding: 2.5rem;

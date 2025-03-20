@@ -1,18 +1,21 @@
 import React, { createContext, useCallback, useState } from "react";
 import { pagesConfig } from "../config/pages";
-import Bdi from "./Bdi";
+import Alain from "./Alain";
 import ClaCalendar from "./ClaCalendar";
+import Defis from "./Defis";
+import Events from "./Events";
 import HpCalendar from "./HpCalendar";
 import Links from "./Links";
 import Mail from "./Mail";
 import Navigation from "./Navigation";
 import Notes from "./Notes";
+import Trombi from "./Trombi";
 
 // Créer un contexte pour les logos
 export const LogoVisibilityContext = createContext(null);
 
 function Main() {
-  const [currentPageIndex, setCurrentPageIndex] = useState(1); // index initial = Calendriers
+  const [currentPageIndex, setCurrentPageIndex] = useState(1); // index 1 = Calendriers
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [logoVisibility, setLogoVisibility] = useState(false);
 
@@ -53,18 +56,26 @@ function Main() {
         return (
           <div className="div-mail">
             <Mail />
-          </div>
-        );
-      case "bdi":
-        return (
-          <div className="div-bdi">
-            <Bdi />
+            <Links />
           </div>
         );
       case "links":
         return (
           <div className="div-links">
             <Links />
+          </div>
+        );
+      case "canart":
+        return (
+          <div className="div-canart">
+            <div className="events-alain-wrapper">
+              <Events />
+              <Alain />
+            </div>
+            <div className="defis-trombi-wrapper">
+              <Defis />
+              <Trombi />
+            </div>
           </div>
         );
       default:

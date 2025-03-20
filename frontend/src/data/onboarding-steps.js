@@ -30,6 +30,11 @@ export const steps = [
       icon: "📱",
     },
     {
+      title: "Canart'Man",
+      content: "Canart'Man et Centraliz sont désormais unis ! Retrouve toutes les infos de ta liste préférée sur ton nouveau site préféré.",
+      icon: "🎨",
+    },
+    {
       title: "Une histoire d'étudiant",
       content: "Je suis Foucault de l'ITEEM ! J'ai créé Centraliz pour nous faciliter la vie à centrale.",
       icon: "🚀",

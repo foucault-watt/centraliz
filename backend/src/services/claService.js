@@ -21,10 +21,10 @@ async function fetchClaIcalData() {
 
 async function fetchFablabIcalData() {
   const targetUrl =
-    "https://framagenda.org/remote.php/dav/public-calendars/BmoNRjcAKcaST5DN/?export";
+    "https://framagenda.org/remote.php/dav/pubjlic-calendars/BmoNRjcAKcaST5DN/?export";
 
   try {
-    const response = await axios.get(targetUrl, { timeout: 8000 });
+    const response = await axios.get(targetUrl, { timeout: 1000 });
     return { success: true, data: response.data };
   } catch (error) {
     console.error(
@@ -33,7 +33,7 @@ async function fetchFablabIcalData() {
     );
     return {
       success: false,
-      error: "Impossible de récupérer le calendrier FabLab",
+      error: "C'est normal, mais le calendrier du FabLab sera accessible dès le retour des vacances 🏖️",
     };
   }
 }

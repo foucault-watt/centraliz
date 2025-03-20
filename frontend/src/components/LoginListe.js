@@ -8,7 +8,7 @@ const LoginListe = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [showLegalNotice, setShowLegalNotice] = useState(false);
   const featuresRef = useRef(null);
-  const artcadiaRef = useRef(null);
+  const canartRef = useRef(null);
   const testimonialsRef = useRef(null);
 
   // Gérer les animations au scroll
@@ -147,12 +147,12 @@ const LoginListe = () => {
         </section>
 
         <section
-          className="artcadia-promo scroll-animate fade-in"
-          ref={artcadiaRef}
+          className="canart-promo scroll-animate fade-in"
+          ref={canartRef}
         >
           <div className="promo-content">
             <div className="badge">Nouveau</div>
-            <h2>Art'Cadia x Centraliz</h2>
+            <h2>Canart'Man x Centraliz</h2>
             <p>
               Le futur BDA s'associe à Centraliz pour te proposer une expérience
               culturelle inédite
@@ -179,7 +179,7 @@ const LoginListe = () => {
             </ul>
           </div>
           <div className="promo-visual">
-            <div className="artcadia-logo parallax" data-speed="0.1">
+            <div className="canart-logo parallax" data-speed="0.1">
               <span>A'C</span>
             </div>
           </div>

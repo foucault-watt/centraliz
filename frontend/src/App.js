@@ -1,9 +1,10 @@
 import React, { createContext, useEffect, useState } from "react";
 import Header from "./components/Header.js";
-import LoginPage from "./components/LoginPage.js"; // Ajoutez cette ligne
+import LoginListe from "./components/LoginListe.js";
 import Main from "./components/Main.js";
 import Onboarding from "./components/Onboarding.js"; // Ajoutez cette ligne
-import LoginListe from "./components/LoginListe.js";
+import "./styles/CanartNavigation.scss";
+import LoginPage from "./components/LoginPage.js";
 
 export const UserContext = createContext();
 
@@ -67,7 +68,7 @@ const App = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginListe />; // Afficher la page de connexion au lieu de rediriger
+    return <LoginPage />; // Afficher la page de connexion au lieu de rediriger
   }
 
   return (

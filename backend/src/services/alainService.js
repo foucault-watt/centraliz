@@ -5,6 +5,7 @@ const path = require("path");
 const apiKey = process.env.apiKey;
 const client = new Mistral({ apiKey });
 const canartPath = path.join(__dirname, "../data/canart.json");
+const jazzPath = path.join(__dirname, "../data/jazz.json");
 
 const initCanartFile = () => {
   if (!fs.existsSync(path.dirname(canartPath))) {
@@ -12,6 +13,15 @@ const initCanartFile = () => {
   }
   if (!fs.existsSync(canartPath)) {
     fs.writeFileSync(canartPath, JSON.stringify({ users: {} }));
+  }
+};
+
+const initJazzFile = () => {
+  if (!fs.existsSync(path.dirname(jazzPath))) {
+    fs.mkdirSync(path.dirname(jazzPath), { recursive: true });
+  }
+  if (!fs.existsSync(jazzPath)) {
+    fs.writeFileSync(jazzPath, JSON.stringify({ conversations: {} }));
   }
 };
 
@@ -29,7 +39,27 @@ const incrementUserCount = (userName) => {
   fs.writeFileSync(canartPath, JSON.stringify(data));
 };
 
-const chat = async (message, userName) => {
+const saveConversation = (userName, displayName, userMessage, botResponse) => {
+  initJazzFile();
+  const data = JSON.parse(fs.readFileSync(jazzPath, "utf8"));
+
+  if (!data.conversations[userName]) {
+    data.conversations[userName] = {
+      displayName: displayName,
+      messages: [],
+    };
+  }
+
+  data.conversations[userName].messages.push({
+    timestamp: new Date().toISOString(),
+    userMessage: userMessage,
+    botResponse: botResponse,
+  });
+
+  fs.writeFileSync(jazzPath, JSON.stringify(data, null, 2));
+};
+
+const chat = async (message, userName, displayName) => {
   if (!checkUserLimit(userName)) {
     return {
       content:
@@ -45,6 +75,15 @@ const chat = async (message, userName) => {
   });
 
   incrementUserCount(userName);
+
+  // Enregistrer la conversation
+  saveConversation(
+    userName,
+    displayName,
+    message,
+    response.choices[0].message.content
+  );
+
   return response.choices[0].message;
 };
 

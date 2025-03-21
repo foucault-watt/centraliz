@@ -264,6 +264,72 @@
   }
 }
 
+// Styles pour le module Canart avec navigation
+.div-canart {
+  padding-top: 10px;
+  position: relative;
+  min-height: 500px; // Assurer un espace minimum pour éviter les sauts de page
+
+  .canart-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px; // Espace pour éviter le chevauchement avec la navigation fixée
+  }
+
+  .canart-section {
+    @extend %card;
+    background: $background-module;
+    margin-bottom: 20px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+
+    .section-header {
+      margin-bottom: 15px;
+
+      h2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: $second;
+        font-size: 1.2rem;
+        font-weight: 600;
+
+        .section-icon {
+          font-size: 1.5em;
+        }
+      }
+    }
+
+    &.hidden {
+      display: none;
+    }
+
+    &.visible {
+      display: block;
+      animation: fadeIn 0.3s ease forwards;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .div-canart {
+    .canart-section {
+      scroll-margin-top: 80px; // Augmenté pour accommoder la navigation fixée
+    }
+  }
+}
+
 // Animation pour le pulsing dot
 @keyframes pulse {
   0% {

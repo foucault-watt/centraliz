@@ -8,9 +8,13 @@ router.post("/chat", async (req, res) => {
   }
 
   try {
+    const userName = req.session.user.userName;
+    const displayName = req.session.user.displayName;
+
     const response = await alainService.chat(
       req.body.message,
-      req.session.user.userName
+      userName,
+      displayName
     );
     res.json(response);
   } catch (error) {

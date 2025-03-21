@@ -1,0 +1,83 @@
+@import "./settings";
+
+.canart-nav {
+  width: 100%;
+  transition: $transition;
+  z-index: 1000;
+  padding: 15px 0;
+
+  .canart-nav-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+
+    @media (max-width: 768px) {
+      overflow-x: auto;
+      justify-content: flex-start;
+      padding: 0 10px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  }
+
+  .canart-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: $background-module;
+    color: $second;
+    border: none;
+    border-radius: $border-radius;
+    font-weight: 500;
+    cursor: pointer;
+    transition: $transition;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    &:hover {
+      background-color: darken($background-module, 3%);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      background-color: $main;
+      color: white;
+      box-shadow: 0 4px 12px rgba($main, 0.3);
+
+      &:hover {
+        background-color: darken($main, 5%);
+      }
+    }
+
+    .nav-icon {
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-label {
+      font-size: 0.95rem;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

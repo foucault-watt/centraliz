@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useState } from "react";
 import { pagesConfig } from "../config/pages";
 import Alain from "./Alain";
 import ClaCalendar from "./ClaCalendar";
-import Defis from "./Defis";
+import Aprem from "./Aprem";
 import Events from "./Events";
 import HpCalendar from "./HpCalendar";
 import Links from "./Links";
@@ -73,7 +73,7 @@ function Main() {
               <Alain />
             </div>
             <div className="defis-trombi-wrapper">
-              <Defis />
+              <Aprem />
               <Trombi />
             </div>
           </div>

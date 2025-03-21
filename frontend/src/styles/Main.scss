@@ -75,7 +75,7 @@
 // Navigation styles
 .app-navigation {
   position: fixed;
-  bottom: 20px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
@@ -294,8 +294,8 @@
 
     .nav-item {
       padding: 12px;
-      width: 44px;
-      height: 44px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       display: flex;
       align-items: center;

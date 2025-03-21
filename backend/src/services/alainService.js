@@ -19,7 +19,7 @@ const checkUserLimit = (userName) => {
   initCanartFile();
   const data = JSON.parse(fs.readFileSync(canartPath, "utf8"));
   if (!data.users[userName]) data.users[userName] = { count: 0 };
-  return data.users[userName].count < 10;
+  return data.users[userName].count < 30;
 };
 
 const incrementUserCount = (userName) => {
@@ -33,7 +33,7 @@ const chat = async (message, userName) => {
   if (!checkUserLimit(userName)) {
     return {
       content:
-        "Désolé, vous avez atteint votre limite de 10 requêtes. \nDemandez à Foucault de vous rajouter des requêtes pour continuer de discuter avec Alain.",
+        "Désolé, vous avez atteint votre limite de 30 requêtes. \nDemandez à Foucault de vous rajouter des requêtes pour continuer de discuter avec Jazz.",
       role: "assistant",
       limitReached: true,
     };

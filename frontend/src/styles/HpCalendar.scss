@@ -1,5 +1,6 @@
 .hp-calendar {
   animation: slideInFromBottom 0.6s ease-out;
+  z-index: 1; // Assurer que le calendrier est au-dessus du fond
 
   // En-tête du calendrier
   .calendar-header {
@@ -634,6 +635,165 @@
   }
 }
 
+// Style pour les pastilles d'événements spéciaux
+.event-bubble {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: $main;
+  box-shadow: 0 2px 8px rgba($main, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20; // Garder un z-index élevé pour les bulles normales
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: bubblePulse 2s infinite alternate;
+  transform: translate(-50%, -50%);
+
+  &.weekend {
+    background-color: $orange;
+    box-shadow: 0 2px 8px rgba($orange, 0.4);
+
+    &.hovered {
+      background-color: darken($orange, 10%);
+
+      .event-bubble-hover {
+        background: linear-gradient(135deg, $orange, darken($orange, 15%));
+        box-shadow: 0 4px 15px rgba($orange, 0.5);
+      }
+    }
+  }
+
+  &.out-of-hours {
+    animation: bubblePulseStrong 1.5s infinite alternate;
+
+    &:after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      animation: ringPulse 2s infinite;
+    }
+  }
+
+  &.hovered {
+    width: auto;
+    height: auto;
+    min-width: 150px; // Assurer une largeur minimale
+    border-radius: 10px;
+    background-color: transparent;
+    box-shadow: none;
+    animation: none;
+    z-index: 100; // Augmentation importante du z-index pour être au-dessus de tout
+    cursor: default; // Changer le curseur car plus cliquable
+
+    &:after {
+      display: none;
+    }
+  }
+
+  .event-bubble-icon {
+    color: white;
+    animation: iconSpin 5s linear infinite;
+    pointer-events: none; // Important pour éviter des problèmes de hover
+  }
+
+  .event-bubble-hover {
+    background: linear-gradient(135deg, $main, darken($main, 15%));
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: white;
+    min-width: 180px;
+    max-width: 250px;
+    box-shadow: 0 4px 15px rgba($main, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    animation: fadeInScale 0.25s ease-out; // Ajouter une animation d'entrée
+    pointer-events: none; // Éviter que le hover se perde en passant sur un enfant
+
+    .event-bubble-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .event-bubble-subtitle {
+      font-style: italic;
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    .event-bubble-time,
+    .event-bubble-location,
+    .event-bubble-theme {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 3px 6px;
+      border-radius: 4px;
+      margin-top: 2px;
+
+      svg {
+        flex-shrink: 0;
+      }
+
+      .time-note {
+        margin-left: 3px;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+// Style supplémentaire pour les événements spéciaux dans le modal
+.event-details.special-event {
+  .event-main-title {
+    position: relative;
+
+    .event-subtitle {
+      display: block;
+      font-size: 1rem;
+      font-weight: normal;
+      font-style: italic;
+      opacity: 0.8;
+      margin-top: 0.25rem;
+    }
+  }
+
+  .detail-row {
+    &.date-detail .icon-container {
+      background: rgba(blue, 0.1);
+      color: blue;
+    }
+
+    &.time-detail {
+      .icon-container {
+        background: rgba($green, 0.1);
+        color: $green;
+      }
+
+      .time-note {
+        font-size: 0.85rem;
+        color: $orange;
+        font-style: italic;
+        margin-left: 4px;
+      }
+    }
+
+    &.theme-detail .icon-container {
+      background: rgba(purple, 0.1);
+      color: purple;
+    }
+  }
+}
+
 // Modal
 .modal-overlay {
   position: fixed; // Changé de 'absolute' à 'fixed'
@@ -1112,6 +1272,21 @@
     width: 95%;
     margin: 0.5rem;
   }
+
+  .event-bubble {
+    width: 18px;
+    height: 18px;
+
+    .event-bubble-hover {
+      min-width: 150px;
+      max-width: 200px;
+      padding: 6px 10px;
+
+      .event-bubble-title {
+        font-size: 0.85rem;
+      }
+    }
+  }
 }
 
 // Animations essentielles
@@ -1200,5 +1375,55 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes bubblePulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@keyframes bubblePulseStrong {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+@keyframes ringPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes iconSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Ajouter une animation d'échelle pour l'apparition de l'infobulle
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

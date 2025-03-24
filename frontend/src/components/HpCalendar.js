@@ -5,9 +5,12 @@ import {
   BookOpen,
   Briefcase,
   CircleChevronDown,
+  Clock,
   DoorClosed,
   GraduationCap,
   MapPin,
+  Music,
+  Star,
   Users,
   X,
 } from "lucide-react";
@@ -22,6 +25,8 @@ import React, {
 } from "react";
 import ReactDOM from "react-dom";
 import { UserContext } from "../App";
+import { admin } from "../data/admin";
+import { events as specialEvents } from "../data/events";
 
 moment.locale("fr");
 
@@ -130,6 +135,8 @@ const HpCalendar = () => {
   const [externalCalendarUrl, setExternalCalendarUrl] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [hoveredEventId, setHoveredEventId] = useState(null);
 
   const closeModal = () => {
     setShowModal(false);
@@ -255,6 +262,12 @@ const HpCalendar = () => {
   }, [icalData]);
 
   const handleSelectEvent = async (event) => {
+    // Si c'est un événement spécial (déterminé par le fait qu'il n'a pas de propriété 'start'),
+    // ne pas ouvrir le modal
+    if (!event.start) {
+      return;
+    }
+
     setAnswers({});
     setErrorMessage("");
     setSubmitSuccess(false);
@@ -777,16 +790,323 @@ const HpCalendar = () => {
     return r.salle && matchesSearch(r.salle, searchQuery);
   });
 
-  // Ajouter cette fonction juste avant le return du composant HpCalendar
+  // Vérifier si l'utilisateur est admin
+  useEffect(() => {
+    if (userName && admin.includes(userName)) {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, [userName]);
+
+  // Méthode pour formater les événements spéciaux
+  const formattedSpecialEvents = useMemo(() => {
+    if (!isAdmin) return [];
+
+    let result = [];
+    specialEvents.forEach((event, index) => {
+      if (event.events) {
+        // Format avec sous-événements
+        event.events.forEach((subEvent, subIndex) => {
+          const eventId = `event-${index}-${subIndex}`;
+
+          // Extraire l'heure du début si disponible
+          let hour = 12; // Valeur par défaut à midi
+          let minute = 0;
+
+          if (subEvent.time) {
+            const timeMatch = subEvent.time.match(/^(\d{1,2}):(\d{2})/);
+            if (timeMatch) {
+              hour = parseInt(timeMatch[1]);
+              minute = parseInt(timeMatch[2]);
+            } else {
+              // Si le format est "HH:MM-HH:MM"
+              const timeRangeMatch = subEvent.time.match(
+                /^(\d{1,2}):?(\d{2})?-/
+              );
+              if (timeRangeMatch) {
+                hour = parseInt(timeRangeMatch[1]);
+                minute = timeRangeMatch[2] ? parseInt(timeRangeMatch[2]) : 0;
+              }
+            }
+          }
+
+          result.push({
+            id: eventId,
+            name: subEvent.name,
+            subname: subEvent.subname || null,
+            date: moment(event.date),
+            time: subEvent.time || null,
+            location: subEvent.location || null,
+            theme: subEvent.theme || null,
+            hour,
+            minute,
+          });
+        });
+      } else {
+        // Format événement simple
+        const eventId = `event-${index}`;
+
+        // Extraire l'heure du début si disponible
+        let hour = 12; // Valeur par défaut à midi
+        let minute = 0;
+
+        if (event.time) {
+          const timeMatch = event.time.match(/^(\d{1,2}):(\d{2})/);
+          if (timeMatch) {
+            hour = parseInt(timeMatch[1]);
+            minute = parseInt(timeMatch[2]);
+          } else {
+            // Si le format est "HH:MM-HH:MM"
+            const timeRangeMatch = event.time.match(/^(\d{1,2}):?(\d{2})?-/);
+            if (timeRangeMatch) {
+              hour = parseInt(timeRangeMatch[1]);
+              minute = timeRangeMatch[2] ? parseInt(timeRangeMatch[2]) : 0;
+            }
+          }
+        }
+
+        result.push({
+          id: eventId,
+          name: event.name,
+          date: moment(event.date),
+          time: event.time || null,
+          location: event.location || null,
+          hour,
+          minute,
+        });
+      }
+    });
+
+    return result;
+  }, [isAdmin]);
+
+  // Filtrer les événements visibles pour la semaine courante
+  const visibleSpecialEvents = useMemo(() => {
+    if (!formattedSpecialEvents.length) return [];
+
+    // Obtenir les jours actuellement visibles
+    const visibleDays = isMobile
+      ? [currentDate.format("YYYY-MM-DD")] // Sur mobile, seulement le jour actuel
+      : weekDays.map((day) => day.format("YYYY-MM-DD")); // Sur desktop, les 5 jours de la semaine
+
+    // Inclure les weekends qui touchent à la semaine visible
+    // (pour afficher les bulles qui doivent apparaître sur les bords)
+    const startOfVisibleWeek = moment(visibleDays[0])
+      .subtract(1, "day")
+      .format("YYYY-MM-DD");
+    const endOfVisibleWeek = moment(visibleDays[visibleDays.length - 1])
+      .add(1, "day")
+      .format("YYYY-MM-DD");
+
+    return formattedSpecialEvents.filter((event) => {
+      const eventDate = event.date.format("YYYY-MM-DD");
+      // Garder les événements du jour visible ou weekend adjacent
+      const isVisible = visibleDays.includes(eventDate);
+      const isAdjacentWeekend =
+        (event.date.day() === 0 || event.date.day() === 6) &&
+        (eventDate === startOfVisibleWeek || eventDate === endOfVisibleWeek);
+
+      return isVisible || isAdjacentWeekend;
+    });
+  }, [formattedSpecialEvents, currentDate, isMobile, weekDays]);
+
+  // Calculer la position des pastilles d'événements
+  const getEventBubblePosition = useCallback(
+    (event) => {
+      const dayOfWeek = event.date.day();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const dayIndex = isWeekend
+        ? dayOfWeek === 0
+          ? 0
+          : 4 // Dimanche à gauche, Samedi à droite
+        : dayOfWeek - 1; // Lundi=0, Mardi=1, etc.
+
+      // Position initiale basée sur le jour
+      let position = {
+        top: "0px",
+        left: "0px",
+      };
+
+      // Ajuster l'heure pour les événements trop tôt ou trop tard
+      let adjustedHour = event.hour;
+      let adjustedMinute = event.minute;
+
+      // Avant 8h, positionner un peu plus bas que le haut
+      if (adjustedHour < 8) {
+        adjustedHour = 8;
+        adjustedMinute = 5; // Un peu après le début de 8h
+      }
+
+      // Après 18h (fin du calendrier), positionner un peu plus haut que la fin
+      if (adjustedHour >= 18) {
+        adjustedHour = 17;
+        adjustedMinute = 45; // Un peu avant la fin de 17h
+      }
+
+      // Sur mobile, on positionne différemment
+      if (isMobile) {
+        // Vérifier si l'événement est aujourd'hui
+        if (event.date.isSame(currentDate, "day")) {
+          const hourOffset = adjustedHour - 8; // 8h est l'heure de début
+          const minutePercent = adjustedMinute / 60;
+          const topPosition = hourOffset + minutePercent;
+
+          position = {
+            top: `${topPosition * 45 + 30}px`, // 45px par heure + 30px pour le header
+            right: "12px",
+            left: "auto",
+          };
+        } else {
+          // Si pas aujourd'hui, positionner au bord
+          const isBefore = event.date.isBefore(currentDate, "day");
+          position = isBefore
+            ? { top: "50px", left: "12px" }
+            : { bottom: "50px", right: "12px", top: "auto", left: "auto" };
+        }
+        return position;
+      }
+
+      // Pour desktop
+      if (isWeekend) {
+        // Positionner les événements du weekend près des jours ouvrable proches
+        // (vendredi ou lundi)
+        const hourOffset = adjustedHour - 8; // 8h est l'heure de début
+        const minutePercent = adjustedMinute / 60;
+        const topPosition = hourOffset + minutePercent;
+
+        position = {
+          top: `${30 + topPosition * 45}px`,
+          // Dimanche à gauche du calendrier, samedi à droite
+          left: dayOfWeek === 0 ? "-16px" : "calc(100% + 8px)",
+        };
+      } else {
+        // Pour les jours visibles, positionner dans la cellule correspondante
+        const columnIndex = dayOfWeek - 1; // Lundi=0, Mardi=1, etc
+        const cellWidth = 100 / 5; // 5 jours visibles
+
+        const hourOffset = adjustedHour - 8; // 8h est l'heure de début
+        const minutePercent = adjustedMinute / 60;
+        const topPosition = hourOffset + minutePercent;
+
+        position = {
+          top: `${30 + topPosition * 45}px`,
+          left: `${60 + columnIndex * cellWidth}%`, // 60px pour la colonne des heures
+        };
+      }
+
+      return position;
+    },
+    [currentDate, isMobile]
+  );
+
+  // Composant pour les pastilles d'événements
+  const EventBubble = ({ event }) => {
+    const position = getEventBubblePosition(event);
+    const isHovered = hoveredEventId === event.id;
+
+    // Déterminer si l'événement est en dehors des heures normales
+    const isOutOfHours = event.hour < 8 || event.hour >= 18;
+
+    const handleClick = () => {
+      setSelectedEvent({
+        title: event.name,
+        subname: event.subname,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        theme: event.theme,
+        isSpecialEvent: true,
+        outOfHours: isOutOfHours,
+      });
+      setShowModal(true);
+    };
+
+    return (
+      <div
+        className={`event-bubble ${isHovered ? "hovered" : ""} ${
+          event.date.day() === 0 || event.date.day() === 6 ? "weekend" : ""
+        } ${isOutOfHours ? "out-of-hours" : ""}`}
+        style={position}
+        onMouseEnter={() => setHoveredEventId(event.id)}
+        onMouseLeave={() => setHoveredEventId(null)}
+        onClick={handleClick}
+      >
+        {isHovered ? (
+          <div className="event-bubble-hover">
+            <div className="event-bubble-title">{event.name}</div>
+            {event.subname && (
+              <div className="event-bubble-subtitle">{event.subname}</div>
+            )}
+            {event.time && (
+              <div className="event-bubble-time">
+                <Clock size={12} /> {event.time}
+                {isOutOfHours && <span className="time-note">*</span>}
+              </div>
+            )}
+            {event.location && (
+              <div className="event-bubble-location">
+                <MapPin size={12} /> {event.location}
+              </div>
+            )}
+            {event.theme && (
+              <div className="event-bubble-theme">
+                <Music size={12} /> {event.theme}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="event-bubble-icon">
+            <Star size={12} />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Add search debouncing
+  useEffect(() => {
+    if (!searchQuery) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setIsSearching(true);
+      const results = filterSearchResults();
+      setSearchResults(results);
+      setIsSearching(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Add helper function for search
+  const filterSearchResults = () => {
+    switch (selectedCategory) {
+      case "students":
+        return filteredUsers;
+      case "professors":
+        return filteredProfessors;
+      case "rooms":
+        return filteredRooms;
+      default:
+        return [];
+    }
+  };
+
+  // Modifier le renderModals pour gérer les événements spéciaux
   const renderModals = () => {
     if (!showModal && !showEvaluationModal) return null;
 
     return ReactDOM.createPortal(
       <>
-        {showModal && selectedEvent && (
+        {showModal && selectedEvent && !selectedEvent.isSpecialEvent && (
           <div className="modal-overlay" onClick={closeModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Détails de l'événement</h2>
+
               <div className="event-details">
                 <div className="event-main-title">{selectedEvent.title}</div>
 
@@ -825,7 +1145,6 @@ const HpCalendar = () => {
                 )}
               </div>
 
-              {/* ... reste du code du modal ... */}
               {selectedEvent.className?.includes("shared") ? (
                 <div className="evaluation-notice">
                   Vous ne pouvez pas évaluer les cours de quelqu'un d'autre
@@ -847,6 +1166,8 @@ const HpCalendar = () => {
             </div>
           </div>
         )}
+
+        {/* Code existant pour le modal d'évaluation */}
         {showEvaluationModal && evaluationConfig && (
           <div className="modal-overlay" onClick={closeModal}>
             <div
@@ -917,38 +1238,6 @@ const HpCalendar = () => {
       </>,
       document.body
     );
-  };
-
-  // Add search debouncing
-  useEffect(() => {
-    if (!searchQuery) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setIsSearching(true);
-      const results = filterSearchResults();
-      setSearchResults(results);
-      setIsSearching(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Add helper function for search
-  const filterSearchResults = () => {
-    switch (selectedCategory) {
-      case "students":
-        return filteredUsers;
-      case "professors":
-        return filteredProfessors;
-      case "rooms":
-        return filteredRooms;
-      default:
-        return [];
-    }
   };
 
   return (
@@ -1250,6 +1539,12 @@ const HpCalendar = () => {
             />
           ))
         )}
+
+        {/* Ajouter les événements spéciaux sous forme de pastilles */}
+        {isAdmin &&
+          visibleSpecialEvents.map((event) => (
+            <EventBubble key={event.id} event={event} />
+          ))}
       </div>
 
       {renderModals()}

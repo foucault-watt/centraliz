@@ -16,6 +16,8 @@ const statsRoutes = require("../routes/stats");
 const rankRoutes = require("../routes/ranking");
 const coefRoutes = require("../routes/coef");
 const alainRoutes = require("../routes/alain");
+const apremRoutes = require("../routes/aprem");
+const cadsRoutes = require("../routes/cads"); // Nouvelle route CADS
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -73,10 +75,14 @@ app.use("/api", statsRoutes);
 app.use("/api", rankRoutes);
 app.use("/api/coef", coefRoutes);
 app.use("/api/alain", alainRoutes);
+app.use("/api/aprem", apremRoutes);
+app.use("/api/artcadia", cadsRoutes); // Ajout de la route CADS
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
-  res.send("CRASH");
+  res.send(
+    "Bravo, vous avez crashé le serveur ! \nC'est malin !\nTu es fier de toi ?\nNan mais sérieux, pourquoi tu fais ça ?\nBon, je vais redémarrer le serveur, mais c'est la dernière fois !\nLes gens qui font ça, c'est pas bien !\nJe suis déçu..."
+  );
   process.exit(1);
 });
 

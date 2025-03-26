@@ -1,7 +1,14 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { UserContext } from "../App";
 import { pagesConfig } from "../config/pages";
-import { admin } from "../data/admin";
+// Supprimer l'import de admin
+// import { admin } from "../data/admin";
 import Alain from "./Alain";
 import Aprem from "./Aprem";
 import CanartNavigation from "./CanartNavigation";
@@ -19,32 +26,53 @@ function Main() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeCanartSection, setActiveCanartSection] = useState("events");
   const { userName } = useContext(UserContext);
+  const [isCadsUser, setIsCadsUser] = useState(false);
 
-  // Vérifier si l'utilisateur est un administrateur
-  const isAdmin = useMemo(() => {
-    return admin.includes(userName);
+  // Supprimer la vérification admin
+  // const isAdmin = useMemo(() => {
+  //   return admin.includes(userName);
+  // }, [userName]);
+
+  // Ajouter la vérification CADS
+  useEffect(() => {
+    const checkCadsStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/artcadia/users/check?userName=${userName}`
+        );
+        const data = await response.json();
+        setIsCadsUser(data.isCanartUser);
+      } catch (error) {
+        console.error("Erreur lors de la vérification CADS:", error);
+        setIsCadsUser(false);
+      }
+    };
+
+    if (userName) {
+      checkCadsStatus();
+    }
   }, [userName]);
 
   // Configuration des modules Canart - centraliser ici pour faciliter l'ajout/suppression
   const canartModules = [
-    {
-      id: "events",
-      label: "Évents",
-      icon: "🗓️",
-      component: Events,
-    },
+    // {
+    //   id: "events",
+    //   label: "Évents",
+    //   icon: "🗓️",
+    //   component: Events,
+    // },
     {
       id: "alain",
-      label: "Jazz",
+      label: "Jazz AI",
       icon: "🤖",
       component: Alain,
     },
-    {
-      id: "aprem",
-      label: "Aprem Rez",
-      icon: "☀️",
-      component: Aprem,
-    },
+    // {
+    //   id: "aprem",
+    //   label: "Aprem Rez",
+    //   icon: "☀️",
+    //   component: Aprem,
+    // },
     {
       id: "trombi",
       label: "Trombi",
@@ -53,10 +81,10 @@ function Main() {
     },
   ];
 
-  // Filtrer les pages de configuration pour n'inclure "canart" que pour les administrateurs
+  // Modifier le filtrage des pages
   const filteredPagesConfig = useMemo(() => {
-    return pagesConfig.filter((page) => page.id !== "canart" || isAdmin);
-  }, [isAdmin]);
+    return pagesConfig.filter((page) => page.id !== "canart" || isCadsUser);
+  }, [isCadsUser]);
 
   const handleNavigation = useCallback(
     (newIndex) => {
@@ -116,8 +144,8 @@ function Main() {
           </div>
         );
       case "canart":
-        // Ne rendre le contenu Canart que si l'utilisateur est administrateur
-        if (!isAdmin) return null;
+        // Modifier la condition d'affichage
+        if (!isCadsUser) return null;
 
         return (
           <div className="div-canart">
@@ -140,12 +168,6 @@ function Main() {
                       activeCanartSection === module.id ? "visible" : "hidden"
                     }`}
                   >
-                    <div className="section-header">
-                      <h2>
-                        <span className="section-icon">{module.icon}</span>
-                        {module.label}
-                      </h2>
-                    </div>
                     <ModuleComponent />
                   </div>
                 );

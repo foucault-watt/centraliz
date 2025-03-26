@@ -1,15 +1,18 @@
 // backend/src/services/casService.js
 const axios = require("axios");
-const loginService = require('./loginService');
-const fs = require('fs');
-const path = require('path');
+const loginService = require("./loginService");
+const fs = require("fs");
+const path = require("path");
+const cadsService = require("./cadsService");
 
 const casBaseURL = "https://cas.centralelille.fr";
 const serviceURL = `${process.env.URL_BACK}/api/auth/callback`;
-const USER_DATA_FILE = path.join(__dirname, '../data/users.json');
+const USER_DATA_FILE = path.join(__dirname, "../data/users.json");
 
 exports.login = (req, res) => {
-  const loginUrl = `${casBaseURL}/login?service=${encodeURIComponent(serviceURL)}`;
+  const loginUrl = `${casBaseURL}/login?service=${encodeURIComponent(
+    serviceURL
+  )}`;
   res.redirect(loginUrl);
 };
 
@@ -22,42 +25,67 @@ exports.callback = async (req, res) => {
   }
 
   try {
-    const validateUrl = `${casBaseURL}/p3/serviceValidate?service=${encodeURIComponent(serviceURL)}&ticket=${ticket}`;
+    const validateUrl = `${casBaseURL}/p3/serviceValidate?service=${encodeURIComponent(
+      serviceURL
+    )}&ticket=${ticket}`;
     const response = await axios.get(validateUrl);
 
     // Amélioration de l'extraction des données XML
     const xmlData = response.data;
+
     const userName = xmlData.match(/<cas:user>(.*?)<\/cas:user>/)?.[1];
-    
+
     // Nouvelle méthode pour extraire displayName depuis les attributs
-    const displayName = xmlData.match(/<cas:displayName>(.*?)<\/cas:displayName>/)?.[1];
+    const displayName = xmlData.match(
+      /<cas:displayName>(.*?)<\/cas:displayName>/
+    )?.[1];
 
     if (!userName) {
-      console.error("[CAS Service] Nom d'utilisateur non trouvé dans la réponse CAS");
+      console.error(
+        "[CAS Service] Nom d'utilisateur non trouvé dans la réponse CAS"
+      );
       return res.status(401).send("Échec de l'authentification CAS.");
     }
 
     // Sauvegarde ou mise à jour des informations utilisateur
-    const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
+    const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, "utf-8"));
     if (!users[userName]) {
       // Nouvel utilisateur
       users[userName] = {
         userName: userName,
         displayName: displayName || null,
-        icalLink: null
+        icalLink: null,
       };
     } else {
       // Mise à jour du displayName pour un utilisateur existant
       users[userName].displayName = displayName || users[userName].displayName;
     }
-    
+
     fs.writeFileSync(USER_DATA_FILE, JSON.stringify(users, null, 2));
     console.log("[CAS Service] Utilisateur mis à jour:", users[userName]);
 
     req.session.user = { userName, casTicket: ticket, displayName };
     loginService.addLogin(displayName);
-    res.redirect(process.env.URL_FRONT);
 
+    // Vérifier s'il y a une demande d'enregistrement CADS en attente
+    if (req.session.cadsRegistrationPending) {
+      // Ajouter l'utilisateur au service CADS
+      const success = cadsService.addUser({
+        userName: userName,
+        displayName: displayName || userName,
+      });
+
+      // Nettoyer la session
+      delete req.session.cadsRegistrationPending;
+
+      // Rediriger vers la page de succès CADS
+      return res.redirect(
+        `${process.env.URL_FRONT}`
+      );
+    }
+
+    // Redirection standard après authentification
+    res.redirect(process.env.URL_FRONT);
   } catch (error) {
     console.error("[CAS Service] Erreur complète:", error);
     console.error("[CAS Service] Réponse CAS:", error.response?.data);

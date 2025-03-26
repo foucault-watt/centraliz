@@ -14,6 +14,8 @@ const allowedFiles = [
   "coef.json",
   "canart.json",
   "jazz.json",
+  "aprem.json",
+  "cads-users.json",
 ];
 
 router.get(`/public-data/${process.env.SECRET_API}/last`, (req, res) => {

@@ -1,0 +1,60 @@
+{
+  "players": {
+    "fwattinn": {
+      "stands": {
+        "taureau": false,
+        "bowling": true,
+        "alibi": true,
+        "pancake": true,
+        "atelier": true
+      },
+      "canards": 1,
+      "trialCount": 1
+    }
+  },
+  "trials": {
+    "1742949350597fwattinn": {
+      "userName": "fwattinn",
+      "timestamp": 1742949350596,
+      "status": "validated",
+      "expiresAt": 1742949470596
+    }
+  },
+  "standRequests": {
+    "1742909672518fwattinnalibi": {
+      "userName": "fwattinn",
+      "stand": "alibi",
+      "timestamp": 1742909672516,
+      "status": "validated",
+      "expiresAt": 1742909792516
+    },
+    "1742909680948fwattinnpancake": {
+      "userName": "fwattinn",
+      "stand": "pancake",
+      "timestamp": 1742909680945,
+      "status": "rejected",
+      "expiresAt": 1742909800945
+    },
+    "1742949226940fwattinnatelier": {
+      "userName": "fwattinn",
+      "stand": "atelier",
+      "timestamp": 1742949226937,
+      "status": "validated",
+      "expiresAt": 1742949346937
+    },
+    "1742949335561fwattinnbowling": {
+      "userName": "fwattinn",
+      "stand": "bowling",
+      "timestamp": 1742949335557,
+      "status": "validated",
+      "expiresAt": 1742949455557
+    },
+    "1742949345018fwattinnpancake": {
+      "userName": "fwattinn",
+      "stand": "pancake",
+      "timestamp": 1742949345005,
+      "status": "validated",
+      "expiresAt": 1742949465005
+    }
+  }
+}

@@ -1,5 +1,6 @@
-export const admin = [
-  "fwattinn",
+// Liste des administrateurs autorisés
+const admin = [
+  "fwatktinn",
   "jsion",
   "enicolao",
   "ekuster",
@@ -23,3 +24,5 @@ export const admin = [
   "lmoulin",
   "ajoatton",
 ];
+
+module.exports = admin;

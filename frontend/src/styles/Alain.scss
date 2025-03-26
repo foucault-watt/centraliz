@@ -1,11 +1,12 @@
 @import "./_settings";
 
 .chat-container {
-  max-width: 800px;
+  max-width: 600px;
   background: $background-module;
   border-radius: $border-radius;
   box-shadow: $shadow-default;
   overflow: hidden;
+  margin: 0 auto;
 
   .messages {
     height: 500px;

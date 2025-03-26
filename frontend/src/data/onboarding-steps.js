@@ -30,8 +30,8 @@ export const steps = [
       icon: "📱",
     },
     {
-      title: "Canart'Man",
-      content: "Canart'Man et Centraliz sont désormais unis ! Retrouve toutes les infos de ta liste préférée sur ton nouveau site préféré.",
+      title: "Art'Cadia",
+      content: "Art'Cadia et Centraliz sont désormais unis ! Retrouve toutes les infos de ta liste préférée sur ton nouveau site préféré.",
       icon: "🎨",
     },
     {

@@ -65,12 +65,12 @@ const LoginListe = () => {
         <p className="tagline">Simplifie ta vie étudiante à Centrale Lille</p>
       </header>
 
-      <div className="login-floating">
+      {/* <div className="login-floating">
         <button className="login-button primary" onClick={handleLogin}>
           <span>Se connecter</span>
           <span className="icon">→</span>
         </button>
-      </div>
+      </div> */}
 
       <main className="centraliz-content">
         <section className="hero-section">
@@ -146,13 +146,13 @@ const LoginListe = () => {
           </div>
         </section>
 
-        <section
+        {/* <section
           className="canart-promo scroll-animate fade-in"
           ref={canartRef}
         >
           <div className="promo-content">
             <div className="badge">Nouveau</div>
-            <h2>Canart'Man x Centraliz</h2>
+            <h2>Art'Cadia x Centraliz</h2>
             <p>
               Le futur BDA s'associe à Centraliz pour te proposer une expérience
               culturelle inédite
@@ -183,9 +183,9 @@ const LoginListe = () => {
               <span>A'C</span>
             </div>
           </div>
-        </section>
+        </section> */}
 
-        <section
+        {/* <section
           className="testimonials scroll-animate fade-in"
           ref={testimonialsRef}
         >
@@ -221,7 +221,7 @@ const LoginListe = () => {
               <div className="student-info">Léa, G3</div>
             </div>
           </div>
-        </section>
+        </section> */}
       </main>
 
       <footer className="centraliz-footer">

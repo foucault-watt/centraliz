@@ -1,0 +1,496 @@
+@import "settings";
+
+.trombi-container {
+  position: relative;
+  width: 100%;
+  height: 85vh;
+  overflow: hidden;
+  background-color: $background;
+  border-radius: $border-radius;
+  box-shadow: $shadow-default;
+}
+
+.trombi-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+  background-color: rgba($background-module, 0.8);
+  padding: 10px;
+  border-radius: 15px;
+  box-shadow: $shadow-default;
+
+  .zoom-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: $main;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: $transition;
+
+    &:hover {
+      background-color: $main-dark;
+      transform: scale(1.1);
+    }
+  }
+}
+
+.trombi-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  &.loading {
+    cursor: wait;
+  }
+}
+
+.loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba($main, 0.3);
+    border-top: 5px solid $main;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: $second;
+    font-weight: bold;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.trombi-image-container {
+  position: absolute;
+  transition: transform 0.1s ease-out, left 0.3s ease-out, top 0.3s ease-out;
+}
+
+.trombi-background {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  object-fit: contain;
+}
+
+.trombi-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 2;
+
+  // Ajustements pour être plus visible sur une grande image
+  .marker-dot {
+    width: 20px;
+    height: 20px;
+    background-color: $main;
+    border-radius: 50%;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s, background-color 0.3s;
+    border: 2px solid white; // Bordure blanche pour plus de visibilité
+  }
+
+  .marker-pulse {
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    width: 50px;
+    height: 50px;
+    background-color: rgba($main, 0.3);
+    border-radius: 50%;
+    z-index: 1;
+    animation: pulse 2s infinite;
+  }
+
+  .marker-label {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba($background-module, 0.9);
+    color: $second;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 14px; // Plus grand pour plus de lisibilité
+    font-weight: bold;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    box-shadow: $shadow-default;
+  }
+
+  &:hover {
+    .marker-dot {
+      transform: scale(1.3);
+      background-color: $main-dark;
+    }
+
+    .marker-label {
+      opacity: 1;
+    }
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.member-modal {
+  @extend %card;
+  background-color: $background-module;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.4s $transition-timing;
+  transform: none !important; // Override card hover effect
+
+  .close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: $second;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: $transition;
+
+    &:hover {
+      color: $main;
+      transform: rotate(90deg);
+    }
+  }
+
+  .member-details {
+    padding: 10px;
+
+    h2 {
+      font-size: 28px;
+      color: $main;
+      margin-bottom: 5px;
+    }
+
+    h3 {
+      font-size: 20px;
+      color: $second;
+      font-style: italic;
+      margin-bottom: 15px;
+    }
+
+    .member-role {
+      display: inline-block;
+      background-color: $main;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .member-description {
+      line-height: 1.6;
+      color: $second;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.trombi-minimap {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 115px;
+  height: 101px;
+  background-color: rgba($background-module, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: $shadow-default;
+
+  .minimap-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .viewport-indicator {
+    position: absolute;
+    border: 2px solid $main;
+    background-color: rgba($main, 0.1);
+    pointer-events: none;
+  }
+}
+
+@keyframes zoom {
+  from {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Mobile optimizations
+.mobile-instructions {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba($background-module, 0.9);
+  border-radius: 15px;
+  padding: 10px;
+  box-shadow: $shadow-default;
+  max-width: 90%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  animation: fadeIn 0.3s ease-out;
+  opacity: 0.9;
+
+  // Auto-hide after 8 seconds
+  animation: fadeInOut 8s forwards;
+
+  .instruction {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .gesture-icon {
+      font-size: 24px;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: $second;
+    }
+  }
+}
+
+.mobile-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $background-module;
+  border-radius: $border-radius $border-radius 0 0;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s $transition-timing;
+  z-index: 101;
+
+  .mobile-modal-header {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: $background-module;
+    border-bottom: 1px solid rgba($second, 0.1);
+    z-index: 2;
+
+    h2 {
+      margin: 0;
+      font-size: 24px;
+      color: $main;
+    }
+
+    .close-button {
+      border: none;
+      background: none;
+      color: $second;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+      cursor: pointer;
+    }
+  }
+
+  .mobile-modal-content {
+    padding: 15px;
+
+    h3 {
+      font-size: 18px;
+      color: $second;
+      font-style: italic;
+      margin-bottom: 15px;
+    }
+
+    .member-role {
+      display: inline-block;
+      background-color: $main;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .member-description {
+      line-height: 1.6;
+      color: $second;
+    }
+  }
+}
+
+// Adaptation des contrôles pour mobile
+@media (max-width: 768px) {
+  .trombi-container {
+    height: 90vh;
+  }
+
+  .trombi-controls {
+    bottom: 15px;
+    right: 15px;
+
+    .zoom-button {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  .trombi-minimap {
+    width: 80px;
+    height: 70px;
+    bottom: 15px;
+    left: 15px;
+  }
+
+  .trombi-marker {
+    .marker-dot {
+      width: 24px; // Plus grand pour être plus facile à toucher
+      height: 24px;
+    }
+
+    .marker-pulse {
+      width: 60px;
+      height: 60px;
+      top: -18px;
+      left: -18px;
+    }
+  }
+}
+
+// Animation pour les instructions qui disparaissent
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  10% {
+    opacity: 0.9;
+    transform: translateX(-50%) translateY(0);
+  }
+  80% {
+    opacity: 0.9;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+    visibility: hidden;
+  }
+}
+
+// Animation pour la modal mobile
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .trombi-container {
+    height: 70vh;
+  }
+
+  .member-modal {
+    width: 95%;
+  }
+}

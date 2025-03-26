@@ -6,7 +6,6 @@ const Navigation = ({
   isTyping,
   pagesConfig,
 }) => {
-
   return (
     <>
       <nav className="app-navigation">
@@ -25,7 +24,10 @@ const Navigation = ({
                 aria-label={item.label}
               >
                 <span className="nav-icon">
-                  <Icon size={20} />
+                  <Icon
+                    size={20}
+                    className={currentPageIndex === index ? "active" : ""}
+                  />
                 </span>
                 {/* Le label n'est visible que sur desktop grâce au CSS */}
                 <span className="nav-label">{item.label}</span>

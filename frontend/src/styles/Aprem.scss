@@ -1,0 +1,519 @@
+@import "settings";
+
+// Nouvelles animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes stampValidation {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.aprem-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.aprem-header {
+  text-align: center;
+  margin-bottom: 30px;
+
+  h1 {
+    color: $main-dark;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  p {
+    color: $second;
+    font-size: 1.2rem;
+    animation: slideIn 0.6s ease-out;
+  }
+}
+
+.aprem-stands {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $gap;
+  margin-bottom: 40px;
+}
+
+.stand-card {
+  @extend %card;
+  background-color: $background-module;
+  animation: fadeIn 0.3s ease-out;
+  animation-fill-mode: both;
+
+  @for $i from 1 through 5 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.1}s;
+    }
+  }
+
+  h3 {
+    color: $main-dark;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+  }
+
+  p {
+    color: $second;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+  }
+
+  .stamp-status {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+
+    .stamp {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+      &.validated {
+        background-color: $green;
+        color: white;
+        animation: stampValidation 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      &.not-validated {
+        background-color: $day-border;
+        color: $second;
+      }
+    }
+  }
+
+  .stand-action {
+    margin-top: 15px;
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border-radius: $border-radius;
+      border: none;
+      background-color: $main;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background-color: $main-dark;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      &:disabled {
+        background-color: $day-border;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.stand-pending {
+  background-color: $orange;
+  color: white;
+  padding: 10px;
+  border-radius: $border-radius;
+  text-align: center;
+  margin-top: 15px;
+  animation: pulse 2s infinite ease-in-out;
+
+  p {
+    margin-bottom: 5px;
+    color: white;
+  }
+
+  .timer {
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+}
+
+.aprem-rewards {
+  @extend %card;
+  background-color: $background-module;
+  margin-bottom: 40px;
+  animation: fadeIn 0.5s ease-out;
+  animation-delay: 0.3s;
+  animation-fill-mode: backwards;
+
+  h2 {
+    color: $main-dark;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .stamps-summary {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    .stamp-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      transition: all 0.3s ease;
+
+      &.active {
+        background-color: $green;
+        color: white;
+        animation: stampValidation 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      &.inactive {
+        background-color: $day-border;
+        color: $second;
+      }
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  .reward-info {
+    background-color: $day;
+    padding: 15px;
+    border-radius: $border-radius;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+      color: $main-dark;
+      margin-bottom: 10px;
+    }
+
+    .reward-rules {
+      margin-bottom: 15px;
+
+      li {
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        animation: slideIn 0.5s ease-out forwards;
+
+        @for $i from 1 through 3 {
+          &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.1 + 0.2}s;
+          }
+        }
+
+        &:before {
+          content: "•";
+          margin-right: 10px;
+          color: $main;
+        }
+      }
+    }
+
+    .canard-count,
+    .essai-count {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: $main-dark;
+      margin-bottom: 10px;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: $main;
+      }
+    }
+  }
+
+  .reward-action {
+    button {
+      width: 100%;
+      padding: 15px;
+      border-radius: $border-radius;
+      border: none;
+      background-color: $main;
+      color: white;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+
+      &:hover:not(:disabled) {
+        background-color: $main-dark;
+        transform: translateY(-3px);
+        box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      &:disabled {
+        background-color: $day-border;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.trial-pending {
+  @extend %card;
+  background-color: $orange;
+  color: white;
+  text-align: center;
+  margin-bottom: 40px;
+  animation: pulse 2s infinite ease-in-out;
+
+  h3 {
+    margin-bottom: 10px;
+  }
+
+  .timer {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 15px 0;
+  }
+
+  p {
+    margin-bottom: 10px;
+  }
+}
+
+.trial-disabled-message {
+  color: $orange;
+  text-align: center;
+  margin-top: 10px;
+  font-style: italic;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.error-message {
+  background-color: rgba($red, 0.1);
+  border-left: 4px solid $red;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  animation: slideIn 0.3s ease-out;
+
+  p {
+    color: darken($red, 10%);
+    margin: 0;
+  }
+}
+
+// Section Admin
+.admin-section {
+  background-color: #f0f8ff;
+  border: 2px solid $main;
+  border-radius: $border-radius;
+  padding: 20px;
+  margin-top: 40px;
+  animation: fadeIn 0.6s ease-out;
+  animation-delay: 0.5s;
+  animation-fill-mode: backwards;
+
+  h2 {
+    color: $main-dark;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 2px solid $main;
+    padding-bottom: 10px;
+  }
+
+  h3 {
+    color: $main;
+    margin: 20px 0 10px;
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .admin-trials,
+  .admin-stand-requests {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: $gap;
+    margin-bottom: 30px;
+  }
+
+  .trial-card,
+  .request-card {
+    @extend %card;
+    background-color: white;
+    animation: fadeIn 0.4s ease-out;
+    animation-fill-mode: both;
+
+    @for $i from 1 through 10 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.05 + 0.2}s;
+      }
+    }
+
+    h4 {
+      color: $main-dark;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .trial-info,
+    .request-info {
+      margin-bottom: 15px;
+
+      p {
+        margin-bottom: 5px;
+      }
+
+      .trial-time,
+      .request-time {
+        display: flex;
+        justify-content: space-between;
+        color: $orange;
+        font-weight: bold;
+      }
+    }
+
+    .trial-actions,
+    .request-actions {
+      display: flex;
+      gap: 10px;
+
+      button {
+        flex: 1;
+        padding: 10px;
+        border-radius: $border-radius;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &.validate {
+          background-color: $green;
+          color: white;
+
+          &:hover {
+            background-color: darken($green, 10%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+
+        &.cancel {
+          background-color: $red;
+          color: white;
+
+          &:hover {
+            background-color: darken($red, 10%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+  }
+
+  .no-requests,
+  .no-trials {
+    text-align: center;
+    padding: 25px;
+    color: $second;
+    font-style: italic;
+    animation: fadeIn 0.5s ease-out;
+    background-color: rgba($day-border, 0.3);
+    border-radius: $border-radius;
+  }
+}
+
+// Animation pour les transitions d'état
+.fade-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
+}

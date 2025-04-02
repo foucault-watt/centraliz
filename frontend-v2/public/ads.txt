@@ -1,0 +1,2 @@
+# Centraliz Ads.txt
+contact=foucault.wattinne@iteem.centralelille.fr

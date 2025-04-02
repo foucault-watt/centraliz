@@ -41,7 +41,15 @@
 .div-cla-calendar,
 .div-notes,
 .div-mail,
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 .div-links {
+=======
+.div-links > div > * {
+>>>>>>> Stashed changes
+=======
+.div-links > div > * {
+>>>>>>> Stashed changes
   @extend %card;
   background: $background-module;
 }
@@ -238,6 +246,24 @@
   }
 }
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+>>>>>>> Stashed changes
 // Animation pour le pulsing dot
 @keyframes pulse {
   0% {

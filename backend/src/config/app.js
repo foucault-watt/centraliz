@@ -14,7 +14,14 @@ const publicRoutes = require("../routes/publicData");
 const evaRoutes = require("../routes/eva");
 const statsRoutes = require("../routes/stats");
 const rankRoutes = require("../routes/ranking");
+<<<<<<< Updated upstream
 const coefRoutes = require('../routes/coef');
+=======
+const coefRoutes = require("../routes/coef");
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -70,7 +77,14 @@ app.use("/api", publicRoutes);
 app.use("/api/eva", evaRoutes);
 app.use("/api", statsRoutes);
 app.use("/api", rankRoutes);
+<<<<<<< Updated upstream
 app.use('/api/coef', coefRoutes);
+=======
+app.use("/api/coef", coefRoutes);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {

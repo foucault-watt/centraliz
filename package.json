@@ -1,11 +1,25 @@
 {
-    "name": "project-root",
-    "version": "1.0.0",
-    "scripts": {
-      "go": "concurrently \"npm --prefix frontend start\" \"npm --prefix backend run dev\""
-    },
-    "devDependencies": {
-      "concurrently": "^8.0.1"
-    }
+  "name": "centraliz-root",
+  "version": "1.1",
+  "scripts": {
+    "go": "concurrently \"npm --prefix frontend start\" \"npm --prefix backend run dev\"",
+    "goV2": "concurrently \"npm --prefix frontend-v2 start\" \"npm --prefix backend run dev\"",
+    "build": "npm --prefix frontend run build",
+    "buildV2": "npm --prefix frontend-v2 run build",
+    "deploy": "node deploy.js",
+    "deployV2": "node deployV2.js",
+    "rezo": "npm run build && npm run deploy",
+    "rezoV2": "npm run buildV2 && npm run deployV2"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.1",
+    "cli-progress": "^3.12.0",
+    "colors": "^1.4.0",
+    "concurrently": "^8.0.1",
+    "culori": "^3.2.0",
+    "dotenv": "^16.4.7",
+    "ora": "^5.4.1",
+    "ssh2-sftp-client": "^12.0.0",
+    "tailwindcss": "^4.1.1"
   }
-  
+}

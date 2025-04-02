@@ -75,11 +75,6 @@
 .cla-calendar {
   height: 500px;
   overflow-y: auto;
-  border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  padding: 15px;
 
   &::-webkit-scrollbar {
     width: 8px;

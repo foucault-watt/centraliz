@@ -1,20 +1,50 @@
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import React, { createContext, useCallback, useState } from "react";
 import { pagesConfig } from "../config/pages";
 import Bdi from "./Bdi";
+=======
+import React, { useCallback, useMemo, useState } from "react";
+import { pagesConfig } from "../config/pages";
+>>>>>>> Stashed changes
+=======
+import React, { useCallback, useMemo, useState } from "react";
+import { pagesConfig } from "../config/pages";
+>>>>>>> Stashed changes
 import ClaCalendar from "./ClaCalendar";
 import HpCalendar from "./HpCalendar";
 import Links from "./Links";
 import Mail from "./Mail";
 import Navigation from "./Navigation";
 import Notes from "./Notes";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 // Créer un contexte pour les logos
 export const LogoVisibilityContext = createContext(null);
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
 function Main() {
   const [currentPageIndex, setCurrentPageIndex] = useState(1); // index initial = Calendriers
   const [isTransitioning, setIsTransitioning] = useState(false);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const [logoVisibility, setLogoVisibility] = useState(false);
+=======
+=======
+>>>>>>> Stashed changes
+
+  // Modifier le filtrage des pages
+  const filteredPagesConfig = useMemo(() => {
+    return pagesConfig;
+  }, []);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
   const handleNavigation = useCallback(
     (newIndex) => {
@@ -29,7 +59,14 @@ function Main() {
     [isTransitioning]
   );
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Association des pages et leur contenu – adaptez le switch en fonction de vos composants
+=======
+=======
+>>>>>>> Stashed changes
+  // Association des pages et leur contenu
+>>>>>>> Stashed changes
   const renderPageContent = (pageId) => {
     switch (pageId) {
       case "notes":

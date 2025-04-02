@@ -274,7 +274,8 @@
     }
 
     .canard-count,
-    .essai-count {
+    .essai-count,
+    .points-count {
       font-size: 1.2rem;
       font-weight: bold;
       color: $main-dark;
@@ -284,6 +285,10 @@
       &:hover {
         color: $main;
       }
+    }
+
+    .points-count {
+      color: $green;
     }
   }
 
@@ -316,6 +321,50 @@
       &:disabled {
         background-color: $day-border;
         cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.point-selection {
+  background-color: rgba($day-border, 0.2);
+  padding: 10px;
+  border-radius: $border-radius;
+  margin: 10px 0;
+
+  p {
+    margin-bottom: 5px;
+  }
+
+  .point-options {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+
+    .point-option {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background-color: $day-border;
+      color: $second;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        transform: scale(1.1);
+        background-color: lighten($main, 20%);
+        color: white;
+      }
+
+      &.selected {
+        background-color: $main;
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 0 10px rgba($main, 0.4);
       }
     }
   }
@@ -495,6 +544,16 @@
   }
 }
 
+.admin-info {
+  background-color: #f8f9fa;
+  border-left: 4px solid #17a2b8;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
 // Animation pour les transitions d'état
 .fade-enter {
   opacity: 0;
@@ -516,4 +575,9 @@
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 300ms, transform 300ms;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }

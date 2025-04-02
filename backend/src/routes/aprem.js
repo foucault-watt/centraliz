@@ -122,10 +122,16 @@ router.get("/player-trials", async (req, res) => {
 
 // Valider un essai (admin seulement)
 router.post("/validate-trial", adminCheck, async (req, res) => {
-  const { trialId } = req.body;
+  const { trialId, points } = req.body;
 
   if (!trialId) {
     return res.status(400).json({ error: "ID de l'essai manquant" });
+  }
+
+  // Vérifier que les points sont valides (1, 2 ou 3)
+  const validPoints = parseInt(points, 10);
+  if (isNaN(validPoints) || validPoints < 1 || validPoints > 3) {
+    return res.status(400).json({ error: "Les points doivent être 1, 2 ou 3" });
   }
 
   try {
@@ -163,17 +169,30 @@ router.post("/validate-trial", adminCheck, async (req, res) => {
       });
     }
 
-    // Toujours ajouter un seul canard
-    const success = await apremService.validateTrial(trialId, 1);
-    if (success) {
-      res.json({ message: "Essai validé avec succès" });
-    } else {
+    try {
+      // Valider avec le nombre de points spécifié
+      const success = await apremService.validateTrial(trialId, 1, validPoints);
+      if (success) {
+        res.json({ message: "Essai validé avec succès" });
+      } else {
+        res
+          .status(400)
+          .json({ error: "Erreur lors de la validation de l'essai" });
+      }
+    } catch (validationError) {
+      console.error("Erreur lors de la validation:", validationError);
       res
-        .status(400)
-        .json({ error: "Erreur lors de la validation de l'essai" });
+        .status(500)
+        .json({
+          error:
+            "Erreur lors de la sauvegarde des données. Veuillez réessayer.",
+        });
     }
   } catch (error) {
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Erreur serveur:", error);
+    res
+      .status(500)
+      .json({ error: "Erreur serveur. Les données ont été préservées." });
   }
 });
 

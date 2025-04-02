@@ -6,7 +6,7 @@ import { Minus, Plus, RotateCcw, X } from "lucide-react";
 
 export default function Trombi() {
   const [selectedMember, setSelectedMember] = useState(null);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0); // Changer la valeur initiale à 0 pour forcer le calcul
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -19,8 +19,6 @@ export default function Trombi() {
   });
   const [isMobile, setIsMobile] = useState(false);
   const [touchStartPos, setTouchStartPos] = useState({ x: 0, y: 0 });
-  const [pinchStartDistance, setPinchStartDistance] = useState(0);
-  const [pinchStartScale, setPinchStartScale] = useState(1);
 
   // Détecter si l'appareil est mobile
   useEffect(() => {
@@ -38,9 +36,8 @@ export default function Trombi() {
     id: index,
     member,
     position: {
-      // Distribution plus adaptée à la taille de l'image (3120×2080)juster selon l'image réelle)
-      x: 200 + (index % 6) * 450,
-      y: 300 + Math.floor(index / 6) * 350,
+      x: member.x,
+      y: member.y,
     },
   }));
 
@@ -75,6 +72,25 @@ export default function Trombi() {
   // Mise à jour des dimensions réelles de l'image
   const IMAGE_WIDTH = 3595;
   const IMAGE_HEIGHT = 3140;
+
+  // Fonction de centrage déplacée en dehors des effets
+  const centerImage = (currentScale) => {
+    if (containerRef.current) {
+      const containerWidth = containerRef.current.offsetWidth;
+      const containerHeight = containerRef.current.offsetHeight;
+      const scaledWidth = IMAGE_WIDTH * currentScale;
+      const scaledHeight = IMAGE_HEIGHT * currentScale;
+
+      const newX = (containerWidth - scaledWidth) / 2;
+      const newY = (containerHeight - scaledHeight) / 2;
+
+      setPosition({ x: newX, y: newY });
+      setViewportDimensions({
+        width: containerWidth,
+        height: containerHeight,
+      });
+    }
+  };
 
   // Debugging de l'état de l'image
   useEffect(() => {
@@ -120,72 +136,29 @@ export default function Trombi() {
 
   // Initialisation et mise à jour lors du changement d'échelle
   useEffect(() => {
-    const centerImage = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
-        const containerHeight = containerRef.current.offsetHeight;
-
-        // Taille de l'image à l'échelle actuelle
-        const scaledWidth = IMAGE_WIDTH * scale;
-        const scaledHeight = IMAGE_HEIGHT * scale;
-
-        // Calcul de la position pour centrer
-        let newX, newY;
-
-        // Si l'image est plus petite que le conteneur, on la centre parfaitement
-        if (scaledWidth < containerWidth) {
-          newX = (containerWidth - scaledWidth) / 2;
-        } else {
-          // Sinon, on commence par la bord gauche
-          newX = 0;
-        }
-
-        if (scaledHeight < containerHeight) {
-          newY = (containerHeight - scaledHeight) / 2;
-        } else {
-          // Sinon, on commence par le haut
-          newY = 0;
-        }
-
-        setPosition({ x: newX, y: newY });
-
-        // Mise à jour des dimensions du viewport pour la minimap
-        setViewportDimensions({
-          width: containerWidth,
-          height: containerHeight,
-        });
-      }
-    };
-
-    // Calculer l'échelle initiale pour voir toute l'image
-    const calculateInitialScale = () => {
-      if (containerRef.current && scale === 1) {
-        const containerWidth = containerRef.current.offsetWidth;
-        const containerHeight = containerRef.current.offsetHeight;
-
-        // Calculer le ratio pour adapter l'image au conteneur
-        const widthRatio = containerWidth / IMAGE_WIDTH;
-        const heightRatio = containerHeight / IMAGE_HEIGHT;
-
-        // Prendre le plus petit pour s'assurer que toute l'image est visible
-        const fitScale = Math.min(widthRatio, heightRatio) * 0.9;
-
-        setScale(fitScale);
-        // Le centrage sera déclenché lors de la mise à jour du scale
-        return true; // Indique qu'on a modifié l'échelle
-      }
-      return false;
-    };
-
-    // Lors du premier rendu ou du changement d'échelle, centrer l'image
-    if (!calculateInitialScale()) {
-      centerImage();
+    // Initialisation au chargement du composant
+    if (scale === 0 && containerRef.current) {
+      handleReset();
+    }
+    // Centrage lors des changements d'échelle
+    else if (scale !== 0) {
+      centerImage(scale);
     }
 
-    // Ajouter un listener pour le redimensionnement de la fenêtre
-    window.addEventListener("resize", centerImage);
-    return () => window.removeEventListener("resize", centerImage);
-  }, [scale, IMAGE_WIDTH, IMAGE_HEIGHT]);
+    const handleResize = () => handleReset();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [scale]);
+
+  // Ajouter ce nouvel useEffect après les autres
+  useEffect(() => {
+    if (imageLoaded && scale === 0) {
+      const timer = setTimeout(() => {
+        handleReset();
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [imageLoaded]);
 
   // Gestionnaire pour le bouton de réinitialisation
   const handleReset = () => {
@@ -199,7 +172,7 @@ export default function Trombi() {
       const fitScale = Math.min(widthRatio, heightRatio) * 0.9;
 
       setScale(fitScale);
-      // Le useEffect ci-dessus s'occupera du centrage
+      centerImage(fitScale);
     }
   };
 
@@ -217,6 +190,9 @@ export default function Trombi() {
 
   // Gestion des événements tactiles
   const handleTouchStart = (e) => {
+    if (isMobile) {
+      document.body.classList.add("trombi-active");
+    }
     if (e.touches.length === 1) {
       // Déplacement avec un doigt
       setIsDragging(true);
@@ -224,14 +200,6 @@ export default function Trombi() {
         x: e.touches[0].clientX - position.x,
         y: e.touches[0].clientY - position.y,
       });
-    } else if (e.touches.length === 2) {
-      // Pinch zoom avec deux doigts
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      setPinchStartDistance(distance);
-      setPinchStartScale(scale);
     }
   };
 
@@ -263,24 +231,14 @@ export default function Trombi() {
         x: boundedX,
         y: boundedY,
       });
-    } else if (e.touches.length === 2) {
-      // Pinch zoom avec deux doigts
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-
-      const newScale = Math.max(
-        0.2,
-        Math.min(2, pinchStartScale * (distance / pinchStartDistance))
-      );
-
-      setScale(newScale);
     }
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
+    if (isMobile) {
+      document.body.classList.remove("trombi-active");
+    }
   };
 
   // Version mobile du modal pour plus d'espace
@@ -360,27 +318,28 @@ export default function Trombi() {
             height={IMAGE_HEIGHT}
             onLoad={() => {
               setImageLoaded(true);
-              handleReset(); // Centrer l'image une fois chargée
             }}
             style={{ opacity: imageLoaded ? 1 : 0 }}
           />
 
           {imageLoaded &&
-            markers.map((marker) => (
-              <div
-                key={marker.id}
-                className="trombi-marker"
-                style={{
-                  left: `${marker.position.x}px`,
-                  top: `${marker.position.y}px`,
-                }}
-                onClick={() => handleMarkerClick(marker.member)}
-              >
-                <div className="marker-dot"></div>
-                <div className="marker-pulse"></div>
-                <div className="marker-label">{marker.member.name}</div>
-              </div>
-            ))}
+            markers.map((marker) =>
+              marker.position.x && marker.position.y ? (
+                <div
+                  key={marker.id}
+                  className="trombi-marker"
+                  style={{
+                    left: `${marker.position.x}px`,
+                    top: `${marker.position.y}px`,
+                  }}
+                  onClick={() => handleMarkerClick(marker.member)}
+                >
+                  <div className="marker-dot"></div>
+                  <div className="marker-pulse"></div>
+                  <div className="marker-label">{marker.member.name}</div>
+                </div>
+              ) : null
+            )}
         </div>
       </div>
 
@@ -433,8 +392,8 @@ export default function Trombi() {
             <p>Touchez un marqueur pour voir les détails</p>
           </div>
           <div className="instruction">
-            <div className="gesture-icon">✌️</div>
-            <p>Pincez pour zoomer/dézoomer</p>
+            <div className="gesture-icon">👆/👇</div>
+            <p>Utilisez les boutons + et - pour zoomer</p>
           </div>
           <div className="instruction">
             <div className="gesture-icon">👋</div>

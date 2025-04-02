@@ -1,20 +1,143 @@
-const fs = require("fs").promises;
+bconst fs = require("fs").promises;
 const path = require("path");
 
 const dataPath = path.join(__dirname, "../data/aprem.json");
+const backupPath = path.join(__dirname, "../data/aprem_backup.json");
 
 const loadData = async () => {
   try {
     const data = await fs.readFile(dataPath, "utf8");
-    return JSON.parse(data);
+    const parsedData = JSON.parse(data);
+
+    // Vérification minimale de l'intégrité des données
+    if (!parsedData.players || !parsedData.trials) {
+      console.error(
+        "Structure de données incomplète, création des propriétés manquantes"
+      );
+      // Au lieu de remplacer complètement, compléter les données manquantes
+      if (!parsedData.players) parsedData.players = {};
+      if (!parsedData.trials) parsedData.trials = {};
+      if (!parsedData.standRequests) parsedData.standRequests = {};
+
+      // Sauvegarder la structure réparée
+      await fs.writeFile(dataPath, JSON.stringify(parsedData, null, 2), "utf8");
+    }
+
+    return parsedData;
   } catch (error) {
-    // Si le fichier n'existe pas ou est corrompu, retourner une structure vide
-    return { players: {}, trials: {} };
+    console.error("Erreur lors du chargement des données:", error.message);
+
+    // Si le fichier n'existe pas, créer une nouvelle structure
+    if (error.code === "ENOENT") {
+      const initialData = {
+        players: {},
+        trials: {},
+        standRequests: {},
+      };
+
+      try {
+        // Créer le dossier data s'il n'existe pas
+        const dataDir = path.dirname(dataPath);
+        await fs.mkdir(dataDir, { recursive: true });
+
+        // Créer le fichier initial
+        await fs.writeFile(
+          dataPath,
+          JSON.stringify(initialData, null, 2),
+          "utf8"
+        );
+        console.log("Fichier de données créé avec structure initiale");
+      } catch (writeError) {
+        console.error(
+          "Erreur lors de la création du fichier initial:",
+          writeError
+        );
+      }
+
+      return initialData;
+    }
+
+    // Pour les autres erreurs, essayer de lire le fichier comme du texte brut
+    try {
+      const rawData = await fs.readFile(dataPath, "utf8");
+      console.warn("Fichier JSON corrompu, tentative de récupération");
+
+      // Si le fichier existe mais est corrompu, créer une nouvelle structure
+      // tout en préservant le fichier original dans un backup
+      const timestamp = Date.now();
+      const backupFileName = `aprem_corrupted_${timestamp}.json`;
+      const backupPath = path.join(path.dirname(dataPath), backupFileName);
+
+      await fs.writeFile(backupPath, rawData, "utf8");
+      console.log(`Backup du fichier corrompu créé: ${backupFileName}`);
+
+      // Créer une nouvelle structure
+      const newData = {
+        players: {},
+        trials: {},
+        standRequests: {},
+      };
+
+      await fs.writeFile(dataPath, JSON.stringify(newData, null, 2), "utf8");
+      console.log("Nouveau fichier de données créé avec structure propre");
+
+      return newData;
+    } catch (readError) {
+      // Si même la lecture brute échoue, retourner une structure vide
+      console.error(
+        "Échec total de récupération, création d'une nouvelle structure de données"
+      );
+      return {
+        players: {},
+        trials: {},
+        standRequests: {},
+      };
+    }
   }
 };
 
 const saveData = async (data) => {
-  await fs.writeFile(dataPath, JSON.stringify(data, null, 2), "utf8");
+  // Vérifier l'intégrité des données avant de sauvegarder
+  if (!data || typeof data !== "object") {
+    console.error("Tentative de sauvegarde de données invalides (non objet)");
+    throw new Error("Données invalides (pas un objet)");
+  }
+
+  // S'assurer que les propriétés essentielles existent
+  if (!data.players) data.players = {};
+  if (!data.trials) data.trials = {};
+  if (!data.standRequests) data.standRequests = {};
+
+  try {
+    // Créer un fichier temporaire pour la transaction
+    const tempPath = `${dataPath}.temp`;
+
+    // Écrire d'abord dans le fichier temporaire
+    await fs.writeFile(tempPath, JSON.stringify(data, null, 2), "utf8");
+
+    // Vérifier que le fichier temporaire est bien formé
+    try {
+      const tempData = await fs.readFile(tempPath, "utf8");
+      JSON.parse(tempData); // Simplement tester que c'est un JSON valide
+    } catch (validationError) {
+      // Si le fichier temporaire est corrompu, annuler la transaction
+      await fs.unlink(tempPath);
+      throw new Error("Données corrompues détectées pendant la validation");
+    }
+
+    // Renommer le fichier temporaire pour remplacer l'original (opération atomique)
+    try {
+      await fs.rename(tempPath, dataPath);
+    } catch (renameError) {
+      // Si le renommage échoue, essayer une approche alternative
+      console.warn("Renommage atomique échoué, tentative de copie/suppression");
+      await fs.copyFile(tempPath, dataPath);
+      await fs.unlink(tempPath);
+    }
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde des données:", error.message);
+    throw error;
+  }
 };
 
 // Obtenir les données d'un joueur
@@ -32,6 +155,7 @@ const getPlayerData = async (userName) => {
       },
       canards: 0,
       trialCount: 0, // Ajout du compteur de demandes de pêche
+      points: 0, // Ajout du compteur de points
     };
     await saveData(data);
   }
@@ -39,6 +163,12 @@ const getPlayerData = async (userName) => {
   // Assurer la compatibilité avec les données existantes
   if (data.players[userName].trialCount === undefined) {
     data.players[userName].trialCount = 0;
+    await saveData(data);
+  }
+
+  // Assurer la compatibilité avec les données existantes pour les points
+  if (data.players[userName].points === undefined) {
+    data.players[userName].points = 0;
     await saveData(data);
   }
 
@@ -129,43 +259,75 @@ const cleanExpiredTrials = async () => {
 };
 
 // Valider un essai
-const validateTrial = async (trialId, canards) => {
-  const data = await loadData();
+const validateTrial = async (trialId, canards, points) => {
+  try {
+    const data = await loadData();
 
-  if (!data.trials[trialId]) {
-    return false;
+    if (!data.trials[trialId]) {
+      return false;
+    }
+
+    // Créer une copie des données pour pouvoir restaurer en cas d'erreur
+    const originalData = JSON.parse(JSON.stringify(data));
+
+    try {
+      const userName = data.trials[trialId].userName;
+      data.trials[trialId].status = "validated";
+
+      if (!data.players[userName]) {
+        data.players[userName] = {
+          stands: {
+            taureau: false,
+            bowling: false,
+            alibi: false,
+            pancake: false,
+            atelier: false,
+          },
+          canards: 0,
+          trialCount: 0,
+          points: 0,
+        };
+      }
+
+      // Assurer la compatibilité avec les données existantes
+      if (data.players[userName].trialCount === undefined) {
+        data.players[userName].trialCount = 0;
+      }
+
+      // Assurer la compatibilité avec les données existantes pour les points
+      if (data.players[userName].points === undefined) {
+        data.players[userName].points = 0;
+      }
+
+      // Incrémenter le compteur de demandes validées
+      data.players[userName].trialCount += 1;
+
+      // Ajouter un seul canard à la fois
+      data.players[userName].canards += 1;
+
+      // Ajouter les points (valeur par défaut: 1)
+      data.players[userName].points += points || 1;
+
+      await saveData(data);
+      return true;
+    } catch (updateError) {
+      // En cas d'erreur pendant la mise à jour, essayer de restaurer l'état original
+      console.error(
+        "Erreur pendant la validation, tentative de restauration:",
+        updateError
+      );
+      try {
+        await saveData(originalData);
+        console.log("Restauration réussie, données préservées");
+      } catch (restoreError) {
+        console.error("Échec de la restauration:", restoreError);
+      }
+      throw updateError;
+    }
+  } catch (error) {
+    console.error("Erreur critique dans validateTrial:", error);
+    throw error;
   }
-
-  const userName = data.trials[trialId].userName;
-  data.trials[trialId].status = "validated";
-
-  if (!data.players[userName]) {
-    data.players[userName] = {
-      stands: {
-        taureau: false,
-        bowling: false,
-        alibi: false,
-        pancake: false,
-        atelier: false,
-      },
-      canards: 0,
-      trialCount: 0,
-    };
-  }
-
-  // Assurer la compatibilité avec les données existantes
-  if (data.players[userName].trialCount === undefined) {
-    data.players[userName].trialCount = 0;
-  }
-
-  // Incrémenter le compteur de demandes validées
-  data.players[userName].trialCount += 1;
-
-  // Ajouter un seul canard à la fois
-  data.players[userName].canards += 1;
-
-  await saveData(data);
-  return true;
 };
 
 // Rejeter un essai

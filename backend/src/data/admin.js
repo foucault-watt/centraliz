@@ -1,6 +1,6 @@
 // Liste des administrateurs autorisés
 const admin = [
-  "fwatktinn",
+  "fwattinn",
   "jsion",
   "enicolao",
   "ekuster",
@@ -23,6 +23,7 @@ const admin = [
   "ngarot",
   "lmoulin",
   "ajoatton",
+  "rserruri"
 ];
 
 module.exports = admin;

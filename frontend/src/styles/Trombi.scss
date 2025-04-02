@@ -109,8 +109,8 @@
 
   // Ajustements pour être plus visible sur une grande image
   .marker-dot {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     background-color: $main;
     border-radius: 50%;
     position: relative;
@@ -140,7 +140,7 @@
     color: $second;
     padding: 5px 10px;
     border-radius: 12px;
-    font-size: 14px; // Plus grand pour plus de lisibilité
+    font-size: 34px; // Plus grand pour plus de lisibilité
     font-weight: bold;
     white-space: nowrap;
     opacity: 0;
@@ -305,6 +305,15 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+
+// Empêcher le défilement du body quand le trombi est actif
+body.trombi-active {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%; // Ajout de la hauteur pour couvrir tout l'écran
+  overscroll-behavior: contain;
 }
 
 // Mobile optimizations
@@ -491,6 +500,6 @@
   }
 
   .member-modal {
-    width: 95%;
+    width: 75%;
   }
 }

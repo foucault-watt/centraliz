@@ -22,4 +22,5 @@ export const admin = [
   "ngarot",
   "lmoulin",
   "ajoatton",
+  "rserruri"
 ];

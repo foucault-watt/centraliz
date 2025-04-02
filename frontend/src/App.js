@@ -31,15 +31,16 @@ const App = () => {
           setUserName(data.user.userName);
           setDisplayName(data.user.displayName);
 
-          const calendarResponse = await fetch(
-            `${process.env.REACT_APP_URL_BACK}/api/check-user/`,
+          // Utiliser la nouvelle route pour vérifier si l'onboarding est nécessaire
+          const onboardingResponse = await fetch(
+            `${process.env.REACT_APP_URL_BACK}/api/auth/check-onboarding`,
             {
               method: "GET",
-              credentials: "include", // Indispensable pour que le cookie de session soit envoyé
+              credentials: "include",
             }
           );
-          const calendarData = await calendarResponse.json();
-          setNeedsOnboarding(!calendarData.exists);
+          const onboardingData = await onboardingResponse.json();
+          setNeedsOnboarding(onboardingData.needsOnboarding);
         }
       } catch (error) {
         console.error("Error checking auth status:", error);

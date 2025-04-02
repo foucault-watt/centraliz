@@ -39,6 +39,15 @@ exports.callback = async (req, res) => {
     const displayName = xmlData.match(
       /<cas:displayName>(.*?)<\/cas:displayName>/
     )?.[1];
+    
+    // Extraction des groupes d'appartenance (memberOf)
+    const memberOfMatches = xmlData.match(/<cas:memberOf>(.*?)<\/cas:memberOf>/g);
+    const memberOf = memberOfMatches 
+      ? memberOfMatches.map(match => match.replace(/<cas:memberOf>(.*?)<\/cas:memberOf>/, '$1')) 
+      : [];
+    
+    // Vérifier si l'utilisateur est membre de IE1
+    const isIE1Member = memberOf.some(group => group.includes('CHIMIE'));
 
     if (!userName) {
       console.error(
@@ -55,16 +64,23 @@ exports.callback = async (req, res) => {
         userName: userName,
         displayName: displayName || null,
         icalLink: null,
+        isIE1Member: isIE1Member
       };
     } else {
-      // Mise à jour du displayName pour un utilisateur existant
+      // Mise à jour des informations pour un utilisateur existant
       users[userName].displayName = displayName || users[userName].displayName;
+      users[userName].isIE1Member = isIE1Member;
     }
 
     fs.writeFileSync(USER_DATA_FILE, JSON.stringify(users, null, 2));
     console.log("[CAS Service] Utilisateur mis à jour:", users[userName]);
 
-    req.session.user = { userName, casTicket: ticket, displayName };
+    req.session.user = { 
+      userName, 
+      casTicket: ticket, 
+      displayName,
+      isIE1Member
+    };
     loginService.addLogin(displayName);
 
     // Vérifier s'il y a une demande d'enregistrement CADS en attente

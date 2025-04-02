@@ -67,12 +67,12 @@ function Main() {
       icon: "🤖",
       component: Alain,
     },
-    // {
-    //   id: "aprem",
-    //   label: "Aprem Rez",
-    //   icon: "☀️",
-    //   component: Aprem,
-    // },
+    {
+      id: "aprem",
+      label: "Aprem Rez",
+      icon: "☀️",
+      component: Aprem,
+    },
     {
       id: "trombi",
       label: "Trombi",

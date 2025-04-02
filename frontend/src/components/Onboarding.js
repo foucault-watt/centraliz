@@ -1,12 +1,11 @@
+import { ArrowRight, ExternalLink } from "lucide-react";
 import React, { useState } from "react";
-import { ArrowRight } from "lucide-react";
 import { steps } from "../data/onboarding-steps";
 
 const Onboarding = ({ userName, onComplete }) => {
   const [icalLink, setIcalLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
-
 
   const handleSubmitLink = async (e) => {
     e.preventDefault();
@@ -42,6 +41,25 @@ const Onboarding = ({ userName, onComplete }) => {
     }
   };
 
+  // Fonction pour sauter l'étape du lien iCal
+  const handleSkipIcalStep = async () => {
+    try {
+      // Notifier le backend que l'utilisateur a décidé de sauter cette étape
+      await fetch(`${process.env.REACT_APP_URL_BACK}/api/skip-ical-setup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId: userName }),
+      });
+
+      // Compléter l'onboarding
+      onComplete();
+    } catch (error) {
+      console.error("Erreur lors du contournement de l'étape iCal:", error);
+      setLinkError("Impossible de passer cette étape. Réessaie plus tard !");
+    }
+  };
+
   return (
     <div className="onboarding-overlay">
       <div className="onboarding-content">
@@ -62,13 +80,14 @@ const Onboarding = ({ userName, onComplete }) => {
                 muted
                 playsInline
               />
-              <a 
-                href="https://planning.centralelille.fr" 
-                target="_blank" 
+              <a
+                href="https://planning.centralelille.fr"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hyperplanning-link"
               >
-                Ouvrir Hyperplanning <ArrowRight size={16} className="inline-block ml-1" />
+                Ouvrir Hyperplanning{" "}
+                <ExternalLink size={16} className="inline-block ml-1" />
               </a>
             </div>
 
@@ -87,20 +106,31 @@ const Onboarding = ({ userName, onComplete }) => {
                 C'est parti ! 🚀
               </button>
             </form>
+
+            <div className="skip-option">
+              <button onClick={handleSkipIcalStep} className="skip-button">
+                Accéder au site sans configurer mon calendrier
+              </button>
+              <p className="skip-info">
+                Tu pourras configurer ton calendrier plus tard dans les
+                paramètres
+              </p>
+            </div>
           </div>
         ) : (
           <button
             onClick={() => setCurrentStep((curr) => curr + 1)}
             className="next-button animate-pulse"
           >
-            Continuer l'aventure <ArrowRight size={20} className="inline-block ml-1" />
+            Continuer l'aventure{" "}
+            <ArrowRight size={20} className="inline-block ml-1" />
           </button>
         )}
 
         <div className="steps-indicator">
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
+            <div
+              className="progress-fill"
               style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
             />
           </div>

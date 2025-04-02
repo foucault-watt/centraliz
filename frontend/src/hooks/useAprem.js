@@ -38,6 +38,44 @@ export const useApiFetch = () => {
   return { fetchData, loading, error, setError };
 };
 
+// Hook avec mécanisme de réessai pour les requêtes critiques
+export const useApiWithRetry = () => {
+  const { fetchData, loading, error, setError } = useApiFetch();
+  const [retrying, setRetrying] = useState(false);
+
+  const fetchWithRetry = useCallback(
+    async (url, options = {}, maxRetries = 3) => {
+      let retryCount = 0;
+      let lastError = null;
+
+      while (retryCount < maxRetries) {
+        try {
+          return await fetchData(url, options);
+        } catch (err) {
+          lastError = err;
+          retryCount++;
+
+          if (retryCount < maxRetries) {
+            console.log(
+              `Tentative ${retryCount}/${maxRetries} échouée, nouvel essai dans 1s...`
+            );
+            setRetrying(true);
+            // Attendre 1 seconde avant de réessayer
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        }
+      }
+
+      setRetrying(false);
+      setError(`Échec après ${maxRetries} tentatives: ${lastError?.message}`);
+      throw lastError;
+    },
+    [fetchData, setError]
+  );
+
+  return { fetchWithRetry, loading, error, retrying, setError };
+};
+
 // Hook pour gérer les comptes à rebours
 export const useCountdown = (initialTime, onComplete) => {
   const [time, setTime] = useState(initialTime);
@@ -70,4 +108,26 @@ export const formatTime = (milliseconds) => {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+};
+
+// Hook pour gérer la sélection des points de canard
+export const usePointSelection = (initialValue = 1) => {
+  const [points, setPoints] = useState(initialValue);
+
+  const isValidPoint = useCallback((value) => {
+    return value >= 1 && value <= 3;
+  }, []);
+
+  const setPointValue = useCallback(
+    (value) => {
+      if (isValidPoint(value)) {
+        setPoints(value);
+        return true;
+      }
+      return false;
+    },
+    [isValidPoint]
+  );
+
+  return { points, setPointValue };
 };

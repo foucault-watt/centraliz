@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 import { admin } from "../data/admin";
+import { useApiWithRetry } from "../hooks/useAprem";
 import "../styles/Aprem.scss";
 
 export default function Aprem() {
@@ -14,6 +15,15 @@ export default function Aprem() {
   const [adminStandRequests, setAdminStandRequests] = useState({});
   const [standRequestCountdowns, setStandRequestCountdowns] = useState({});
   const [refreshCount, setRefreshCount] = useState(0);
+  const [selectedPoints, setSelectedPoints] = useState(1);
+
+  // Utiliser le hook avec réessai pour les requêtes critiques
+  const {
+    fetchWithRetry,
+    loading: retryLoading,
+    error: retryError,
+    retrying,
+  } = useApiWithRetry();
 
   // Vérifier si l'utilisateur est un administrateur
   const isAdmin = admin.includes(userName);
@@ -361,23 +371,28 @@ export default function Aprem() {
   // Valider un essai (pour admin)
   const handleValidateTrial = async (trialId) => {
     try {
-      const response = await fetch("/api/aprem/validate-trial", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchWithRetry(
+        "/api/aprem/validate-trial",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ trialId, points: selectedPoints }),
         },
-        credentials: "include",
-        body: JSON.stringify({ trialId }),
-      });
+        3
+      ); // 3 tentatives max
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la validation de l'essai");
+      if (response && response.message) {
+        // Rafraîchir les données après succès
+        await fetchAdminTrials();
+        setRefreshCount((prev) => prev + 1);
       }
-
-      await fetchAdminTrials();
-      setRefreshCount((prev) => prev + 1);
     } catch (err) {
       console.error("Erreur lors de la validation de l'essai:", err);
+      setError(
+        "Erreur lors de la validation. Le système a essayé plusieurs fois sans succès."
+      );
     }
   };
 
@@ -484,6 +499,13 @@ export default function Aprem() {
     return () => clearInterval(refreshInterval);
   }, [isAdmin]);
 
+  // Ajouter un indicateur de réessai
+  useEffect(() => {
+    if (retrying) {
+      setError("Problème de communication, nouvelle tentative en cours...");
+    }
+  }, [retrying]);
+
   if (loading && !playerData) {
     return (
       <div className="aprem-container">
@@ -506,7 +528,8 @@ export default function Aprem() {
       <div className="aprem-header">
         <h1>Tampons de l'Aprem Rez</h1>
         <p>
-          Relevez des défis et collectez des tampons pour opuvoir participer à la pêche aux can'arts !
+          Relevez des défis et collectez des tampons pour pouvoir participer à
+          la pêche aux can'arts !
         </p>
       </div>
 
@@ -588,6 +611,9 @@ export default function Aprem() {
           <div className="essai-count">
             Essais utilisés: {playerData?.trialCount || 0} / {getMaxTrials()}
           </div>
+          <div className="points-count">
+            Points totaux: {playerData?.points || 0}
+          </div>
         </div>
 
         {trialCountdown ? (
@@ -622,6 +648,15 @@ export default function Aprem() {
       {isAdmin && (
         <div className="admin-section">
           <h2>Interface Administrateur</h2>
+
+          {/* Ajouter un message d'information sur la robustesse du système */}
+          <div className="admin-info">
+            <p>
+              Les actions de validation sont sécurisées contre les pertes de
+              données. En cas d'erreur, plusieurs tentatives seront effectuées
+              automatiquement.
+            </p>
+          </div>
 
           <h3>Demandes de validation de stands</h3>
           <div className="admin-stand-requests">
@@ -683,9 +718,24 @@ export default function Aprem() {
                     <p>
                       <strong>Joueur:</strong> {trial.userName}
                     </p>
-                    <p>
-                      <strong>Récompense:</strong> 1 canard
-                    </p>
+                    <div className="point-selection">
+                      <p>
+                        <strong>Points à attribuer:</strong>
+                      </p>
+                      <div className="point-options">
+                        {[1, 2, 3].map((value) => (
+                          <div
+                            key={value}
+                            className={`point-option ${
+                              selectedPoints === value ? "selected" : ""
+                            }`}
+                            onClick={() => setSelectedPoints(value)}
+                          >
+                            {value}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                     <p>
                       <strong>Créé le:</strong>{" "}
                       {new Date(trial.timestamp).toLocaleTimeString()}
@@ -702,12 +752,18 @@ export default function Aprem() {
                     <button
                       className="validate"
                       onClick={() => handleValidateTrial(trialId)}
+                      disabled={retrying} // Désactiver pendant les réessais
                     >
-                      Valider
+                      {retrying
+                        ? "Tentative en cours..."
+                        : `Valider (${selectedPoints} pt${
+                            selectedPoints > 1 ? "s" : ""
+                          })`}
                     </button>
                     <button
                       className="cancel"
                       onClick={() => handleRejectTrial(trialId)}
+                      disabled={retrying} // Désactiver pendant les réessais
                     >
                       Refuser
                     </button>

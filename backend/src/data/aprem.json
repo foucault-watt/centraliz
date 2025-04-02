@@ -4,57 +4,56 @@
       "stands": {
         "taureau": false,
         "bowling": true,
-        "alibi": true,
+        "alibi": false,
         "pancake": true,
         "atelier": true
       },
       "canards": 1,
-      "trialCount": 1
+      "trialCount": 1,
+      "points": 2
     }
   },
   "trials": {
-    "1742949350597fwattinn": {
+    "1743247661003fwattinn": {
       "userName": "fwattinn",
-      "timestamp": 1742949350596,
+      "timestamp": 1743247660996,
       "status": "validated",
-      "expiresAt": 1742949470596
+      "expiresAt": 1743247780996
+    },
+    "1743247777749fwattinn": {
+      "userName": "fwattinn",
+      "timestamp": 1743247777747,
+      "status": "rejected",
+      "expiresAt": 1743247897747
+    },
+    "1743250118204fwattinn": {
+      "userName": "fwattinn",
+      "timestamp": 1743250118202,
+      "status": "rejected",
+      "expiresAt": 1743250238202
     }
   },
   "standRequests": {
-    "1742909672518fwattinnalibi": {
-      "userName": "fwattinn",
-      "stand": "alibi",
-      "timestamp": 1742909672516,
-      "status": "validated",
-      "expiresAt": 1742909792516
-    },
-    "1742909680948fwattinnpancake": {
-      "userName": "fwattinn",
-      "stand": "pancake",
-      "timestamp": 1742909680945,
-      "status": "rejected",
-      "expiresAt": 1742909800945
-    },
-    "1742949226940fwattinnatelier": {
+    "1743247649784fwattinnatelier": {
       "userName": "fwattinn",
       "stand": "atelier",
-      "timestamp": 1742949226937,
+      "timestamp": 1743247649782,
       "status": "validated",
-      "expiresAt": 1742949346937
+      "expiresAt": 1743247769782
     },
-    "1742949335561fwattinnbowling": {
-      "userName": "fwattinn",
-      "stand": "bowling",
-      "timestamp": 1742949335557,
-      "status": "validated",
-      "expiresAt": 1742949455557
-    },
-    "1742949345018fwattinnpancake": {
+    "1743247685601fwattinnpancake": {
       "userName": "fwattinn",
       "stand": "pancake",
-      "timestamp": 1742949345005,
+      "timestamp": 1743247685600,
       "status": "validated",
-      "expiresAt": 1742949465005
+      "expiresAt": 1743247805600
+    },
+    "1743247693769fwattinnbowling": {
+      "userName": "fwattinn",
+      "stand": "bowling",
+      "timestamp": 1743247693769,
+      "status": "validated",
+      "expiresAt": 1743247813769
     }
   }
 }

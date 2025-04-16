@@ -30,10 +30,11 @@ Tu as des questions ou des idées pour améliorer Centraliz ? Fais-le moi savoir
 - 📱 Messenger : [@foucaultwatt](https://m.me/fukowatt)
 - 🔗 Projet sur GitHub : [Découvre le projet ici](https://github.com/foucault-watt/centraliz)
 
-## 🤫 Ajouts futurs
+## 🔔 Nouveautés à venir
 
-- 🍽️ Menu du RU du Crous
-- ⛅ Météo sur la cité scientifique
+- 🔕 Notifications de nouveaux mails
+- 📊 Historique et évolution des notes
+- ⚙️ Widgets Android pour un accès encore plus rapide
 
 ---
 

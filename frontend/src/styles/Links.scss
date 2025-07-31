@@ -2,8 +2,8 @@
   list-style-type: none;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)); // Force des colonnes égales
-  gap: 15px; // Ajusté pour 4 colonnes
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); // Colonnes responsives
+  gap: 15px;
   margin: 0 auto;
   max-width: 1200px;
 }
@@ -85,7 +85,7 @@
 
 @media (max-width: 768px) {
   .liste-services {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
   }
 
@@ -106,7 +106,7 @@
 
 @media (max-width: 480px) {
   .liste-services {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
 

@@ -6,6 +6,18 @@
   overflow-x: hidden;
 }
 
+.page-content {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+}
+
 // Wrappers de contenu
 .calendars-wrapper,
 .mail-links-wrapper {
@@ -90,6 +102,7 @@
     position: relative;
     overflow: hidden;
     min-width: 44px;
+    text-decoration: none; /* Supprimer le soulignement */
 
     svg {
       position: relative;

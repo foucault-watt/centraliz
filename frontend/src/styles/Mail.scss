@@ -100,11 +100,14 @@ $spacing-lg: 20px;
 // Conteneur de la liste de mails
 .mail-container {
   position: relative;
+  height: calc(100vh - 100px); // Ajustez 100px en fonction de la hauteur de l'en-tête
+  display: flex;
+  flex-direction: column;
 }
 
 // Liste des mails
 .mail-list {
-  height: 915px;
+  flex: 1;
   overflow-y: auto;
   padding: 0 $spacing-sm 0 0;
   list-style: none;
@@ -127,6 +130,183 @@ $spacing-lg: 20px;
     &:hover {
       background: darken($main, 10%);
     }
+  }
+}
+
+// Split view pour les mails
+.mail-split-view {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: $spacing-lg;
+  height: 915px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.mail-content-view {
+  overflow-y: auto;
+  padding: $spacing-md;
+  border-left: 1px solid $day-border;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.mail-content {
+  &-title {
+    color: $second;
+    margin: 0 0 12px 0;
+    font-size: 1.2em;
+  }
+
+  &-meta {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid $day-border;
+    font-size: 0.85em;
+    color: lighten($second, 20%);
+  }
+
+  &-author {
+    font-weight: 500;
+  }
+
+  &-body {
+    line-height: 1.5;
+    color: $second;
+    margin-bottom: $spacing-md;
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    a {
+      color: $main;
+      text-decoration: underline;
+    }
+  }
+
+  &-action {
+    text-decoration: none !important;
+    margin-top: 12px;
+    padding: 8px 15px;
+    background-color: $main;
+    color: white !important;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    display: inline-block;
+    @include transition(background-color);
+
+    &:hover {
+      background-color: darken($main, 10%);
+    }
+  }
+}
+
+.mail-content-empty {
+  color: lighten($second, 20%);
+  font-style: italic;
+  padding: $spacing-lg;
+  text-align: center;
+}
+
+// Modal pour les mails sur mobile
+.mail-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.mail-modal {
+  background: white;
+  border-radius: $border-radius;
+  padding: $spacing-lg;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  position: relative;
+  @include box-shadow(0, 10px, 30px, rgba(0, 0, 0, 0.2));
+}
+
+.mail-modal-close {
+  position: absolute;
+  top: $spacing-sm;
+  right: $spacing-sm;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.mail-modal-title {
+  color: $second;
+  margin: 0 0 12px 0;
+  font-size: 1.2em;
+}
+
+.mail-modal-meta {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid $day-border;
+  font-size: 0.85em;
+  color: lighten($second, 20%);
+}
+
+.mail-modal-author {
+  font-weight: 500;
+}
+
+.mail-modal-body {
+  line-height: 1.5;
+  color: $second;
+  margin-bottom: $spacing-md;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  a {
+    color: $main;
+    text-decoration: underline;
+  }
+}
+
+.mail-modal-action {
+  text-decoration: none !important;
+  margin-top: 12px;
+  padding: 8px 15px;
+  background-color: $main;
+  color: white !important;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+  display: inline-block;
+  @include transition(background-color);
+
+  &:hover {
+    background-color: darken($main, 10%);
   }
 }
 

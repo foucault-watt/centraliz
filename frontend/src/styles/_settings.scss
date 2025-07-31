@@ -63,8 +63,7 @@ li {
   position: relative;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: $shadow-hover;
+    background-color: rgba($main, 0.05);
   }
 
   @media (max-width: 768px) {

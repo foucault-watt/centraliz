@@ -1,8 +1,16 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState, Suspense, lazy } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header.js";
-import LoginPage from "./components/LoginPage.js"; // Ajoutez cette ligne
+import LoginPage from "./components/LoginPage.js";
 import Main from "./components/Main.js";
-import Onboarding from "./components/Onboarding.js"; // Ajoutez cette ligne
+import Onboarding from "./components/Onboarding.js";
+
+// Importer les composants de page de manière lazy
+const Notes = lazy(() => import("./components/Notes"));
+const Calendars = lazy(() => import("./components/Calendars"));
+const Communication = lazy(() => import("./components/Communication"));
+const Bdi = lazy(() => import("./components/Bdi"));
+const Links = lazy(() => import("./components/Links"));
 
 export const UserContext = createContext();
 
@@ -66,22 +74,35 @@ const App = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage />; // Afficher la page de connexion au lieu de rediriger
+    return <LoginPage />;
   }
 
   return (
     <UserContext.Provider value={{ userName, displayName }}>
-      {needsOnboarding ? (
-        <Onboarding
-          userName={userName}
-          onComplete={() => setNeedsOnboarding(false)}
-        />
-      ) : (
-        <div className="App">
-          <Header />
-          <Main />
-        </div>
-      )}
+      <BrowserRouter>
+        {needsOnboarding ? (
+          <Onboarding
+            userName={userName}
+            onComplete={() => setNeedsOnboarding(false)}
+          />
+        ) : (
+          <div className="App">
+            <Header />
+            <Suspense fallback={<div>Chargement...</div>}>
+              <Routes>
+                <Route path="/" element={<Main />}>
+                  <Route index element={<Calendars />} />
+                  <Route path="notes" element={<Notes />} />
+                  <Route path="calendars" element={<Calendars />} />
+                  <Route path="communication" element={<Communication />} />
+                  <Route path="bdi" element={<Bdi />} />
+                  <Route path="links" element={<Links />} />
+                </Route>
+              </Routes>
+            </Suspense>
+          </div>
+        )}
+      </BrowserRouter>
     </UserContext.Provider>
   );
 };

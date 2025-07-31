@@ -1,40 +1,28 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 
-const Navigation = ({
-  currentPageIndex,
-  handleNavigation,
-  isTyping,
-  pagesConfig,
-}) => {
-
+const Navigation = ({ pagesConfig }) => {
   return (
-    <>
-      <nav className="app-navigation">
-        {/* Afficher tous les icônes pour mobile et desktop */}
-        <div className="nav-items">
-          {pagesConfig.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                className={`nav-item ${
-                  currentPageIndex === index ? "active" : ""
-                }`}
-                onClick={() => handleNavigation(index)}
-                disabled={isTyping}
-                aria-label={item.label}
-              >
-                <span className="nav-icon">
-                  <Icon size={20} />
-                </span>
-                {/* Le label n'est visible que sur desktop grâce au CSS */}
-                <span className="nav-label">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-    </>
+    <nav className="app-navigation">
+      <div className="nav-items">
+        {pagesConfig.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.id}
+              to={`/${item.id}`}
+              className="nav-item"
+              aria-label={item.label}
+            >
+              <span className="nav-icon">
+                <Icon size={20} />
+              </span>
+              <span className="nav-label">{item.label}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+    </nav>
   );
 };
 

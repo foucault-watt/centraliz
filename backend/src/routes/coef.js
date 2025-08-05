@@ -2,15 +2,18 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const supabase = require('../utils/supabaseClient');
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    // Charger les données utilisateur
-    const usersPath = path.join(__dirname, '../data/users.json');
-    const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-    const user = users[req.session.user.userName];
+    // Charger les données utilisateur depuis Supabase
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('group')
+      .eq('username', req.session.user.userName)
+      .single();
 
-    if (!user || !user.group) {
+    if (error || !user || !user.group) {
       return res.status(404).json({ error: 'Utilisateur ou groupe non trouvé' });
     }
 

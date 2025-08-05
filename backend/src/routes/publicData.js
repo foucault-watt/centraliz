@@ -7,7 +7,6 @@ const fs = require('fs');
 const allowedFiles = [
   "feedbacks.json",
   "logins.json",
-  "users.json",
   "backend.log",
   "evaluations.json",
   "leaderboard.json",

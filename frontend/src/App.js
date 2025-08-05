@@ -24,6 +24,7 @@ const App = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        console.log("Fetching auth status from:", `${process.env.REACT_APP_URL_BACK}/api/auth/status`);
         const response = await fetch(
           `${process.env.REACT_APP_URL_BACK}/api/auth/status`,
           {
@@ -36,16 +37,12 @@ const App = () => {
         if (data.authenticated) {
           setUserName(data.user.userName);
           setDisplayName(data.user.displayName);
+          const icalLink = data.user.icalLink;
 
-          const calendarResponse = await fetch(
-            `${process.env.REACT_APP_URL_BACK}/api/check-user/`,
-            {
-              method: "GET",
-              credentials: "include", // Indispensable pour que le cookie de session soit envoyé
-            }
-          );
-          const calendarData = await calendarResponse.json();
-          setNeedsOnboarding(!calendarData.exists);
+          console.log("data.user:", data.user);
+          console.log("icalLink:", icalLink);
+
+          setNeedsOnboarding(!icalLink);
         }
       } catch (error) {
         console.error("Error checking auth status:", error);

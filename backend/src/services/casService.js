@@ -1,12 +1,10 @@
 // backend/src/services/casService.js
 const axios = require("axios");
 const loginService = require('./loginService');
-const fs = require('fs');
-const path = require('path');
+const supabase = require('../utils/supabaseClient');
 
 const casBaseURL = "https://cas.centralelille.fr";
 const serviceURL = `${process.env.URL_BACK}/api/auth/callback`;
-const USER_DATA_FILE = path.join(__dirname, '../data/users.json');
 
 exports.login = (req, res) => {
   const loginUrl = `${casBaseURL}/login?service=${encodeURIComponent(serviceURL)}`;
@@ -37,24 +35,41 @@ exports.callback = async (req, res) => {
       return res.status(401).send("Échec de l'authentification CAS.");
     }
 
-    // Sauvegarde ou mise à jour des informations utilisateur
-    const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
-    if (!users[userName]) {
-      // Nouvel utilisateur
-      users[userName] = {
-        userName: userName,
-        displayName: displayName || null,
-        icalLink: null
-      };
-    } else {
-      // Mise à jour du displayName pour un utilisateur existant
-      users[userName].displayName = displayName || users[userName].displayName;
-    }
-    
-    fs.writeFileSync(USER_DATA_FILE, JSON.stringify(users, null, 2));
-    console.log("[CAS Service] Utilisateur mis à jour:", users[userName]);
+    // Sauvegarde ou mise à jour des informations utilisateur dans Supabase
+    const { data, error } = await supabase
+      .from('users')
+      .upsert({
+        username: userName,
+        display_name: displayName || null
+      }, { onConflict: 'username' });
 
-    req.session.user = { userName, casTicket: ticket, displayName };
+    if (error) {
+      console.error("[CAS Service] Erreur lors de la mise à jour de l'utilisateur:", error);
+    } else {
+      console.log("[CAS Service] Utilisateur mis à jour:", data);
+    }
+
+    // Fetch the user's iCal link from Supabase
+    const { data: user, error: fetchError } = await supabase
+      .from('users')
+      .select('ical_link')
+      .eq('username', userName)
+      .single();
+
+    if (fetchError) {
+      console.error("[CAS Service] Erreur lors de la récupération du lien iCal:", fetchError);
+    }
+
+    console.log("[CAS Service] User object from Supabase:", user);
+    console.log("[CAS Service] fetchError object from Supabase:", fetchError);
+
+    req.session.user = {
+      userName,
+      casTicket: ticket,
+      displayName,
+      icalLink: user?.ical_link || null
+    };
+
     loginService.addLogin(displayName);
     res.redirect(process.env.URL_FRONT);
 

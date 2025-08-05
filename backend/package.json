@@ -36,6 +36,7 @@
     "server": "file:",
     "tough-cookie": "^5.0.0",
     "ws": "^8.18.0",
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "@supabase/supabase-js": "^2.0.0"
   }
 }

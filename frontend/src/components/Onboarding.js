@@ -1,12 +1,11 @@
-import React, { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
 import { steps } from "../data/onboarding-steps";
 
 const Onboarding = ({ userName, onComplete }) => {
   const [icalLink, setIcalLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
-
 
   const handleSubmitLink = async (e) => {
     e.preventDefault();
@@ -36,6 +35,14 @@ const Onboarding = ({ userName, onComplete }) => {
         body: JSON.stringify({ userId: userName, icalLink }),
       });
 
+      // Update session data after saving iCal link
+      await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/auth/status`,
+        {
+          credentials: "include",
+        }
+      );
+
       onComplete();
     } catch (error) {
       setLinkError("Oups ! Une erreur s'est produite. Réessaie !");
@@ -62,13 +69,14 @@ const Onboarding = ({ userName, onComplete }) => {
                 muted
                 playsInline
               />
-              <a 
-                href="https://planning.centralelille.fr" 
-                target="_blank" 
+              <a
+                href="https://planning.centralelille.fr"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hyperplanning-link"
               >
-                Ouvrir Hyperplanning <ArrowRight size={16} className="inline-block ml-1" />
+                Ouvrir Hyperplanning{" "}
+                <ArrowRight size={16} className="inline-block ml-1" />
               </a>
             </div>
 
@@ -93,14 +101,15 @@ const Onboarding = ({ userName, onComplete }) => {
             onClick={() => setCurrentStep((curr) => curr + 1)}
             className="next-button animate-pulse"
           >
-            Continuer l'aventure <ArrowRight size={20} className="inline-block ml-1" />
+            Continuer l'aventure{" "}
+            <ArrowRight size={20} className="inline-block ml-1" />
           </button>
         )}
 
         <div className="steps-indicator">
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
+            <div
+              className="progress-fill"
               style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
             />
           </div>

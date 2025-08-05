@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { simpleParser } = require('mailparser'); // Importer le module mailparser
+const supabase = require('../utils/supabaseClient');
 
 class ZimbraService {
   /**
@@ -124,59 +125,54 @@ class ZimbraService {
   static async storeEncryptedPassword(username, password) {
     const email = username;
     const encryptedPassword = this.encryptPassword(email, password);
-    const filePath = path.join(__dirname, '../data/mdp.json');
 
-    let data = {};
-    try {
-      if (fs.existsSync(filePath)) {
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        data = JSON.parse(fileContent);
-      }
-    } catch (error) {
-      console.error("[ZimbraService] Erreur lors de la lecture du fichier mdp.json:", error.message);
-      data = {};
-    }
+    const { error } = await supabase
+      .from('passwords')
+      .upsert({
+        username: email,
+        encrypted_password: encryptedPassword,
+        creation_date: new Date().toISOString()
+      }, { onConflict: 'username' });
 
-    data[email] = encryptedPassword;
-
-    try {
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-      console.error("[ZimbraService] Erreur lors de l'écriture dans le fichier mdp.json:", error.message);
+    if (error) {
+      console.error("[ZimbraService] Erreur lors de la sauvegarde du mot de passe:", error.message);
       throw new Error("Erreur lors de la sauvegarde du mot de passe");
     }
   }
 
   static async hasStoredPassword(username) {
     const email = username;
-    const filePath = path.join(__dirname, '../data/mdp.json');
-    if (!fs.existsSync(filePath)) {
-      return false;
-    }
-    try {
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      return data.hasOwnProperty(email);
-    } catch (error) {
+    const { data, error } = await supabase
+      .from('passwords')
+      .select('username')
+      .eq('username', email)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // Not found
+        return false;
+      }
       console.error("[ZimbraService] Erreur lors de la vérification du mot de passe stocké:", error.message);
       return false;
     }
+    return !!data;
   }
 
-  static getStoredPassword(email) {
-    const filePath = path.join(__dirname, '../data/mdp.json');
-    if (!fs.existsSync(filePath)) {
-      throw new Error("Fichier mdp.json introuvable");
-    }
-    try {
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      if (!data.hasOwnProperty(email)) {
-        throw new Error("Aucun mot de passe stocké pour cet utilisateur");
-      }
-      return data[email];
-    } catch (error) {
+  static async getStoredPassword(email) {
+    const { data, error } = await supabase
+      .from('passwords')
+      .select('encrypted_password')
+      .eq('username', email)
+      .single();
+
+    if (error) {
       console.error("[ZimbraService] Erreur lors de la récupération du mot de passe stocké:", error.message);
       throw new Error("Erreur lors de la récupération du mot de passe stocké");
     }
+    if (!data) {
+      throw new Error("Aucun mot de passe stocké pour cet utilisateur");
+    }
+    return data.encrypted_password;
   }
 
   static async authenticateWithStoredPassword(username) {

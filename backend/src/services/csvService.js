@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const puppeteer = require("../utils/puppeteer");
+const supabase = require('../utils/supabaseClient');
 
 exports.downloadCSV = async (req, res) => {
   const username = req.session.user.userName;
@@ -9,24 +10,27 @@ exports.downloadCSV = async (req, res) => {
   try {
     const csvPath = await puppeteer.downloadCSV(username, password);
 
-    // Incrémenter le compteur de téléchargements pour cet utilisateur
-    const usersFilePath = path.resolve(__dirname, "../data/users.json");
-    const users = JSON.parse(fs.readFileSync(usersFilePath, "utf8"));
+    // Incrémenter le compteur de téléchargements pour cet utilisateur dans Supabase
+    const { data, error } = await supabase
+      .from('users')
+      .select('notes_count')
+      .eq('username', username)
+      .single();
 
-    if (users[username]) {
-      // Initialiser le compteur s'il n'existe pas
-      if (!users[username].hasOwnProperty("notesCount")) {
-        users[username].notesCount = 0;
+    if (error) {
+      console.error('Error fetching user notes count:', error);
+    } else {
+      const newCount = (data?.notes_count || 0) + 1;
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ notes_count: newCount })
+        .eq('username', username);
+
+      if (updateError) {
+        console.error('Error updating user notes count:', updateError);
+      } else {
+        console.log(`Compteur de téléchargement incrémenté pour ${username}: ${newCount}`);
       }
-
-      // Incrémenter le compteur
-      users[username].notesCount += 1;
-
-      // Enregistrer les modifications
-      fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), "utf8");
-      console.log(
-        `Compteur de téléchargement incrémenté pour ${username}: ${users[username].notesCount}`
-      );
     }
 
     res.json({ success: true, filePath: csvPath });

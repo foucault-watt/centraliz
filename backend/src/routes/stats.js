@@ -14,7 +14,23 @@ router.get(`/stats`, async (req, res) => {
   try {
     // Lecture des fichiers
     const loginsData = JSON.parse(fs.readFileSync(loginsPath, "utf8"));
-    const usersData = JSON.parse(fs.readFileSync(usersPath, "utf8"));
+    const { data: usersData, error } = await supabase
+      .from('users')
+      .select('username, display_name, group, birth_date');
+
+    if (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
+    }
+
+    const users = usersData.reduce((acc, user) => {
+      acc[user.username] = {
+        displayName: user.display_name,
+        group: user.group,
+        birthDate: user.birth_date
+      };
+      return acc;
+    }, {});
 
     // Obtenir les connexions par jour
     const userLoginsPerDay = {};
@@ -159,7 +175,7 @@ router.get(`/stats/${process.env.SECRET_API}/:userName`, async (req, res) => {
   // Chemins des fichiers
   const loginsPath = path.join(__dirname, "../data/logins.json");
   const usersPath = path.join(__dirname, "../data/users.json");
-  const mdpPath = path.join(__dirname, "../data/mdp.json");
+    const mdpPath = path.join(__dirname, "../data/mdp.json"); // TODO: Remove after migration
 
   try {
     // Lecture des fichiers
@@ -167,15 +183,15 @@ router.get(`/stats/${process.env.SECRET_API}/:userName`, async (req, res) => {
     const usersData = JSON.parse(fs.readFileSync(usersPath, "utf8"));
     const mdpData = JSON.parse(fs.readFileSync(mdpPath, "utf8"));
 
-    // Vérifier si l'utilisateur existe dans users.json
-    const userInfo = usersData[userName];
+    // Vérifier si l'utilisateur existe dans les données Supabase
+    const userInfo = users[userName];
     if (!userInfo) {
       console.log("Utilisateur non trouvé");
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
 
     // Récupérer les données de l'utilisateur
-    const hasMdp = mdpData.hasOwnProperty(userName);
+    const hasMdp = await ZimbraService.hasStoredPassword(userName);
     const { displayName, birthDate, group } = userInfo;
 
     // Obtenir les connexions de tous les utilisateurs pour la courbe globale

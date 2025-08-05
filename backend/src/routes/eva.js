@@ -41,15 +41,18 @@ router.post("/", async (req, res) => {
   const displayName = req.session.user.displayName;
   const { eventTitle, answers } = req.body;
   try {
-    // Trouver le userName correspondant au displayName
-    const users = require("../data/users.json");
-    const userName = Object.keys(users).find(
-      (key) => users[key].displayName === displayName
-    );
+    // Trouver le userName correspondant au displayName via Supabase
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('username')
+      .eq('display_name', displayName)
+      .single();
 
-    if (!userName) {
+    if (error || !user) {
       return res.status(400).json({ error: "Utilisateur non trouvé" });
     }
+
+    const userName = user.username;
 
     // Récupérer la configuration pour le groupe de l'utilisateur
     const userGroup = evaService.getUserGroup(userName);

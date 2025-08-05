@@ -22,7 +22,7 @@ router.get("/hp-data", async (req, res) => {
 router.get("/check-user/", async (req, res) => {
   try {
     const userId = req.session.user.userName;
-    const result = hpService.checkUser(userId);
+    const result = await hpService.checkUser(userId);
     res.json(result);
   } catch (error) {
     res

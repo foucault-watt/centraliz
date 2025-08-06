@@ -8,3 +8,12 @@ logins.json
 evaluations.json
 mdp.json
 backend/src/data/leaderboard.json
+.gradle
+
+# Artifacts de build Android
+*.aab
+*.apk
+*.idsig
+
+# Keystores (ne jamais versionner un keystore)
+*.keystore

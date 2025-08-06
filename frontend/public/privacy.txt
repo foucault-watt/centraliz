@@ -1,0 +1,50 @@
+MENTIONS LÉGALES DU SITE CENTRALIZ
+
+1. Éditeur du site
+Le site Centraliz est une initiative personnelle de Foucault Wattinne, étudiant à l'ITEEM (Centrale Lille).
+Adresse : Adresse disponible sur demande
+Email de contact : foucault.wattinne@iteem.centralelille.fr
+
+2. Hébergeur du site
+Le site est hébergé par Rézoléo
+Adresse : Résidence Léonard de Vinci, Avenue Paul Langevin, 59650, Villeneuve d'Ascq
+Email de contact : contact@rezoleo.fr
+
+3. Objet du site
+Le site Centraliz permet aux élèves de l'École Centrale de Lille de centraliser leurs informations académiques sur une interface unique. Il propose notamment :
+- L'accès à l'emploi du temps, aux notes et aux emails via le système de connexion SSO (Central Authentication Service - CAS) de l'école.
+- Une interface simplifiée pour consulter les informations académiques.
+
+4. Propriété intellectuelle
+L'ensemble des contenus présents sur le site (textes, graphismes, logos, etc.) sont la propriété exclusive de leur auteur ou de l'École Centrale de Lille pour les données qu'elle fournit. Toute reproduction, modification ou diffusion sans autorisation préalable est interdite.
+
+5. Protection des données personnelles
+Conformément au Règlement Général sur la Protection des Données (RGPD), Centraliz collecte et traite des données personnelles de ses utilisateurs avec leur consentement explicite.
+
+Données collectées :
+- Nom et prénom
+- Adresse e-mail institutionnelle
+- Date de naissance
+- Identifiants de connexion CAS
+- Mot de passe de messagerie (facultatif, stocké de manière chiffrée et inaccessible en clair)
+
+Finalités du traitement :
+- Fournir l'accès aux services de Centraliz
+- Faciliter la consultation des e-mails, emplois du temps et notes
+
+Sécurité et confidentialité :
+Les mots de passe de messagerie, lorsqu'ils sont fournis par l'utilisateur, sont stockés sous forme chiffrée et ne sont jamais accessibles en clair. L'administrateur du site ne peut pas récupérer ces mots de passe ni les utiliser à d'autres fins.
+Les données personnelles ne sont ni vendues, ni cédées à des tiers. Les utilisateurs peuvent demander la suppression de leurs données à tout moment en contactant l'éditeur.
+
+6. Responsabilité
+Centraliz est un outil personnel mis à disposition des étudiants, sans garantie expresse ou implicite quant à la fiabilité des informations affichées. L'éditeur ne peut être tenu responsable des erreurs, interruptions de service ou pertes de données.
+
+7. Droits des utilisateurs
+Conformément à la loi Informatique et Libertés et au RGPD, les utilisateurs disposent des droits suivants :
+- Accès, modification et suppression de leurs données personnelles
+- Opposition au traitement de leurs données
+- Portabilité des données
+Pour exercer ces droits, contactez : foucault.wattinne@iteem.centralelille.fr
+
+8. Cookies
+Le site Centraliz utilise des cookies à des fins fonctionnelles

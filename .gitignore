@@ -17,3 +17,5 @@ backend/src/data/leaderboard.json
 
 # Keystores (ne jamais versionner un keystore)
 *.keystore
+
+profile-photos

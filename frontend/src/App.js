@@ -1,16 +1,17 @@
-import React, { createContext, useEffect, useState, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Header from "./components/Header.js";
+import { Suspense, createContext, lazy, useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage.js";
-import Main from "./components/Main.js";
 import Onboarding from "./components/Onboarding.js";
+import PageLayout from "./components/PageLayout";
 
-// Importer les composants de page de manière lazy
+// Lazy load page components
 const Notes = lazy(() => import("./components/Notes"));
 const Calendars = lazy(() => import("./components/Calendars"));
 const Communication = lazy(() => import("./components/Communication"));
 const Bdi = lazy(() => import("./components/Bdi"));
 const Links = lazy(() => import("./components/Links"));
+const Bibli = lazy(() => import("./components/Bibli"));
+const Cekilui = lazy(() => import("./components/Cekilui.js"));
 
 export const UserContext = createContext();
 
@@ -24,7 +25,6 @@ const App = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        console.log("Fetching auth status from:", `${process.env.REACT_APP_URL_BACK}/api/auth/status`);
         const response = await fetch(
           `${process.env.REACT_APP_URL_BACK}/api/auth/status`,
           {
@@ -38,10 +38,6 @@ const App = () => {
           setUserName(data.user.userName);
           setDisplayName(data.user.displayName);
           const icalLink = data.user.icalLink;
-
-          console.log("data.user:", data.user);
-          console.log("icalLink:", icalLink);
-
           setNeedsOnboarding(!icalLink);
         }
       } catch (error) {
@@ -83,21 +79,67 @@ const App = () => {
             onComplete={() => setNeedsOnboarding(false)}
           />
         ) : (
-          <div className="App">
-            <Header />
-            <Suspense fallback={<div>Chargement...</div>}>
-              <Routes>
-                <Route path="/" element={<Main />}>
-                  <Route index element={<Calendars />} />
-                  <Route path="notes" element={<Notes />} />
-                  <Route path="calendars" element={<Calendars />} />
-                  <Route path="communication" element={<Communication />} />
-                  <Route path="bdi" element={<Bdi />} />
-                  <Route path="links" element={<Links />} />
-                </Route>
-              </Routes>
-            </Suspense>
-          </div>
+          <Suspense fallback={<div>Chargement...</div>}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/calendars" replace />} />
+              <Route
+                path="/notes"
+                element={
+                  <PageLayout>
+                    <Notes />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/calendars"
+                element={
+                  <PageLayout>
+                    <Calendars />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/communication"
+                element={
+                  <PageLayout>
+                    <Communication />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/bdi"
+                element={
+                  <PageLayout>
+                    <Bdi />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/links"
+                element={
+                  <PageLayout>
+                    <Links />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/bibli"
+                element={
+                  <PageLayout>
+                    <Bibli />
+                  </PageLayout>
+                }
+              />
+              <Route
+                path="/cekilui"
+                element={
+                  <PageLayout>
+                    <Cekilui />
+                  </PageLayout>
+                }
+              />
+            </Routes>
+          </Suspense>
         )}
       </BrowserRouter>
     </UserContext.Provider>

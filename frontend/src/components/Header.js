@@ -1,7 +1,6 @@
-import { Info, Menu } from "lucide-react";
+import { Info } from "lucide-react";
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
-import SlideMenu from "./SlideMenu";
 
 /**
  * Composant Header - Barre de navigation principale de l'application
@@ -57,23 +56,7 @@ export default function Header() {
 
   return (
     <>
-      <header
-        className={`header ${scrolled ? "scrolled" : ""}`}
-        onClick={toggleMenu}
-        style={{ cursor: "pointer" }}
-      >
-        {/* Bouton du menu hamburger */}
-        <button
-          className="header__menu-button"
-          onClick={(e) => {
-            e.stopPropagation(); // Empêcher la propagation du clic au header
-            toggleMenu();
-          }}
-          aria-label="Menu"
-        >
-          <Menu />
-        </button>
-
+      <header className={`header ${scrolled ? "scrolled" : ""}`}>
         {/* Logo et titre */}
         <div className="header-link">
           <img src={"logo-title.png"} className="header-logo" alt="logo" />
@@ -101,8 +84,6 @@ export default function Header() {
           </div>
         )}
 
-        {/* Menu latéral - toujours présent dans le DOM mais contrôlé par isOpen */}
-        <SlideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       </header>
     </>
   );

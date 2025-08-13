@@ -53,7 +53,8 @@
 .div-cla-calendar,
 .div-notes,
 .div-mail,
-.div-links {
+.div-links,
+.div-bibli {
   @extend %card;
   background: $background-module;
 }

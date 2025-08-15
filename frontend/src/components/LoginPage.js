@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Calendar,
   Mail,
@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 
 const LoginPage = () => {
+  const [rememberMe, setRememberMe] = useState(false);
+
   const handleLogin = () => {
-    window.location.href = `${process.env.REACT_APP_URL_BACK}/api/auth/login`;
+    window.location.href = `${process.env.REACT_APP_URL_BACK}/api/auth/login?remember=${rememberMe}`;
   };
 
   return (
@@ -28,6 +30,16 @@ const LoginPage = () => {
         <p className="lead">
           Simplifiez votre vie étudiante en unifiant l'accès à tous vos outils essentiels
         </p>
+        <div className="remember-me" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', color: 'white' }}>
+          <input
+            type="checkbox"
+            id="remember"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            style={{ marginRight: '10px' }}
+          />
+          <label htmlFor="remember">Se souvenir de moi</label>
+        </div>
         <button className="login-button" onClick={handleLogin}>
           <LogIn size={80} /> {/* Augmentation de la taille de l'icône */}
           Se connecter avec le CAS Centrale Lille

@@ -17,6 +17,7 @@
     "axios-cookiejar-support": "^5.0.3",
     "cas-authentication": "^0.0.8",
     "connect-redis": "^7.1.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",

@@ -2,6 +2,7 @@
 const axios = require("axios");
 const loginService = require('./loginService');
 const supabase = require('../utils/supabaseClient');
+const tokenService = require('./tokenService');
 
 const casBaseURL = "https://cas.centralelille.fr";
 const serviceURL = `${process.env.URL_BACK}/api/auth/callback`;
@@ -69,6 +70,18 @@ exports.callback = async (req, res) => {
       displayName,
       icalLink: user?.ical_link || null
     };
+
+    if (req.session.rememberMe) {
+      const token = await tokenService.generateToken(userName);
+      if (token) {
+        res.cookie('remember_me', token, {
+          httpOnly: true,
+          secure: process.env.SECURE === 'true',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        });
+      }
+    }
 
     loginService.addLogin(displayName);
     res.redirect(process.env.URL_FRONT);

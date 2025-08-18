@@ -1,21 +1,15 @@
-import React, { createContext } from "react";
 import { Outlet } from "react-router-dom";
 import { pagesConfig } from "../config/pages";
 import Navigation from "./Navigation";
 
-// Créer un contexte pour les logos
-export const LogoVisibilityContext = createContext(null);
-
 function Main() {
   return (
-    <LogoVisibilityContext.Provider value={{ logoVisibility: false, setLogoVisibility: () => {} }}>
-      <div className="main-container">
+      <div className="w-100 overflow-hidden">
         <Navigation pagesConfig={pagesConfig} />
-        <div className="page-content">
+        <div>
           <Outlet />
         </div>
       </div>
-    </LogoVisibilityContext.Provider>
   );
 }
 

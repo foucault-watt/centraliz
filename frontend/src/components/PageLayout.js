@@ -1,17 +1,17 @@
-import React from "react";
 import Header from "./Header";
 import Navigation from "./Navigation";
 import { pagesConfig } from "../config/pages";
-import "./../styles/PageSection.scss";
 
 const PageLayout = ({ children }) => {
   return (
-    <div className="page-section" style={{ minHeight: "100vh", overflow: "hidden" }}>
+    <div className="min-h-screen flex flex-col overflow-hidden">
       <Header />
       <Navigation pagesConfig={pagesConfig} />
-      <div className="section-content">
-        {children}
-      </div>
+      <main className="flex-1 flex justify-center w-full mt-4 mb-20">
+        <div className="w-full max-w-4xl px-4">
+          {children}
+        </div>
+      </main>
     </div>
   );
 };

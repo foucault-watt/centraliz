@@ -1,22 +1,5 @@
 @import "_settings.scss";
 
-// Base styles
-.main-container {
-  width: 100%;
-  overflow-x: hidden;
-}
-
-.page-content {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-
-  @media (max-width: 768px) {
-    padding: 10px;
-  }
-}
 
 // Wrappers de contenu
 .calendars-wrapper,
@@ -54,11 +37,13 @@
 .div-notes,
 .div-mail,
 .div-links,
-.div-bibli,
-.div-cekilui {
+.div-bibli {
   @extend %card;
   background: $background-module;
 }
+
+// Cekilui utilise maintenant Tailwind CSS exclusivement
+// .div-cekilui supprimé - maintenant géré par Tailwind
 
 // Navigation styles
 .app-navigation {

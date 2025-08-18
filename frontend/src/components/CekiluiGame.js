@@ -1,4 +1,4 @@
-import { ArrowLeft, Infinity, Play, Trophy } from "lucide-react";
+import { ArrowLeft, Infinity, Trophy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import PromoSelector from "./PromoSelector";
 
@@ -125,13 +125,8 @@ const CekiluiGame = ({ onBackToMenu }) => {
           setImageLoaded(false); // Reset image loaded state
           setTimerStarted(false); // Reset timer started state
 
-          // Only show "ready" phase for the first round of competitive mode or endless mode
-          if (isFirstRound || gameMode === "endless") {
-            setGamePhase("ready");
-          } else {
-            // For subsequent rounds in competitive mode, go directly to playing
-            setGamePhase("playing");
-          }
+          // Aller directement au jeu, plus d'état "ready"
+          setGamePhase("playing");
 
           if (gameMode === "competitive") {
             setCompetitiveTotalScore(data.totalScore); // Update total score from backend
@@ -205,7 +200,7 @@ const CekiluiGame = ({ onBackToMenu }) => {
     console.log("Image chargée avec succès");
     setImageLoaded(true);
 
-    // Démarrer le chrono serveur uniquement en mode compétitif
+    // Démarrer le chrono serveur dès que l'image est chargée en mode compétitif
     if (gameMode === "competitive") {
       startServerTimer();
     }
@@ -341,24 +336,32 @@ const CekiluiGame = ({ onBackToMenu }) => {
 
   if (error) {
     return (
-      <div className="cekilui-game">
-        <div className="cekilui-game__error">
-          <h3>Erreur</h3>
-          <p>{error}</p>
-          <div className="cekilui-game__actions">
-            <button
-              onClick={backToMenu}
-              className="cekilui-btn cekilui-btn--secondary"
-            >
-              Retour au menu
-            </button>
-            <button
-              onClick={onBackToMenu}
-              className="cekilui-btn cekilui-btn--cancel"
-            >
-              Quitter le jeu
-            </button>
-          </div>
+      <div className="text-center space-y-6 animate-scale-in">
+        {/* Icône d'erreur */}
+        <div className="w-20 h-20 bg-danger/10 rounded-full flex items-center justify-center mx-auto">
+          <span className="text-3xl">⚠️</span>
+        </div>
+
+        {/* Message d'erreur */}
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold text-danger">Erreur</h3>
+          <p className="text-gray-600 leading-relaxed">{error}</p>
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-3">
+          <button
+            onClick={backToMenu}
+            className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95"
+          >
+            Retour au menu
+          </button>
+          <button
+            onClick={onBackToMenu}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-secondary py-3 px-6 rounded-xl font-medium transition-all duration-300 border border-gray-200"
+          >
+            Quitter le jeu
+          </button>
         </div>
       </div>
     );
@@ -366,298 +369,344 @@ const CekiluiGame = ({ onBackToMenu }) => {
 
   if (gameState === "menu") {
     return (
-      <div className="cekilui-game cekilui-game--clean">
-        <div className="cekilui-game-container">
-          <div className="cekilui-game__simple-menu">
-            <div className="cekilui-game__title">
-              <h2>🎯 Cékilui</h2>
-              <p>Devinez qui est sur la photo !</p>
-            </div>
-
-            <div className="cekilui-game__mode-buttons">
-              <button
-                className="cekilui-game__mode-btn cekilui-game__mode-btn--competitive"
-                onClick={() => showPromoSelection("competitive")}
-              >
-                <Trophy className="cekilui-game__mode-icon" size={24} />
-                <span className="cekilui-game__mode-label">
-                  Mode Compétitif
-                </span>
-              </button>
-              <button
-                className="cekilui-game__mode-btn cekilui-game__mode-btn--endless"
-                onClick={() => showPromoSelection("endless")}
-              >
-                <Infinity className="cekilui-game__mode-icon" size={24} />
-                <span className="cekilui-game__mode-label">Mode Sans Fin</span>
-              </button>
-            </div>
-
-            <button onClick={onBackToMenu} className="cekilui-game__back-link">
-              <ArrowLeft clas size={16} />
-              <span>Retour</span>
-            </button>
-          </div>
+      <div className="space-y-8 animate-scale-in">
+        {/* Titre centré */}
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl font-bold text-secondary">🎯 Cékilui</h2>
+          <p className="text-gray-600 text-lg leading-relaxed">
+            Devinez qui est sur la photo !
+          </p>
         </div>
+
+        {/* Boutons modes */}
+        <div className="space-y-4">
+          <button
+            className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95"
+            onClick={() => showPromoSelection("competitive")}
+          >
+            <div className="flex items-center justify-center space-x-3">
+              <Trophy className="w-6 h-6" />
+              <span className="text-lg font-semibold">Mode Compétitif</span>
+            </div>
+            <p className="text-sm opacity-90 mt-2">
+              10 rounds • Score basé sur la vitesse
+            </p>
+          </button>
+
+          <button
+            className="w-full bg-gradient-to-r from-secondary to-gray-700 hover:from-gray-700 hover:to-secondary text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95"
+            onClick={() => showPromoSelection("endless")}
+          >
+            <div className="flex items-center justify-center space-x-3">
+              <Infinity className="w-6 h-6" />
+              <span className="text-lg font-semibold">Mode Sans Fin</span>
+            </div>
+            <p className="text-sm opacity-90 mt-2">
+              Entraînement • Pas de limite de temps
+            </p>
+          </button>
+        </div>
+
+        {/* Bouton retour */}
+        <button
+          onClick={onBackToMenu}
+          className="w-full flex items-center justify-center space-x-2 text-gray-600 hover:text-secondary py-3 transition-colors duration-300"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Retour</span>
+        </button>
       </div>
     );
   }
 
   if (gameState === "promoSelection") {
     return (
-      <div className="cekilui-game">
-        <div className="cekilui-game-container">
-          <PromoSelector
-            onStartGame={startGameWithPromos}
-            onCancel={backToMenu}
-            gameMode={gameMode} // Pass gameMode to PromoSelector
-          />
-        </div>
-      </div>
+      <PromoSelector
+        onStartGame={startGameWithPromos}
+        onCancel={backToMenu}
+        gameMode={gameMode}
+      />
     );
   }
 
   if (gameState === "playing") {
     return (
-      <div className="cekilui-game cekilui-game--new-design">
-        <div className="cekilui-game-container">
-          {/* Header fixe avec score et progression */}
-          <div className="cekilui-game__header-new">
-            <button onClick={backToMenu} className="cekilui-game__back-btn">
-              <ArrowLeft size={20} />
+      <div>
+        {/* Header fixe avec score et progression */}
+        <header className="sticky top-0 z-10 bg-background-module/95 backdrop-blur-sm border-b border-gray-200">
+          <div className="flex items-center justify-between px-4 pb-4 -pt-4">
+            <button
+              onClick={backToMenu}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-300"
+            >
+              <ArrowLeft size={20} className="text-secondary" />
             </button>
-            <div className="cekilui-game__score-display">
-              {gameMode === "competitive"
-                ? `${competitiveTotalScore} pts`
-                : `${endlessScore.correct}/${endlessScore.total}`}
+
+            <div className="text-center">
+              <div className="text-lg font-bold text-secondary">
+                {gameMode === "competitive"
+                  ? `${competitiveTotalScore} pts`
+                  : `${endlessScore.correct}/${endlessScore.total}`}
+              </div>
+              {gameMode === "competitive" && (
+                <div className="text-xs text-gray-500">
+                  Round {competitiveCurrentRoundNumber}/{MAX_COMPETITIVE_ROUNDS}
+                </div>
+              )}
             </div>
+
             {gameMode === "competitive" && (
-              <div className="cekilui-game__progress-dots">
+              <div className="flex space-x-1">
                 {Array.from({ length: MAX_COMPETITIVE_ROUNDS }, (_, index) => (
                   <div
                     key={index}
-                    className={`cekilui-game__progress-dot ${
+                    className={`w-2 h-2 rounded-full ${
                       index < competitiveCurrentRoundNumber - 1
                         ? roundProgress[index] === "correct"
-                          ? "correct"
-                          : "incorrect"
+                          ? "bg-game-correct"
+                          : "bg-danger"
                         : index === competitiveCurrentRoundNumber - 1
-                        ? "current"
-                        : "upcoming"
+                        ? "bg-primary animate-pulse-soft"
+                        : "bg-gray-300"
                     }`}
                   />
                 ))}
               </div>
             )}
           </div>
+        </header>
 
-          {/* Zone de jeu principale */}
-          <div className="cekilui-game__main-area">
-            {gamePhase === "ready" && currentRoundData ? (
-              /* État "Ready" - Gros bouton Go */
-              <div className="cekilui-game__ready-state">
-                <div className="cekilui-game__photo-container">
-                  <img
-                    src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
-                    alt="Photo mystère"
-                    className="cekilui-game__photo-img"
-                    onError={(e) => {
-                      console.error(
-                        "Erreur de chargement de l'image:",
-                        e.target.src
-                      );
-                      e.target.style.backgroundColor = "#f0f0f0";
-                      e.target.style.border = "2px dashed #ccc";
-                    }}
-                    onLoad={handleImageLoad}
-                    crossOrigin="use-credentials"
-                  />
-                  <div className="cekilui-game__go-overlay">
-                    <button
-                      className="cekilui-game__go-button"
-                      onClick={() => {
-                        if (
-                          imageLoaded &&
-                          (gameMode !== "competitive" || timerStarted)
-                        ) {
-                          setGamePhase("playing");
-                        }
-                      }}
-                      disabled={
-                        !imageLoaded ||
-                        (gameMode === "competitive" && !timerStarted)
-                      }
+        {/* Zone de jeu principale */}
+        <main className="max-w-md mx-auto pt-4 pb-safe ">
+          {gamePhase === "playing" && currentRoundData ? (
+            /* Interface de jeu directe - plus d'état "ready" */
+            <div className="space-y-6 animate-scale-in">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
+                <img
+                  src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
+                  alt="Photo mystère"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error(
+                      "Erreur de chargement de l'image:",
+                      e.target.src
+                    );
+                    e.target.style.backgroundColor = "#f0f0f0";
+                    e.target.style.border = "2px dashed #ccc";
+                  }}
+                  onLoad={handleImageLoad}
+                  crossOrigin="use-credentials"
+                />
+
+                {/* Timer circulaire comme bordure de l'image */}
+                {gameMode === "competitive" && timerStarted && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    <svg
+                      className="w-full h-full transform -rotate-90"
+                      viewBox="0 0 100 100"
                     >
-                      <Play size={20} />
-                    </button>
-                    <p className="cekilui-game__go-text">À toi de jouer</p>
+                      {/* Bordure de base */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="49"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth="2"
+                      />
+                      {/* Timer progressif qui "mange" la bordure */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="49"
+                        fill="none"
+                        stroke="#fbbf24"
+                        strokeWidth="2"
+                        strokeDasharray="308"
+                        strokeDashoffset={308 - (308 * timer) / 5000}
+                        className="transition-all duration-100"
+                      />
+                    </svg>
                   </div>
-                </div>
+                )}
               </div>
-            ) : gamePhase === "playing" && currentRoundData ? (
-              /* État "Playing" - Photo + choix */
-              <div className="cekilui-game__playing-state">
-                <div className="cekilui-game__photo-container">
-                  <img
-                    src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
-                    alt="Photo mystère"
-                    className="cekilui-game__photo-img"
-                    crossOrigin="use-credentials"
-                  />
-                  {gameMode === "competitive" && (
-                    <div className="cekilui-game__timer-ring">
-                      <svg
-                        className="cekilui-game__timer-svg"
-                        viewBox="0 0 100 100"
-                      >
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="45"
-                          fill="none"
-                          stroke="#ffd700"
-                          strokeWidth="4"
-                          strokeDasharray="283"
-                          strokeDashoffset={283 - (283 * timer) / 5000}
-                          transform="rotate(-90 50 50)"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
 
-                <div className="cekilui-game__choices-new">
-                  {currentRoundData.choices.map((choice) => (
-                    <button
-                      key={choice.id}
-                      onClick={() => submitAnswer(choice.id)}
-                      disabled={selectedChoice !== null || isLoading}
-                      className={`cekilui-game__choice-new ${
-                        selectedChoice === choice.id ? "selected" : ""
-                      }`}
-                    >
-                      {choice.displayName}
-                    </button>
-                  ))}
-                </div>
+              {/* Boutons de choix - 4 lignes */}
+              <div className="flex flex-col space-y-4 items-center">
+                {currentRoundData.choices.map((choice) => (
+                  <button
+                    key={choice.id}
+                    onClick={() => submitAnswer(choice.id)}
+                    disabled={selectedChoice !== null || isLoading}
+                    className={`p-3 rounded-xl font-medium transition-all duration-200 active:scale-95 border-2 w-3/4 ${
+                      selectedChoice === choice.id
+                        ? "bg-primary text-white border-primary shadow-lg"
+                        : "bg-white hover:bg-gray-50 text-secondary border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg"
+                    } ${
+                      (selectedChoice !== null || isLoading) &&
+                      selectedChoice !== choice.id
+                        ? "opacity-50"
+                        : ""
+                    }`}
+                  >
+                    {choice.displayName}
+                  </button>
+                ))}
               </div>
-            ) : gamePhase === "answered" && roundResult ? (
-              /* État "Answered" - Affichage intégré du résultat */
-              <div className="cekilui-game__answered-state">
-                <div className="cekilui-game__photo-container">
-                  <img
-                    src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
-                    alt="Photo révélée"
-                    className="cekilui-game__photo-img"
-                    crossOrigin="use-credentials"
-                  />
-                </div>
+            </div>
+          ) : gamePhase === "answered" && roundResult ? (
+            /* État "Answered" - Affichage intégré du résultat */
+            <div className="space-y-6 animate-scale-in">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border-4 border-game-photo-border">
+                <img
+                  src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
+                  alt="Photo révélée"
+                  className="w-full h-full object-cover"
+                  crossOrigin="use-credentials"
+                />
 
+                {/* Overlay de résultat */}
                 <div
-                  className={`cekilui-game__result-integrated ${
-                    roundResult.correct ? "correct" : "incorrect"
-                  }`}
+                  className={`absolute inset-0 ${
+                    roundResult.correct
+                      ? "bg-success/50"
+                      : "bg-danger/50"
+                  } flex items-center justify-center`}
                 >
-                  <div className="cekilui-game__result-status">
-                    <span className="cekilui-game__result-emoji">
-                      {roundResult.correct ? "✅" : "❌"}
-                    </span>
-                    <span className="cekilui-game__result-message">
-                      {roundResult.correct ? "Correct !" : "Incorrect"}
-                    </span>
+                  <div className="text-center space-y-4">
+                    <div className="text-white font-bold text-xl">
+                      {roundResult.correct ? "Correct 🤗" : "Incorrect 😓"}
+                    </div>
                     {gameMode === "competitive" && roundResult.correct && (
-                      <span className="cekilui-game__result-points">
+                      <div className="text-white font-semibold text-lg">
                         +{roundResult.scoreGainedThisRound} pts
-                      </span>
+                      </div>
                     )}
                   </div>
-
-                  <div className="cekilui-game__correct-answer-display">
-                    <span className="cekilui-game__answer-label">
-                      Réponse :
-                    </span>
-                    <span className="cekilui-game__answer-name">
-                      {roundResult.correctAnswer.displayName}
-                    </span>
-                  </div>
-
-                  <div className="cekilui-game__next-round-countdown">
-                    <div className="cekilui-game__countdown-bar"></div>
-                    <span className="cekilui-game__countdown-text">
-                      Round suivant...
-                    </span>
-                  </div>
                 </div>
               </div>
-            ) : (
-              /* État de chargement */
-              <div className="cekilui-game__loading">
-                <p>Chargement du round...</p>
+
+              {/* Informations de la réponse */}
+              <div className="bg-white rounded-xl p-4 shadow-lg">
+                <div className="text-center space-y-2">
+                  <p className="text-gray-600 text-sm">Réponse :</p>
+                  <p className="text-secondary font-semibold text-lg">
+                    {roundResult.correctAnswer.displayName}
+                  </p>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
+
+              {/* Barre de progression vers le round suivant */}
+              <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div className="bg-primary h-full animate-countdown"></div>
+              </div>
+              <p className="text-center text-gray-600 text-sm">
+                Round suivant...
+              </p>
+            </div>
+          ) : (
+            /* État de chargement - spinner plus bas et plus gros */
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 animate-scale-in">
+              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-secondary font-medium text-lg">
+                Chargement du round...
+              </p>
+            </div>
+          )}
+        </main>
       </div>
     );
   }
 
   if (gameState === "gameover") {
     return (
-      <div className="cekilui-game cekilui-game--new-design">
-        <div className="cekilui-game-container">
-          <div className="cekilui-game__gameover-new">
-            <div className="cekilui-game__final-score-container">
-              <div className="cekilui-game__score-emoji">
-                {competitiveTotalScore >= 500
-                  ? "😄"
-                  : competitiveTotalScore >= 300
-                  ? "😊"
-                  : "😐"}
-              </div>
-              <div className="cekilui-game__final-score-card">
-                <h2 className="cekilui-game__final-title">Ton score</h2>
-                <div className="cekilui-game__final-points">
-                  {competitiveTotalScore}pts
-                </div>
-                <p className="cekilui-game__final-message">
-                  {competitiveTotalScore >= 500
-                    ? "Excellent ! Tu maîtrises parfaitement !"
-                    : competitiveTotalScore >= 300
-                    ? "Bien joué ! Continue comme ça !"
-                    : "Tu n'as pas battu ton meilleur score mais persévère !"}
-                </p>
-              </div>
-            </div>
+      <div className="text-center space-y-8 animate-scale-in">
+        {/* Emoji de performance */}
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto">
+          <span className="text-4xl">
+            {competitiveTotalScore >= 500
+              ? "😄"
+              : competitiveTotalScore >= 300
+              ? "😊"
+              : "😐"}
+          </span>
+        </div>
 
-            <div className="cekilui-game__final-actions">
-              <button
-                onClick={() => {
-                  // Restart game with same promos
-                  setGameState("playing");
-                  setGamePhase("ready");
-                  setCompetitiveTotalScore(0);
-                  setCompetitiveCurrentRoundNumber(0);
-                  setRoundProgress([]);
-                  loadNextRound(gameId, true); // Mark as first round when restarting
-                }}
-                className="cekilui-game__final-btn cekilui-game__final-btn--primary"
-              >
-                Rejouer
-              </button>
-              <button
-                onClick={backToMenu}
-                className="cekilui-game__final-btn cekilui-game__final-btn--secondary"
-              >
-                Consulter le classement
-              </button>
-              <button
-                onClick={onBackToMenu}
-                className="cekilui-game__final-link"
-              >
-                Retourner à l'accueil
-              </button>
+        {/* Carte de score */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-secondary">Ton score</h2>
+            <div className="text-5xl font-bold text-primary">
+              {competitiveTotalScore}
+              <span className="text-2xl text-gray-500">pts</span>
+            </div>
+            <p className="text-gray-600 leading-relaxed">
+              {competitiveTotalScore >= 500
+                ? "Excellent ! Tu maîtrises parfaitement !"
+                : competitiveTotalScore >= 300
+                ? "Bien joué ! Continue comme ça !"
+                : "Tu n'as pas battu ton meilleur score mais persévère !"}
+            </p>
+          </div>
+
+          {/* Statistiques du round */}
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-game-correct">
+                {roundProgress.filter((r) => r === "correct").length}
+              </div>
+              <div className="text-xs text-gray-500">Correctes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-danger">
+                {roundProgress.filter((r) => r === "incorrect").length}
+              </div>
+              <div className="text-xs text-gray-500">Incorrectes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">
+                {Math.round(
+                  (roundProgress.filter((r) => r === "correct").length /
+                    MAX_COMPETITIVE_ROUNDS) *
+                    100
+                )}
+                %
+              </div>
+              <div className="text-xs text-gray-500">Précision</div>
             </div>
           </div>
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-4">
+          <button
+            onClick={() => {
+              // Restart game with same promos
+              setGameState("playing");
+              setGamePhase("ready");
+              setCompetitiveTotalScore(0);
+              setCompetitiveCurrentRoundNumber(0);
+              setRoundProgress([]);
+              loadNextRound(gameId, true);
+            }}
+            className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
+          >
+            🔄 Rejouer
+          </button>
+
+          <button
+            onClick={backToMenu}
+            className="w-full bg-gradient-to-r from-secondary to-gray-700 hover:from-gray-700 hover:to-secondary text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
+          >
+            📊 Consulter le classement
+          </button>
+
+          <button
+            onClick={onBackToMenu}
+            className="w-full text-gray-600 hover:text-secondary py-3 transition-colors duration-300"
+          >
+            ← Retourner à l'accueil
+          </button>
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import AvatarEditor from 'react-avatar-editor';
+import { ArrowLeft } from 'lucide-react';
 
 const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
   const [image, setImage] = useState(null);
@@ -100,55 +101,81 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
   }, []);
 
   return (
-    <div className="photo-uploader">
-      <div className="photo-uploader__header">
-        <h3>Ajouter une photo de profil</h3>
+    <div className="space-y-6 animate-scale-in">
+      {/* Header */}
+      <div className="text-center">
+        <h3 className="text-2xl font-bold text-secondary">📷 Ajouter une photo de profil</h3>
       </div>
 
+      {/* Message d'erreur */}
       {error && (
-        <div className="photo-uploader__error">
-          {error}
+        <div className="bg-danger/10 border border-danger/20 rounded-xl p-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-6 h-6 bg-danger rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-sm">!</span>
+            </div>
+            <p className="text-danger font-medium">{error}</p>
+          </div>
         </div>
       )}
 
+      {/* Input file caché */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         onChange={handleImageChange}
-        style={{ display: 'none' }}
+        className="hidden"
       />
 
       {!image ? (
-        <div className="photo-uploader__select">
-          <div className="photo-uploader__select-area" onClick={handleSelectFile}>
-            <div className="photo-uploader__select-icon">📷</div>
-            <p>Cliquez pour sélectionner une photo</p>
-            <p className="photo-uploader__select-hint">
-              JPG, PNG ou WEBP - Maximum 10MB
-            </p>
+        /* Zone de sélection de fichier */
+        <div
+          className="border-2 border-dashed border-gray-300 hover:border-primary rounded-xl p-8 md:p-12 cursor-pointer transition-all duration-300 bg-gray-50 hover:bg-gray-100"
+          onClick={handleSelectFile}
+        >
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+              <span className="text-3xl">📷</span>
+            </div>
+            <div className="space-y-2">
+              <p className="text-lg md:text-xl font-medium text-secondary">
+                Cliquez pour sélectionner une photo
+              </p>
+              <p className="text-sm md:text-base text-gray-500">
+                JPG, PNG ou WEBP - Maximum 10MB
+              </p>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="photo-uploader__editor">
-          <div className="photo-uploader__canvas">
-            <AvatarEditor
-              ref={editorRef}
-              image={image}
-              width={300}
-              height={300}
-              border={20}
-              borderRadius={150}
-              color={[255, 255, 255, 0.6]}
-              scale={scale}
-              rotate={rotate}
-              backgroundColor="#f0f0f0"
-            />
+        /* Éditeur de photo */
+        <div className="space-y-6">
+          {/* Canvas de l'éditeur */}
+          <div className="flex justify-center">
+            <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
+              <AvatarEditor
+                ref={editorRef}
+                image={image}
+                width={280}
+                height={280}
+                border={15}
+                borderRadius={140}
+                color={[255, 255, 255, 0.6]}
+                scale={scale}
+                rotate={rotate}
+                backgroundColor="#f0f0f0"
+              />
+            </div>
           </div>
 
-          <div className="photo-uploader__controls">
-            <div className="photo-uploader__control-group">
-              <label>Zoom:</label>
+          {/* Contrôles */}
+          <div className="space-y-4">
+            {/* Contrôle de zoom */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-secondary">
+                Zoom: {scale.toFixed(1)}x
+              </label>
               <input
                 type="range"
                 min="1"
@@ -156,26 +183,30 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
                 step="0.1"
                 value={scale}
                 onChange={handleScaleChange}
-                className="photo-uploader__slider"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                disabled={isUploading}
               />
             </div>
 
-            <div className="photo-uploader__control-group">
-              <label>Rotation:</label>
-              <div className="photo-uploader__rotation-buttons">
+            {/* Contrôles de rotation */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-secondary">
+                Rotation:
+              </label>
+              <div className="flex space-x-3 justify-center">
                 <button
                   type="button"
                   onClick={handleRotateLeft}
-                  className="photo-uploader__rotate-btn"
                   disabled={isUploading}
+                  className="w-12 h-12 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 text-secondary rounded-lg font-bold text-xl transition-all duration-300 active:scale-95"
                 >
                   ↺
                 </button>
                 <button
                   type="button"
                   onClick={handleRotateRight}
-                  className="photo-uploader__rotate-btn"
                   disabled={isUploading}
+                  className="w-12 h-12 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 text-secondary rounded-lg font-bold text-xl transition-all duration-300 active:scale-95"
                 >
                   ↻
                 </button>
@@ -183,35 +214,44 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
             </div>
           </div>
 
-          <div className="photo-uploader__actions">
+          {/* Actions de l'éditeur */}
+          <div className="flex space-x-3">
             <button
               type="button"
               onClick={handleReset}
-              className="photo-uploader__btn photo-uploader__btn--secondary"
               disabled={isUploading}
+              className="flex-1 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 text-secondary py-3 px-6 rounded-xl font-medium transition-all duration-300"
             >
               Changer de photo
             </button>
             <button
               type="button"
               onClick={handleUpload}
-              className="photo-uploader__btn photo-uploader__btn--primary"
               disabled={isUploading}
+              className="flex-1 bg-primary hover:bg-primary-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
             >
-              {isUploading ? 'Upload en cours...' : 'Sauvegarder'}
+              {isUploading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Upload en cours...</span>
+                </div>
+              ) : (
+                'Sauvegarder'
+              )}
             </button>
           </div>
         </div>
       )}
 
-      <div className="photo-uploader__footer">
+      {/* Footer avec bouton annuler */}
+      <div className="pt-4 border-t border-gray-200">
         <button
           type="button"
           onClick={onCancel}
-          className="photo-uploader__btn photo-uploader__btn--cancel"
           disabled={isUploading}
+          className="w-full text-gray-600 hover:text-secondary disabled:text-gray-400 py-3 transition-colors duration-300"
         >
-          Annuler
+          ← Annuler
         </button>
       </div>
     </div>

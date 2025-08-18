@@ -61,34 +61,41 @@ const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
 
   if (isLoading) {
     return (
-      <div className="promo-selector promo-selector--fixed">
-        <div className="promo-selector__loading">
-          <p>Chargement des promos...</p>
-        </div>
+      <div className="text-center space-y-6 animate-scale-in py-12">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-secondary font-medium text-lg">Chargement des promos...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="promo-selector promo-selector--fixed">
-        <div className="promo-selector__error">
-          <h3>Erreur</h3>
-          <p>{error}</p>
-          <div className="promo-selector__actions">
-            <button
-              onClick={loadPromosStats}
-              className="cekilui-btn cekilui-btn--primary"
-            >
-              Réessayer
-            </button>
-            <button
-              onClick={onCancel}
-              className="cekilui-btn cekilui-btn--cancel"
-            >
-              Annuler
-            </button>
-          </div>
+      <div className="text-center space-y-6 animate-scale-in">
+        {/* Icône d'erreur */}
+        <div className="w-20 h-20 bg-danger/10 rounded-full flex items-center justify-center mx-auto">
+          <span className="text-3xl">⚠️</span>
+        </div>
+        
+        {/* Message d'erreur */}
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold text-danger">Erreur</h3>
+          <p className="text-gray-600 leading-relaxed">{error}</p>
+        </div>
+        
+        {/* Actions */}
+        <div className="space-y-3">
+          <button
+            onClick={loadPromosStats}
+            className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95"
+          >
+            Réessayer
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-secondary py-3 px-6 rounded-xl font-medium transition-all duration-300 border border-gray-200"
+          >
+            Annuler
+          </button>
         </div>
       </div>
     );
@@ -103,107 +110,119 @@ const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
     (promos.length > 0 && selectedPromos.length === promos.length);
 
   return (
-    <div className="promo-selector promo-selector--fixed">
-      <div className="promo-selector__header">
-        <h3>
-          {gameMode === "competitive" ? "Mode Compétitif" : "Mode Sans Fin"}
+    <div className="space-y-6 animate-scale-in">
+      {/* Header */}
+      <div className="text-center space-y-3">
+        <h3 className="text-2xl font-bold text-secondary">
+          {gameMode === "competitive" ? "🏆 Mode Compétitif" : "♾️ Mode Sans Fin"}
         </h3>
-        <p>
+        <p className="text-gray-600 leading-relaxed">
           {gameMode === "competitive"
             ? "Jouez sur une seule promo ou sur toutes les promos pour enregistrer votre score."
             : "Choisissez les promos avec lesquelles vous voulez vous entraîner."}
         </p>
       </div>
 
-      <div className="promo-selector__controls">
+      {/* Contrôles de sélection */}
+      <div className="flex space-x-3">
         <button
           onClick={handleSelectAll}
-          className="promo-selector__control-btn"
           disabled={selectedPromos.length === promos.length}
+          className="flex-1 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 text-secondary py-2 px-4 rounded-lg font-medium transition-all duration-300"
         >
           Tout sélectionner
         </button>
         <button
           onClick={handleDeselectAll}
-          className="promo-selector__control-btn"
           disabled={selectedPromos.length === 0}
+          className="flex-1 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 text-secondary py-2 px-4 rounded-lg font-medium transition-all duration-300"
         >
           Tout désélectionner
         </button>
       </div>
 
-      <div className="promo-selector__list">
+      {/* Liste des promos */}
+      <div className="space-y-2 max-h-60 overflow-y-auto">
         {promos.map((promo) => (
           <div
             key={promo.group}
-            className={`promo-selector__item ${
-              selectedPromos.includes(promo.group) ? "selected" : ""
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+              selectedPromos.includes(promo.group)
+                ? "border-primary bg-primary/5"
+                : "border-gray-200 hover:border-gray-300 bg-white"
             }`}
             onClick={() => handlePromoToggle(promo.group)}
           >
-            <div className="promo-selector__checkbox">
+            <div className="flex items-center space-x-3">
               <input
                 type="checkbox"
                 checked={selectedPromos.includes(promo.group)}
                 onChange={() => handlePromoToggle(promo.group)}
                 onClick={(e) => e.stopPropagation()}
+                className="w-5 h-5 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
               />
-            </div>
-            <div className="promo-selector__info">
-              <span className="promo-selector__name">{promo.group}</span>
-              <span className="promo-selector__count">
-                {promo.count} personne{promo.count > 1 ? "s" : ""}
-              </span>
+              <div className="flex-1">
+                <span className="font-medium text-secondary">{promo.group}</span>
+                <span className="text-gray-600 text-sm ml-2">
+                  {promo.count} personne{promo.count > 1 ? "s" : ""}
+                </span>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="promo-selector__summary">
-        <p>
+      {/* Résumé */}
+      <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+        <p className="text-center text-secondary font-medium">
           <strong>{selectedPromos.length}</strong> promo
           {selectedPromos.length > 1 ? "s" : ""} sélectionnée
           {selectedPromos.length > 1 ? "s" : ""} ({totalSelectedPeople} personne
           {totalSelectedPeople > 1 ? "s" : ""})
         </p>
         {totalSelectedPeople < 4 && (
-          <p className="promo-selector__warning">
-            ⚠️ Il faut au moins 4 personnes pour jouer
-          </p>
+          <div className="flex items-center justify-center space-x-2 text-game-warning">
+            <span>⚠️</span>
+            <span className="text-sm font-medium">Il faut au moins 4 personnes pour jouer</span>
+          </div>
         )}
       </div>
 
-      <div className="promo-selector__actions">
+      {/* Actions */}
+      <div className="space-y-4">
         {gameMode === "competitive" ? (
-          <div className="promo-selector__competitive-actions">
+          <>
             <button
               onClick={() => onStartGame(selectedPromos)}
-              className="cekilui-btn cekilui-btn--primary"
               disabled={!isCompetitiveModeValid || totalSelectedPeople < 4}
+              className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
             >
               Lancer le défi ({selectedPromos.length} promo
               {selectedPromos.length > 1 ? "s" : ""})
             </button>
             {!isCompetitiveModeValid && (
-              <p className="promo-selector__warning">
-                Pour le mode compétitif, vous devez sélectionner soit{" "}
-                <strong>une seule</strong> promo, soit <strong>toutes</strong>{" "}
-                les promos.
-              </p>
+              <div className="bg-game-warning/10 border border-game-warning/20 rounded-xl p-4">
+                <p className="text-game-warning text-sm text-center">
+                  Pour le mode compétitif, vous devez sélectionner soit{" "}
+                  <strong>une seule</strong> promo, soit <strong>toutes</strong>{" "}
+                  les promos.
+                </p>
+              </div>
             )}
-          </div>
+          </>
         ) : (
           <button
             onClick={() => onStartGame(selectedPromos)}
-            className="cekilui-btn cekilui-btn--primary"
             disabled={selectedPromos.length === 0 || totalSelectedPeople < 4}
+            className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
           >
             Jouer en mode sans fin
           </button>
         )}
+        
         <button
           onClick={onCancel}
-          className="cekilui-btn cekilui-btn--secondary"
+          className="w-full bg-gray-100 hover:bg-gray-200 text-secondary py-3 px-6 rounded-xl font-medium transition-all duration-300 border border-gray-200"
         >
           Retour
         </button>

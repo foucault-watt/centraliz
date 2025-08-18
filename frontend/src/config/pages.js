@@ -6,5 +6,5 @@ export const pagesConfig = [
   { id: "communication", label: "Mails", icon: Mail },
   { id: "links", label: "Liens", icon: ExternalLink },
   { id: "bibli", label: "Bibli", icon: LibraryBig },
-  { id: "cekilui", label: "Cékilui ?", icon: Users }
+  { id: "cekilui", label: "Cékilui", icon: Users }
 ];

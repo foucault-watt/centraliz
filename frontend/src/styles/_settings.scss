@@ -59,12 +59,7 @@ li {
   border-radius: $border-radius;
   padding: 15px;
   box-shadow: $shadow-default;
-  transition: $transition;
   position: relative;
-
-  &:hover {
-    background-color: rgba($main, 0.05);
-  }
 
   @media (max-width: 768px) {
     padding: 15px;

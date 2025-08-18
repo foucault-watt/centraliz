@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-const PromoSelector = ({ onStartGame, onCancel }) => {
+const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
   const [promos, setPromos] = useState([]);
   const [selectedPromos, setSelectedPromos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,30 +59,9 @@ const PromoSelector = ({ onStartGame, onCancel }) => {
     setSelectedPromos([]);
   }, []);
 
-  const handleStartGame = useCallback(() => {
-    if (selectedPromos.length === 0) {
-      setError("Veuillez sélectionner au moins une promo");
-      return;
-    }
-
-    // Calculer le nombre total de personnes dans les promos sélectionnées
-    const totalPeople = promos
-      .filter((promo) => selectedPromos.includes(promo.group))
-      .reduce((sum, promo) => sum + promo.count, 0);
-
-    if (totalPeople < 4) {
-      setError(
-        "Il faut au moins 4 personnes avec des photos dans les promos sélectionnées"
-      );
-      return;
-    }
-
-    onStartGame(selectedPromos);
-  }, [selectedPromos, promos, onStartGame]);
-
   if (isLoading) {
     return (
-      <div className="promo-selector">
+      <div className="promo-selector promo-selector--fixed">
         <div className="promo-selector__loading">
           <p>Chargement des promos...</p>
         </div>
@@ -92,7 +71,7 @@ const PromoSelector = ({ onStartGame, onCancel }) => {
 
   if (error) {
     return (
-      <div className="promo-selector">
+      <div className="promo-selector promo-selector--fixed">
         <div className="promo-selector__error">
           <h3>Erreur</h3>
           <p>{error}</p>
@@ -119,11 +98,21 @@ const PromoSelector = ({ onStartGame, onCancel }) => {
     .filter((promo) => selectedPromos.includes(promo.group))
     .reduce((sum, promo) => sum + promo.count, 0);
 
+  const isCompetitiveModeValid =
+    selectedPromos.length === 1 ||
+    (promos.length > 0 && selectedPromos.length === promos.length);
+
   return (
-    <div className="promo-selector">
+    <div className="promo-selector promo-selector--fixed">
       <div className="promo-selector__header">
-        <h3>Sélectionner les promos</h3>
-        <p>Choisissez avec quelles promos vous voulez jouer</p>
+        <h3>
+          {gameMode === "competitive" ? "Mode Compétitif" : "Mode Sans Fin"}
+        </h3>
+        <p>
+          {gameMode === "competitive"
+            ? "Jouez sur une seule promo ou sur toutes les promos pour enregistrer votre score."
+            : "Choisissez les promos avec lesquelles vous voulez vous entraîner."}
+        </p>
       </div>
 
       <div className="promo-selector__controls">
@@ -185,18 +174,38 @@ const PromoSelector = ({ onStartGame, onCancel }) => {
       </div>
 
       <div className="promo-selector__actions">
-        <button
-          onClick={handleStartGame}
-          className="cekilui-btn cekilui-btn--primary"
-          disabled={selectedPromos.length === 0 || totalSelectedPeople < 4}
-        >
-          Commencer le jeu
-        </button>
+        {gameMode === "competitive" ? (
+          <div className="promo-selector__competitive-actions">
+            <button
+              onClick={() => onStartGame(selectedPromos)}
+              className="cekilui-btn cekilui-btn--primary"
+              disabled={!isCompetitiveModeValid || totalSelectedPeople < 4}
+            >
+              Lancer le défi ({selectedPromos.length} promo
+              {selectedPromos.length > 1 ? "s" : ""})
+            </button>
+            {!isCompetitiveModeValid && (
+              <p className="promo-selector__warning">
+                Pour le mode compétitif, vous devez sélectionner soit{" "}
+                <strong>une seule</strong> promo, soit <strong>toutes</strong>{" "}
+                les promos.
+              </p>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={() => onStartGame(selectedPromos)}
+            className="cekilui-btn cekilui-btn--primary"
+            disabled={selectedPromos.length === 0 || totalSelectedPeople < 4}
+          >
+            Jouer en mode sans fin
+          </button>
+        )}
         <button
           onClick={onCancel}
           className="cekilui-btn cekilui-btn--secondary"
         >
-          Annuler
+          Retour
         </button>
       </div>
     </div>

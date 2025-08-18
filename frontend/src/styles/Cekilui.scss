@@ -1,159 +1,371 @@
-@import "./_settings.scss";
+// ===================================================================
+// CEKILUI GAME STYLES - MOBILE FIRST DESIGN
+// ===================================================================
+
+// Import des variables globales
+@import "./settings";
+
+// ===================================================================
+// VARIABLES SPÉCIFIQUES AU JEU CEKILUI
+// ===================================================================
+
+// Couleurs existantes conservées
+$cekilui-main: $main; // #597ee5 - Bleu principal
+$cekilui-green: $green; // #49c16b - Vert pour succès
+$cekilui-red: $red; // #e65656 - Rouge pour erreurs
+$cekilui-orange: $orange; // #ff9800 - Orange pour avertissements
+
+// Nouvelles couleurs spécifiques au jeu - THÈME CLAIR
+$cekilui-timer-yellow: #ffd700; // Jaune pour le timer circulaire
+$cekilui-overlay-success: rgba(
+  73,
+  193,
+  107,
+  0.85
+); // Overlay vert succès (moins opaque)
+$cekilui-overlay-error: rgba(
+  230,
+  86,
+  86,
+  0.85
+); // Overlay rouge échec (moins opaque)
+$cekilui-game-bg: #ffffff; // Fond de jeu blanc
+$cekilui-button-hover: #4267ce; // Hover des boutons
+$cekilui-card-bg: #ffffff; // Fond des cartes
+$cekilui-text-light: #6c757d; // Texte secondaire
+$cekilui-border-light: #e9ecef; // Bordures légères
+// Suppression des shadows pour thème clair
+$cekilui-shadow-light: none;
+$cekilui-shadow-medium: none;
+$cekilui-shadow-strong: none;
+
+// Dimensions
+$cekilui-photo-size-mobile: 250px;
+$cekilui-photo-size-desktop: 300px;
+$cekilui-button-height: 50px;
+$cekilui-button-height-mobile: 44px;
+$cekilui-border-radius: 15px;
+$cekilui-border-radius-large: 25px;
+
+// Animations
+$cekilui-transition-fast: 0.2s ease-out;
+$cekilui-transition-medium: 0.3s ease-out;
+$cekilui-transition-slow: 0.5s ease-out;
+$cekilui-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+// ===================================================================
+// MIXINS SPÉCIFIQUES AU JEU
+// ===================================================================
+
+@mixin cekilui-button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border: none;
+  border-radius: $cekilui-border-radius;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all $cekilui-transition-medium;
+  min-height: $cekilui-button-height-mobile;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  @media (min-width: 769px) {
+    min-height: $cekilui-button-height;
+    font-size: 18px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: $cekilui-shadow-medium;
+  }
+
+  &:not(:disabled):active {
+    transform: translateY(0);
+  }
+}
+
+@mixin cekilui-card {
+  background: $cekilui-card-bg;
+  border-radius: $cekilui-border-radius-large;
+  border: 1px solid $cekilui-border-light;
+  padding: 20px;
+  transition: all $cekilui-transition-medium;
+
+  @media (min-width: 769px) {
+    padding: 30px;
+  }
+}
+
+@mixin cekilui-photo-container {
+  position: relative;
+  width: $cekilui-photo-size-mobile;
+  height: $cekilui-photo-size-mobile;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid $cekilui-border-light;
+
+  @media (min-width: 769px) {
+    width: $cekilui-photo-size-desktop;
+    height: $cekilui-photo-size-desktop;
+  }
+}
+
+@mixin cekilui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all $cekilui-transition-medium;
+}
+
+// Animations keyframes
+@keyframes cekilui-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes cekilui-bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cekilui-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cekilui-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cekilui-timer-progress {
+  from {
+    stroke-dashoffset: 283;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+// ===================================================================
+// COMPOSANT PRINCIPAL CEKILUI
+// ===================================================================
 
 .cekilui-loading {
   text-align: center;
   padding: 40px 20px;
-  color: $second;
+  color: $cekilui-text-light;
+
+  p {
+    font-size: 16px;
+    margin: 0;
+  }
 }
 
 .cekilui-message {
-  padding: 15px;
-  border-radius: 8px;
+  @include cekilui-card;
   margin-bottom: 20px;
   text-align: center;
-  font-weight: 500;
+  animation: cekilui-slide-up 0.4s ease-out;
 
   &--success {
-    background-color: rgba($green, 0.1);
-    color: $green;
-    border: 1px solid rgba($green, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba($cekilui-green, 0.1),
+      rgba($cekilui-green, 0.05)
+    );
+    border: 2px solid rgba($cekilui-green, 0.2);
+    color: darken($cekilui-green, 10%);
   }
 
   &--error {
-    background-color: rgba($red, 0.1);
-    color: $red;
-    border: 1px solid rgba($red, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba($cekilui-red, 0.1),
+      rgba($cekilui-red, 0.05)
+    );
+    border: 2px solid rgba($cekilui-red, 0.2);
+    color: darken($cekilui-red, 10%);
   }
 }
 
 .cekilui-content {
   max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
+  border-radius: $cekilui-border-radius-large;
 }
 
 .cekilui-status {
+  @include cekilui-card;
   text-align: center;
-  padding: 40px 20px;
+  animation: cekilui-fade-in 0.5s ease-out;
 }
 
 .cekilui-status-icon {
-  font-size: 4rem;
+  font-size: 48px;
   margin-bottom: 20px;
+
+  @media (min-width: 769px) {
+    font-size: 64px;
+  }
 }
 
 .cekilui-has-photo,
 .cekilui-no-photo {
   h3 {
-    color: $second;
+    color: $cekilui-main;
     margin-bottom: 10px;
-    font-size: 1.5rem;
+    font-size: 24px;
+
+    @media (min-width: 769px) {
+      font-size: 28px;
+    }
   }
 
   p {
-    color: $second;
+    color: $cekilui-text-light;
     margin-bottom: 30px;
-    opacity: 0.8;
+    font-size: 16px;
+    line-height: 1.5;
   }
 }
 
 .cekilui-actions {
   display: flex;
+  flex-direction: column;
   gap: 15px;
-  justify-content: center;
-  flex-wrap: wrap;
+
+  @media (min-width: 769px) {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+  }
 }
 
+// ===================================================================
+// BOUTONS CEKILUI
+// ===================================================================
+
 .cekilui-btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: $border-radius;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: $transition;
-  text-decoration: none;
-  display: inline-block;
+  @include cekilui-button-base;
 
   &--primary {
-    background-color: $main;
+    background: linear-gradient(
+      135deg,
+      $cekilui-main,
+      darken($cekilui-main, 10%)
+    );
     color: white;
-
-    &:hover {
-      background-color: $main-dark;
-      transform: translateY(-2px);
-      box-shadow: $shadow-hover;
-    }
-
-    &:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
+    &:not(:disabled):hover {
+      background: linear-gradient(
+        135deg,
+        darken($cekilui-main, 5%),
+        darken($cekilui-main, 15%)
+      );
     }
   }
 
   &--secondary {
-    background-color: transparent;
-    color: $second;
-    border: 2px solid $second;
+    background: $cekilui-card-bg;
+    color: $cekilui-main;
+    border: 2px solid $cekilui-main;
 
-    &:hover {
-      background-color: $second;
+    &:not(:disabled):hover {
+      background: $cekilui-main;
       color: white;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
     }
   }
 
   &--cancel {
-    background-color: transparent;
-    color: $red;
-    border: 1px solid $red;
+    background: linear-gradient(
+      135deg,
+      $cekilui-red,
+      darken($cekilui-red, 10%)
+    );
+    color: white;
 
-    &:hover {
-      background-color: $red;
-      color: white;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    &:not(:disabled):hover {
+      background: linear-gradient(
+        135deg,
+        darken($cekilui-red, 5%),
+        darken($cekilui-red, 15%)
+      );
     }
   }
 }
 
-// Styles pour le composant PhotoUploader
+// ===================================================================
+// PHOTO UPLOADER
+// ===================================================================
+
 .photo-uploader {
-  background: $background-module;
-  border-radius: $border-radius;
-  padding: 30px;
-  box-shadow: $shadow-default;
+  @include cekilui-card;
   max-width: 500px;
   margin: 0 auto;
+  animation: cekilui-slide-up 0.4s ease-out;
 
   &__header {
     text-align: center;
     margin-bottom: 30px;
 
     h3 {
-      color: $second;
-      font-size: 1.5rem;
+      color: $cekilui-main;
+      font-size: 24px;
       margin: 0;
     }
   }
 
   &__error {
-    background-color: rgba($red, 0.1);
-    color: $red;
-    padding: 12px;
-    border-radius: 8px;
+    background: rgba($cekilui-red, 0.1);
+    border: 1px solid rgba($cekilui-red, 0.3);
+    color: darken($cekilui-red, 10%);
+    padding: 15px;
+    border-radius: $cekilui-border-radius;
     margin-bottom: 20px;
     text-align: center;
-    border: 1px solid rgba($red, 0.3);
+    font-size: 14px;
   }
 
   &__select {
@@ -161,28 +373,30 @@
   }
 
   &__select-area {
-    border: 2px dashed #ddd;
-    border-radius: 12px;
-    padding: 60px 20px;
+    border: 3px dashed $cekilui-border-light;
+    border-radius: $cekilui-border-radius-large;
+    padding: 40px 20px;
     text-align: center;
     cursor: pointer;
-    transition: $transition;
-    background-color: #fafafa;
+    transition: all $cekilui-transition-medium;
+    background: rgba($cekilui-main, 0.02);
 
     &:hover {
-      border-color: $main;
-      background-color: rgba($main, 0.05);
+      border-color: $cekilui-main;
+      background: rgba($cekilui-main, 0.05);
+      transform: translateY(-2px);
     }
   }
 
   &__select-icon {
-    font-size: 3rem;
+    font-size: 48px;
     margin-bottom: 15px;
+    opacity: 0.7;
   }
 
   &__select-hint {
-    font-size: 0.9rem;
-    color: #666;
+    color: $cekilui-text-light;
+    font-size: 14px;
     margin-top: 10px;
   }
 
@@ -196,47 +410,50 @@
     justify-content: center;
 
     canvas {
-      border-radius: 50%;
-      box-shadow: $shadow-default;
+      border-radius: 50% !important;
+      border: 2px solid $cekilui-border-light !important;
     }
   }
 
   &__controls {
-    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-bottom: 30px;
+
+    @media (min-width: 769px) {
+      flex-direction: row;
+      justify-content: space-around;
+    }
   }
 
   &__control-group {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    gap: 15px;
+    gap: 10px;
 
     label {
-      font-weight: 500;
-      color: $second;
-      min-width: 80px;
-      text-align: left;
+      font-weight: 600;
+      color: $cekilui-main;
+      font-size: 14px;
     }
   }
 
   &__slider {
-    flex: 1;
+    width: 150px;
     height: 6px;
     border-radius: 3px;
-    background: #ddd;
+    background: $cekilui-border-light;
     outline: none;
     -webkit-appearance: none;
 
     &::-webkit-slider-thumb {
       -webkit-appearance: none;
-      appearance: none;
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: $main;
+      background: $cekilui-main;
       cursor: pointer;
     }
 
@@ -244,7 +461,7 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: $main;
+      background: $cekilui-main;
       cursor: pointer;
       border: none;
     }
@@ -256,591 +473,118 @@
   }
 
   &__rotate-btn {
-    width: 40px;
-    height: 40px;
-    border: 2px solid $main;
-    background: transparent;
-    color: $main;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: $transition;
+    @include cekilui-button-base;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    background: $cekilui-card-bg;
+    border: 2px solid $cekilui-border-light;
+    color: $cekilui-main;
+    font-size: 24px;
 
-    &:hover {
-      background: $main;
-      color: white;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    &:not(:disabled):hover {
+      border-color: $cekilui-main;
+      background: rgba($cekilui-main, 0.1);
     }
   }
 
   &__actions {
     display: flex;
+    flex-direction: column;
     gap: 15px;
-    justify-content: center;
     margin-bottom: 20px;
+
+    @media (min-width: 769px) {
+      flex-direction: row;
+      justify-content: center;
+    }
   }
 
   &__footer {
     text-align: center;
-    border-top: 1px solid #eee;
+    border-top: 1px solid $cekilui-border-light;
     padding-top: 20px;
   }
 
   &__btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: $transition;
+    @include cekilui-button-base;
 
     &--primary {
-      background-color: $main;
+      background: linear-gradient(
+        135deg,
+        $cekilui-green,
+        darken($cekilui-green, 10%)
+      );
       color: white;
 
-      &:hover {
-        background-color: $main-dark;
-      }
-
-      &:disabled {
-        background-color: #ccc;
-        cursor: not-allowed;
+      &:not(:disabled):hover {
+        background: linear-gradient(
+          135deg,
+          darken($cekilui-green, 5%),
+          darken($cekilui-green, 15%)
+        );
       }
     }
 
     &--secondary {
-      background-color: transparent;
-      color: $second;
-      border: 2px solid $second;
+      background: $cekilui-card-bg;
+      color: $cekilui-main;
+      border: 2px solid $cekilui-border-light;
 
-      &:hover {
-        background-color: $second;
-        color: white;
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+      &:not(:disabled):hover {
+        border-color: $cekilui-main;
+        background: rgba($cekilui-main, 0.1);
       }
     }
 
     &--cancel {
-      background-color: transparent;
-      color: $red;
-      border: 1px solid $red;
-
-      &:hover {
-        background-color: $red;
-        color: white;
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-  }
-
-  // Styles pour la sélection de mode
-  &__mode-selection {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 30px;
-
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-      gap: 15px;
-    }
-  }
-
-  &__mode-option {
-    background: white;
-    border: 2px solid #eee;
-    border-radius: 12px;
-    padding: 30px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: $transition;
-
-    &:hover {
-      border-color: $main;
-      background: rgba($main, 0.05);
-      transform: translateY(-2px);
-      box-shadow: $shadow-hover;
-    }
-
-    h4 {
-      color: $second;
-      margin: 15px 0 10px 0;
-      font-size: 1.2rem;
-    }
-
-    p {
-      color: $second;
-      opacity: 0.7;
-      margin: 0;
-      font-size: 0.9rem;
-    }
-  }
-
-  &__mode-icon {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-  }
-}
-
-// Responsive design
-@media (max-width: 768px) {
-  .cekilui-content {
-    padding: 10px;
-  }
-
-  .photo-uploader {
-    padding: 20px;
-    margin: 0 10px;
-
-    &__canvas canvas {
-      width: 250px !important;
-      height: 250px !important;
-    }
-
-    &__controls {
-      gap: 15px;
-    }
-
-    &__control-group {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 8px;
-
-      label {
-        text-align: center;
-        min-width: auto;
-      }
-    }
-
-    &__actions {
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    &__btn {
-      width: 100%;
-    }
-  }
-
-  .cekilui-btn {
-    width: 100%;
-    max-width: 300px;
-  }
-}
-
-// Styles pour le jeu Cékilui
-.cekilui-game {
-  background: $background-module;
-  border-radius: $border-radius;
-  padding: 30px;
-  box-shadow: $shadow-default;
-  max-width: 600px;
-  margin: 0 auto;
-
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #eee;
-  }
-
-  &__score {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: $main;
-  }
-
-  &__menu {
-    text-align: center;
-  }
-
-  &__title {
-    margin-bottom: 30px;
-
-    h2 {
-      color: $second;
-      font-size: 2rem;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: $second;
-      opacity: 0.8;
-      font-size: 1.1rem;
-    }
-  }
-
-  &__rules {
-    background: rgba($main, 0.05);
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 30px;
-    text-align: left;
-
-    h3 {
-      color: $second;
-      margin-bottom: 15px;
-      font-size: 1.3rem;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-
-      li {
-        padding: 8px 0;
-        color: $second;
-        position: relative;
-        padding-left: 25px;
-
-        &:before {
-          content: "🎯";
-          position: absolute;
-          left: 0;
-        }
-      }
-    }
-  }
-
-  &__loading {
-    text-align: center;
-    padding: 40px 20px;
-    color: $second;
-    font-size: 1.1rem;
-  }
-
-  &__error {
-    text-align: center;
-    padding: 30px;
-    background: rgba($red, 0.1);
-    border-radius: 12px;
-    border: 1px solid rgba($red, 0.3);
-
-    h3 {
-      color: $red;
-      margin-bottom: 15px;
-    }
-
-    p {
-      color: $red;
-      margin-bottom: 25px;
-    }
-  }
-
-  &__round {
-    text-align: center;
-  }
-
-  &__question {
-    margin-bottom: 25px;
-
-    h3 {
-      color: $second;
-      font-size: 1.8rem;
-      margin: 0;
-    }
-  }
-
-  &__waiting {
-    color: $main;
-    font-style: italic;
-    margin-top: 10px;
-    font-size: 1rem;
-  }
-
-  &__photo {
-    margin-bottom: 30px;
-    display: flex;
-    justify-content: center;
-  }
-
-  &__photo-img {
-    width: 300px;
-    height: 300px;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: $shadow-default;
-    border: 4px solid white;
-    background-color: #f8f9fa;
-    display: block;
-    
-    // Style par défaut en cas d'erreur de chargement
-    &::before {
-      content: "📷";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2rem;
-      color: #6c757d;
-      z-index: 1;
-    }
-    
-    // Masquer le texte alt par défaut
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
       background: transparent;
-      border-radius: 50%;
-    }
-  }
+      color: $cekilui-text-light;
+      border: none;
 
-  &__choices {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 30px;
-  }
-
-  &__choice {
-    padding: 15px 20px;
-    border: 2px solid #ddd;
-    background: white;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: $transition;
-    color: $second;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    &:hover:not(:disabled):not(.selected) {
-      border-color: $main;
-      background: rgba($main, 0.05);
-      transform: translateY(-2px);
-      box-shadow: $shadow-hover;
-    }
-
-    &.selected {
-      border-color: $main;
-      background: rgba($main, 0.1);
-      color: $main;
-      font-weight: 600;
-      transform: scale(1.02);
-    }
-
-    &.disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      background: #f8f9fa;
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-    }
-  }
-
-  &__choice-loading {
-    font-size: 1.2rem;
-    animation: spin 1s linear infinite;
-  }
-
-  &__result {
-    text-align: center;
-  }
-
-  &__result-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-
-    &.correct {
-      animation: bounce 0.6s ease-in-out;
-    }
-
-    &.incorrect {
-      animation: shake 0.6s ease-in-out;
-    }
-  }
-
-  &__result-title {
-    font-size: 1.8rem;
-    margin-bottom: 25px;
-
-    &.correct {
-      color: $green;
-    }
-
-    &.incorrect {
-      color: $red;
-    }
-  }
-
-  &__answer {
-    background: rgba($main, 0.05);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 25px 0;
-
-    p {
-      color: $second;
-      margin-bottom: 10px;
-      opacity: 0.8;
-    }
-
-    h4 {
-      color: $main;
-      font-size: 1.3rem;
-      margin: 0;
-    }
-  }
-
-  &__actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  &__btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: $transition;
-
-    &--small {
-      padding: 8px 16px;
-      font-size: 0.9rem;
-    }
-
-    &--primary {
-      background-color: $main;
-      color: white;
-
-      &:hover {
-        background-color: $main-dark;
-      }
-
-      &:disabled {
-        background-color: #ccc;
-        cursor: not-allowed;
-      }
-    }
-
-    &--secondary {
-      background-color: transparent;
-      color: $second;
-      border: 2px solid $second;
-
-      &:hover {
-        background-color: $second;
-        color: white;
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
-
-    &--cancel {
-      background-color: transparent;
-      color: $red;
-      border: 1px solid $red;
-
-      &:hover {
-        background-color: $red;
-        color: white;
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+      &:not(:disabled):hover {
+        color: $cekilui-red;
+        background: rgba($cekilui-red, 0.1);
       }
     }
   }
 }
 
-// Animations
-@keyframes bounce {
-  0%, 20%, 60%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-20px);
-  }
-  80% {
-    transform: translateY(-10px);
-  }
-}
+// ===================================================================
+// PROMO SELECTOR
+// ===================================================================
 
-@keyframes shake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  10%, 30%, 50%, 70%, 90% {
-    transform: translateX(-5px);
-  }
-  20%, 40%, 60%, 80% {
-    transform: translateX(5px);
-  }
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-// Styles pour le sélecteur de promos
 .promo-selector {
-  background: $background-module;
-  border-radius: $border-radius;
-  padding: 30px;
-  box-shadow: $shadow-default;
+  @include cekilui-card;
   max-width: 600px;
   margin: 0 auto;
+  animation: cekilui-slide-up 0.4s ease-out;
 
-  &__loading {
+  &--fixed {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  &__loading,
+  &__error {
     text-align: center;
     padding: 40px 20px;
-    color: $second;
-    font-size: 1.1rem;
   }
 
   &__error {
-    text-align: center;
-    padding: 30px;
-    background: rgba($red, 0.1);
-    border-radius: 12px;
-    border: 1px solid rgba($red, 0.3);
-
     h3 {
-      color: $red;
+      color: $cekilui-red;
       margin-bottom: 15px;
     }
 
     p {
-      color: $red;
-      margin-bottom: 25px;
+      color: $cekilui-text-light;
+      margin-bottom: 30px;
     }
   }
 
@@ -849,428 +593,1256 @@
     margin-bottom: 30px;
 
     h3 {
-      color: $second;
-      font-size: 1.5rem;
+      color: $cekilui-main;
+      font-size: 24px;
       margin-bottom: 10px;
     }
 
     p {
-      color: $second;
-      opacity: 0.8;
+      color: $cekilui-text-light;
+      line-height: 1.5;
     }
   }
 
   &__controls {
     display: flex;
     gap: 15px;
-    justify-content: center;
     margin-bottom: 25px;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+    }
   }
 
   &__control-btn {
-    padding: 8px 16px;
-    border: 1px solid $main;
-    background: transparent;
-    color: $main;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: $transition;
+    @include cekilui-button-base;
+    flex: 1;
+    background: $cekilui-card-bg;
+    color: $cekilui-main;
+    border: 2px solid $cekilui-border-light;
+    font-size: 14px;
+    padding: 10px 16px;
+    min-height: 40px;
 
-    &:hover:not(:disabled) {
-      background: $main;
-      color: white;
+    &:not(:disabled):hover {
+      border-color: $cekilui-main;
+      background: rgba($cekilui-main, 0.1);
     }
 
     &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      color: $cekilui-text-light;
+      border-color: $cekilui-border-light;
     }
   }
 
   &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 25px;
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    padding-right: 5px;
+    flex: 1;
+
+    .promo-selector--fixed & {
+      flex: 1;
+      max-height: none;
+    }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $cekilui-border-light;
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $cekilui-main;
+      border-radius: 3px;
+    }
   }
 
   &__item {
     display: flex;
     align-items: center;
+    gap: 15px;
     padding: 15px;
-    border-bottom: 1px solid #f0f0f0;
+    border: 2px solid $cekilui-border-light;
+    border-radius: $cekilui-border-radius;
     cursor: pointer;
-    transition: $transition;
-
-    &:last-child {
-      border-bottom: none;
-    }
+    transition: all $cekilui-transition-medium;
+    background: $cekilui-card-bg;
 
     &:hover {
-      background: rgba($main, 0.05);
+      border-color: rgba($cekilui-main, 0.5);
+      background: rgba($cekilui-main, 0.02);
+      transform: translateY(-1px);
     }
 
     &.selected {
-      background: rgba($main, 0.1);
-      border-left: 4px solid $main;
+      border-color: $cekilui-main;
+      background: rgba($cekilui-main, 0.1);
+
+      .promo-selector__checkbox input {
+        background: $cekilui-main;
+        border-color: $cekilui-main;
+
+        &::after {
+          opacity: 1;
+        }
+      }
     }
   }
 
   &__checkbox {
-    margin-right: 15px;
+    position: relative;
 
     input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
+      border: 2px solid $cekilui-border-light;
+      border-radius: 4px;
+      background: white;
       cursor: pointer;
+      transition: all $cekilui-transition-fast;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      position: relative;
+
+      &::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity $cekilui-transition-fast;
+      }
+
+      &:checked {
+        background: $cekilui-main;
+        border-color: $cekilui-main;
+
+        &::after {
+          opacity: 1;
+        }
+      }
     }
   }
 
   &__info {
     flex: 1;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 4px;
   }
 
   &__name {
-    font-weight: 500;
-    color: $second;
-    font-size: 1rem;
+    font-weight: 600;
+    color: $cekilui-main;
+    font-size: 16px;
   }
 
   &__count {
-    color: $main;
-    font-size: 0.9rem;
-    font-weight: 500;
+    color: $cekilui-text-light;
+    font-size: 14px;
   }
 
   &__summary {
-    background: rgba($main, 0.05);
-    border-radius: 8px;
+    background: rgba($cekilui-main, 0.05);
+    border: 1px solid rgba($cekilui-main, 0.2);
+    border-radius: $cekilui-border-radius;
     padding: 15px;
     margin-bottom: 25px;
     text-align: center;
 
     p {
       margin: 0;
-      color: $second;
+      color: $cekilui-main;
+      font-weight: 500;
 
       &:first-child {
-        font-size: 1.1rem;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
       }
     }
   }
 
   &__warning {
-    color: $orange !important;
-    font-size: 0.9rem !important;
+    color: $cekilui-orange;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
   }
 
   &__actions {
     display: flex;
+    flex-direction: column;
     gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-}
 
-// Style pour l'affichage de la promo dans les résultats
-.cekilui-game__promo {
-  color: $main;
-  font-size: 0.9rem;
-  font-style: italic;
-  margin-top: 5px;
-}
-
-// Responsive pour le jeu
-@media (max-width: 768px) {
-  .cekilui-game {
-    padding: 20px;
-    margin: 0 10px;
-
-    &__photo-img {
-      width: 250px;
-      height: 250px;
-    }
-
-    &__choices {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
-    &__choice {
-      padding: 12px 16px;
-    }
-
-    &__actions {
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    &__btn {
-      width: 100%;
-    }
-
-    &__header {
-      flex-direction: column;
-      gap: 15px;
-      text-align: center;
-    }
-  }
-  
-  // Styles pour le composant FacebookPhotoImporter
-  .facebook-photo-importer {
-    background: $background-module;
-    border-radius: $border-radius;
-    padding: 30px;
-    box-shadow: $shadow-default;
-    max-width: 500px;
-    margin: 0 auto;
-  
-    &__header {
-      text-align: center;
-      margin-bottom: 30px;
-  
-      h3 {
-        color: $second;
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-      }
-  
-      p {
-        color: $second;
-        opacity: 0.8;
-        margin: 0;
-      }
-    }
-  
-    &__loading {
-      text-align: center;
-      padding: 40px 20px;
-      color: $second;
-      font-size: 1.1rem;
-    }
-  
-    &__error {
-      background-color: rgba($red, 0.1);
-      color: $red;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      text-align: center;
-      border: 1px solid rgba($red, 0.3);
-    }
-  
-    &__https-info {
-      margin-top: 15px;
-      padding: 15px;
-      background-color: rgba($orange, 0.1);
-      border: 1px solid rgba($orange, 0.3);
-      border-radius: 8px;
-      text-align: left;
-  
-      p {
-        margin: 0 0 10px 0;
-        color: $orange;
-        font-weight: 500;
-      }
-  
-      ul {
-        margin: 0;
-        padding-left: 20px;
-        color: $orange;
-  
-        li {
-          margin: 5px 0;
-          font-size: 0.9rem;
-        }
-      }
-  
-      code {
-        background: rgba($orange, 0.2);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.85rem;
-      }
-    }
-  
-    &__content {
-      margin-bottom: 30px;
-    }
-  
-    &__connected {
-      text-align: center;
-    }
-  
-    &__status {
-      display: flex;
-      align-items: center;
+    @media (min-width: 769px) {
+      flex-direction: row;
       justify-content: center;
-      gap: 10px;
-      margin-bottom: 25px;
-      padding: 15px;
-      background: rgba($green, 0.1);
-      border-radius: 8px;
-      border: 1px solid rgba($green, 0.3);
-  
-      p {
-        color: $green;
-        font-weight: 500;
-        margin: 0;
-      }
     }
-  
-    &__status-icon {
-      font-size: 1.2rem;
+  }
+
+  &__competitive-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    @media (min-width: 769px) {
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
     }
-  
-    &__login {
-      text-align: center;
-    }
-  
-    &__info {
-      margin-bottom: 25px;
-  
-      p {
-        color: $second;
-        margin-bottom: 15px;
-        font-size: 1rem;
-      }
-    }
-  
-    &__icon {
-      font-size: 3rem;
+  }
+}
+
+// ===================================================================
+// JEU PRINCIPAL - STRUCTURE GÉNÉRALE
+// ===================================================================
+
+.cekilui-game {
+  min-height: 60vh;
+  background: $cekilui-game-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Version avec nouveau design - CONTENEUR FIXE
+  &--new-design {
+    padding: 0;
+  }
+
+  // États d'erreur et de chargement
+  &__error {
+    @include cekilui-card;
+    max-width: 500px;
+    margin: 50px auto;
+    text-align: center;
+
+    h3 {
+      color: $cekilui-red;
       margin-bottom: 15px;
     }
-  
-    &__features {
-      list-style: none;
-      padding: 0;
-      margin: 15px 0;
-      text-align: left;
-      max-width: 300px;
-      margin-left: auto;
-      margin-right: auto;
-  
-      li {
-        padding: 5px 0;
-        color: $second;
-        font-size: 0.9rem;
-        opacity: 0.8;
-      }
-    }
-  
-    &__actions {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-  
-    &__footer {
-      text-align: center;
-      border-top: 1px solid #eee;
-      padding-top: 20px;
-    }
-  
-    &__btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: $transition;
-      text-decoration: none;
-      display: inline-block;
-  
-      &--facebook {
-        background-color: #1877F2;
-        color: white;
-        position: relative;
-  
-        &:before {
-          content: "f";
-          font-family: Arial, sans-serif;
-          font-weight: bold;
-          margin-right: 8px;
-          background: rgba(255, 255, 255, 0.2);
-          padding: 2px 6px;
-          border-radius: 3px;
-          font-size: 0.9rem;
-        }
-  
-        &:hover:not(:disabled) {
-          background-color: #166FE5;
-          transform: translateY(-2px);
-          box-shadow: $shadow-hover;
-        }
-  
-        &:disabled {
-          background-color: #8BB7FF;
-          cursor: not-allowed;
-          transform: none;
-          box-shadow: none;
-        }
-      }
-  
-      &--secondary {
-        background-color: transparent;
-        color: $second;
-        border: 2px solid $second;
-  
-        &:hover:not(:disabled) {
-          background-color: $second;
-          color: white;
-        }
-  
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
-  
-      &--cancel {
-        background-color: transparent;
-        color: $red;
-        border: 1px solid $red;
-  
-        &:hover:not(:disabled) {
-          background-color: $red;
-          color: white;
-        }
-  
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
+
+    p {
+      color: $cekilui-text-light;
+      margin-bottom: 30px;
     }
   }
-  
-  // Responsive pour FacebookPhotoImporter
-  @media (max-width: 768px) {
-    .facebook-photo-importer {
-      padding: 20px;
-      margin: 0 10px;
-  
-      &__actions {
-        flex-direction: column;
-        gap: 10px;
-      }
-  
-      &__btn {
-        width: 100%;
-      }
-  
-      &__features {
-        text-align: center;
-      }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: $cekilui-text-light;
+    font-size: 16px;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    @media (min-width: 769px) {
+      flex-direction: row;
+      justify-content: center;
     }
+  }
+}
+
+// ===== CONTENEUR DE JEU AVEC DIMENSIONS FIXES =====
+.cekilui-game-container {
+  width: 100vw;
+  height: 70vh;
+  max-width: 450px; // Mobile
+  max-height: 800px; // Mobile
+  background: $cekilui-game-bg;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+
+  @media (min-width: 769px) {
+    max-width: 900px; // PC - Plus large
+    max-height: 700px; // PC
+  }
+
+  @media (min-width: 1200px) {
+    max-width: 1100px; // Grands écrans - Encore plus large
+    max-height: 750px;
+  }
+}
+
+// ===================================================================
+// MENU PRINCIPAL DU JEU
+// ===================================================================
+
+// ===== MENU PRINCIPAL SIMPLIFIÉ =====
+.cekilui-game--clean {
+  .cekilui-game-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.cekilui-game__simple-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.cekilui-game__title {
+  text-align: center;
+
+  h2 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: $cekilui-main;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 1.2rem;
+    color: $cekilui-text-light;
+    margin: 0;
+  }
+}
+
+.cekilui-game__mode-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.cekilui-game__mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background: white;
+  border: 2px solid $cekilui-border-light;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $cekilui-main;
+  width: 100%;
+
+  &:hover {
+    border-color: $cekilui-main;
+    background: rgba($cekilui-main, 0.05);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.cekilui-game__mode-icon {
+  font-size: 1.5rem;
+}
+
+.cekilui-game__mode-label {
+  flex: 1;
+  text-align: center;
+}
+
+.cekilui-game__back-link {
+  background: none;
+  border: none;
+  color: $cekilui-text-light;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba($cekilui-main, 0.05);
+    color: $cekilui-main;
+  }
+}
+
+// ===================================================================
+// HEADER FIXE DU JEU
+// ===================================================================
+
+.cekilui-game__header-new {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f8f9fa; // Fond légèrement grisé
+  border-bottom: 1px solid $cekilui-border-light;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+
+  @media (min-width: 769px) {
+    padding: 20px 30px;
+  }
+}
+
+.cekilui-game__back-btn {
+  @include cekilui-button-base;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: rgba($cekilui-main, 0.1);
+  color: $cekilui-main;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+
+  &:not(:disabled):hover {
+    background: rgba($cekilui-main, 0.2);
+    transform: translateY(-1px);
+  }
+}
+
+.cekilui-game__score-display {
+  font-size: 18px;
+  font-weight: 700;
+  color: $cekilui-main;
+
+  @media (min-width: 769px) {
+    font-size: 22px;
+  }
+}
+
+.cekilui-game__progress-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cekilui-game__progress-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all $cekilui-transition-medium;
+
+  @media (min-width: 769px) {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.upcoming {
+    background: $cekilui-border-light;
+    border: 2px solid $cekilui-border-light;
+  }
+
+  &.current {
+    background: $cekilui-main;
+    border: 2px solid $cekilui-main;
+    animation: cekilui-pulse 2s infinite;
+  }
+
+  &.correct {
+    background: $cekilui-green;
+    border: 2px solid $cekilui-green;
+  }
+
+  &.incorrect {
+    background: $cekilui-red;
+    border: 2px solid $cekilui-red;
+  }
+}
+
+// ===================================================================
+// ZONE DE JEU PRINCIPALE
+// ===================================================================
+
+.cekilui-game__main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ===================================================================
+// PHASE "READY" - BOUTON GO
+// ===================================================================
+
+.cekilui-game__ready-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  animation: cekilui-fade-in 0.5s ease-out;
+  width: 100%;
+  max-width: 600px;
+
+  @media (min-width: 769px) {
+    max-width: 700px;
+  }
+}
+
+.cekilui-game__photo-container {
+  @include cekilui-photo-container;
+  position: relative;
+}
+
+.cekilui-game__photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all $cekilui-transition-medium;
+}
+
+.cekilui-game__go-overlay {
+  @include cekilui-overlay;
+  background: rgba(
+    255,
+    255,
+    255,
+    0.9
+  ); // Fond blanc semi-transparent au lieu de noir
+  backdrop-filter: blur(4px);
+  animation: cekilui-fade-in 0.3s ease-out;
+  border: 2px solid $cekilui-border-light;
+}
+
+.cekilui-game__go-button {
+  @include cekilui-button-base;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    $cekilui-green,
+    darken($cekilui-green, 10%)
+  );
+  color: white;
+  margin-bottom: 15px;
+  animation: cekilui-pulse 2s infinite;
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: 769px) {
+    width: 100px;
+    height: 100px;
+  }
+
+  &:not(:disabled):hover {
+    transform: scale(1.1);
+    animation: none;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    animation: none;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.cekilui-game__go-text {
+  color: $cekilui-main; // Couleur principale au lieu de blanc
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+
+  @media (min-width: 769px) {
+    font-size: 18px;
+  }
+}
+
+// ===================================================================
+// PHASE "PLAYING" - JEU ACTIF
+// ===================================================================
+
+.cekilui-game__playing-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  animation: cekilui-fade-in 0.5s ease-out;
+  width: 100%;
+  max-width: 600px;
+
+  @media (min-width: 769px) {
+    max-width: 700px;
+    gap: 50px;
+  }
+
+  @media (min-width: 1200px) {
+    max-width: 800px;
+  }
+}
+
+.cekilui-game__timer-ring {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cekilui-game__timer-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+
+  circle {
+    fill: none;
+    stroke: $cekilui-timer-yellow;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.1s linear;
+    filter: drop-shadow(0 0 8px rgba($cekilui-timer-yellow, 0.5));
+  }
+}
+
+.cekilui-game__choices-new {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  width: 100%;
+  max-width: 600px;
+
+  // TOUJOURS en 2x2, jamais sur une seule ligne
+  @media (min-width: 769px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 500px;
+  }
+}
+
+.cekilui-game__choice-new {
+  @include cekilui-button-base;
+  background: #f1f1f8; // Fond légèrement grisé
+  color: $cekilui-main;
+  border: 2px solid $cekilui-border-light;
+  padding: 18px 16px;
+  min-height: 70px;
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.4;
+  word-wrap: break-word;
+  hyphens: auto;
+
+  @media (min-width: 769px) {
+    font-size: 17px;
+    padding: 22px 20px;
+    min-height: 80px;
+  }
+
+  @media (min-width: 1200px) {
+    font-size: 18px;
+    padding: 25px 22px;
+    min-height: 85px;
+  }
+
+  &:not(:disabled):hover {
+    border-color: $cekilui-main;
+    background: rgba($cekilui-main, 0.1);
+    transform: translateY(-1px);
+  }
+
+  &.selected {
+    background: $cekilui-main;
+    color: white;
+    border-color: $cekilui-main;
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+// ===================================================================
+// PHASE "ANSWERED" - RÉSULTAT
+// ===================================================================
+
+// ===== ÉTAT "ANSWERED" INTÉGRÉ =====
+.cekilui-game__answered-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.cekilui-game__result-integrated {
+  width: 100%;
+  max-width: 400px;
+  background: #f8f9fa; // Fond légèrement grisé
+  border: 2px solid $cekilui-border-light;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+
+  &.correct {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+  }
+
+  &.incorrect {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+  }
+}
+
+.cekilui-game__result-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $cekilui-border-light;
+}
+
+.cekilui-game__result-emoji {
+  font-size: 1.5rem;
+}
+
+.cekilui-game__result-message {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: $cekilui-main;
+}
+
+.cekilui-game__result-points {
+  font-size: 1rem;
+  font-weight: 500;
+  color: $cekilui-green;
+  background: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid $cekilui-green;
+}
+
+.cekilui-game__correct-answer-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.cekilui-game__answer-label {
+  font-size: 0.9rem;
+  color: $cekilui-text-light;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.cekilui-game__answer-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: $cekilui-main;
+}
+
+.cekilui-game__next-round-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cekilui-game__countdown-bar {
+  width: 100%;
+  height: 4px;
+  background: $cekilui-border-light;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: $cekilui-main;
+    border-radius: 2px;
+    animation: countdownProgress 3s linear;
+  }
+}
+
+.cekilui-game__countdown-text {
+  font-size: 0.9rem;
+  color: $cekilui-text-light;
+  font-weight: 500;
+}
+
+@keyframes countdownProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ===================================================================
+// ÉCRAN DE FIN DE PARTIE (GAMEOVER)
+// ===================================================================
+
+.cekilui-game__gameover-new {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 30px 20px;
+  text-align: center;
+  animation: cekilui-fade-in 0.8s ease-out;
+
+  @media (min-width: 769px) {
+    padding: 50px 30px;
+  }
+}
+
+.cekilui-game__final-score-container {
+  @include cekilui-card;
+  max-width: 400px;
+  margin-bottom: 40px;
+  animation: cekilui-bounce-in 1s $cekilui-bounce 0.3s both;
+}
+
+.cekilui-game__score-emoji {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: cekilui-bounce-in 0.8s $cekilui-bounce 0.6s both;
+
+  @media (min-width: 769px) {
+    font-size: 80px;
+    margin-bottom: 30px;
+  }
+}
+
+.cekilui-game__final-score-card {
+  animation: cekilui-slide-up 0.6s ease-out 0.9s both;
+}
+
+.cekilui-game__final-title {
+  color: $cekilui-main;
+  font-size: 24px;
+  margin-bottom: 15px;
+
+  @media (min-width: 769px) {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+}
+
+.cekilui-game__final-points {
+  color: $cekilui-green;
+  font-size: 48px;
+  font-weight: 900;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 4px rgba($cekilui-green, 0.3);
+
+  @media (min-width: 769px) {
+    font-size: 64px;
+    margin-bottom: 25px;
+  }
+}
+
+.cekilui-game__final-message {
+  color: $cekilui-text-light;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+
+  @media (min-width: 769px) {
+    font-size: 18px;
+  }
+}
+
+.cekilui-game__final-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 300px;
+  animation: cekilui-slide-up 0.6s ease-out 1.2s both;
+
+  @media (min-width: 769px) {
+    max-width: 400px;
+    gap: 20px;
+  }
+}
+
+.cekilui-game__final-btn {
+  @include cekilui-button-base;
+
+  &--primary {
+    background: linear-gradient(
+      135deg,
+      $cekilui-green,
+      darken($cekilui-green, 10%)
+    );
+    color: white;
+    font-size: 18px;
+    padding: 16px 32px;
+
+    &:not(:disabled):hover {
+      background: linear-gradient(
+        135deg,
+        darken($cekilui-green, 5%),
+        darken($cekilui-green, 15%)
+      );
+    }
+  }
+
+  &--secondary {
+    background: $cekilui-card-bg;
+    color: $cekilui-main;
+    border: 2px solid $cekilui-main;
+
+    &:not(:disabled):hover {
+      background: $cekilui-main;
+      color: white;
+    }
+  }
+}
+
+.cekilui-game__final-link {
+  background: transparent;
+  color: $cekilui-text-light;
+  border: none;
+  font-size: 16px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 10px;
+  transition: color $cekilui-transition-medium;
+
+  &:hover {
+    color: $cekilui-main;
+  }
+}
+
+// ===================================================================
+// ÉCRAN DE RÉSULTAT INTERMÉDIAIRE
+// ===================================================================
+
+.cekilui-game__header {
+  background: $cekilui-card-bg;
+  padding: 20px;
+  border-bottom: 1px solid $cekilui-border-light;
+  text-align: center;
+
+  @media (min-width: 769px) {
+    padding: 30px;
+  }
+}
+
+.cekilui-game__score {
+  font-size: 18px;
+  font-weight: 700;
+  color: $cekilui-main;
+
+  @media (min-width: 769px) {
+    font-size: 22px;
+  }
+}
+
+.cekilui-game__result {
+  @include cekilui-card;
+  max-width: 500px;
+  margin: 30px auto;
+  text-align: center;
+  animation: cekilui-slide-up 0.5s ease-out;
+
+  @media (min-width: 769px) {
+    margin: 50px auto;
+  }
+}
+
+.cekilui-game__result-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+
+  @media (min-width: 769px) {
+    font-size: 64px;
+    margin-bottom: 30px;
+  }
+
+  &.correct {
+    color: $cekilui-green;
+    animation: cekilui-bounce-in 0.6s $cekilui-bounce;
+  }
+
+  &.incorrect {
+    color: $cekilui-red;
+    animation: cekilui-bounce-in 0.6s $cekilui-bounce;
+  }
+}
+
+.cekilui-game__result-title {
+  font-size: 28px;
+  margin-bottom: 15px;
+
+  @media (min-width: 769px) {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+
+  &.correct {
+    color: $cekilui-green;
+  }
+
+  &.incorrect {
+    color: $cekilui-red;
+  }
+}
+
+.cekilui-game__result-score {
+  color: $cekilui-main;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 30px;
+
+  @media (min-width: 769px) {
+    font-size: 20px;
+  }
+}
+
+.cekilui-game__photo {
+  margin-bottom: 30px;
+
+  img {
+    @include cekilui-photo-container;
+    display: block;
+  }
+}
+
+.cekilui-game__answer {
+  margin-bottom: 40px;
+
+  p {
+    color: $cekilui-text-light;
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+  h4 {
+    color: $cekilui-main;
+    font-size: 22px;
+    margin-bottom: 10px;
+
+    @media (min-width: 769px) {
+      font-size: 26px;
+    }
+  }
+}
+
+.cekilui-game__promo {
+  color: $cekilui-text-light;
+  font-size: 14px;
+  font-style: italic;
+  margin: 0;
+}
+
+// ===================================================================
+// ANIMATIONS ET TRANSITIONS AVANCÉES
+// ===================================================================
+
+// Animation pour les éléments qui apparaissent en séquence
+.cekilui-stagger-animation {
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  &:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+}
+
+// Optimisations pour les performances
+.cekilui-game__photo-container,
+.cekilui-game__timer-ring,
+.cekilui-game__result-overlay {
+  will-change: transform, opacity;
+}
+
+.cekilui-game__choice-new {
+  will-change: transform, background-color, border-color;
+}
+
+// États de focus pour l'accessibilité
+.cekilui-btn:focus,
+.cekilui-game__choice-new:focus,
+.cekilui-game__go-button:focus {
+  outline: 3px solid rgba($cekilui-main, 0.5);
+  outline-offset: 2px;
+}
+
+// Réduction des animations pour les utilisateurs qui préfèrent moins de mouvement
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .cekilui-game__go-button {
+    animation: none;
+  }
+
+  .cekilui-game__progress-dot.current {
+    animation: none;
+  }
+}
+
+// ===================================================================
+// RESPONSIVE DESIGN - AJUSTEMENTS SPÉCIFIQUES
+// ===================================================================
+
+// Très petits écrans (320px - 480px)
+@media (max-width: 480px) {
+  .cekilui-game__main-area {
+    padding: 20px 15px;
+  }
+
+  .cekilui-game__photo-container {
+    width: 220px;
+    height: 220px;
+  }
+
+  .cekilui-game__choices-new {
+    gap: 12px;
+  }
+
+  .cekilui-game__choice-new {
+    min-height: 55px;
+    font-size: 13px;
+    padding: 12px 8px;
+  }
+
+  .cekilui-game__go-button {
+    width: 70px;
+    height: 70px;
+    font-size: 20px;
+  }
+}
+
+// Tablettes en mode portrait (481px - 768px)
+@media (min-width: 481px) and (max-width: 768px) {
+  .cekilui-game__photo-container {
+    width: 280px;
+    height: 280px;
+  }
+
+  .cekilui-game__choices-new {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+}
+
+// Grands écrans (1200px+)
+@media (min-width: 1200px) {
+  .cekilui-game__main-area {
+    padding: 60px 40px;
+  }
+
+  .cekilui-game__photo-container {
+    width: 350px;
+    height: 350px;
+  }
+
+  .cekilui-game__choices-new {
+    max-width: 800px;
+    gap: 25px;
+  }
+
+  .cekilui-game__choice-new {
+    min-height: 80px;
+    font-size: 18px;
+    padding: 25px 20px;
+  }
+}
+
+// Mode paysage sur mobile
+@media (max-height: 600px) and (orientation: landscape) {
+  .cekilui-game__main-area {
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+    padding: 20px;
+  }
+
+  .cekilui-game__photo-container {
+    width: 200px;
+    height: 200px;
+    flex-shrink: 0;
+  }
+
+  .cekilui-game__choices-new {
+    flex: 1;
+    max-width: 400px;
+  }
+
+  .cekilui-game__ready-state,
+  .cekilui-game__answered-state {
+    flex-direction: row;
+    gap: 40px;
+  }
+}
+
+// ===================================================================
+// PRINT STYLES (MASQUER LE JEU À L'IMPRESSION)
+// ===================================================================
+
+@media print {
+  .cekilui-game {
+    display: none !important;
   }
 }

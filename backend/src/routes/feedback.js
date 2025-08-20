@@ -1,17 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const feedbackService = require('../services/feedbackService');
+const authMiddleware = require("../middlewares/auth");
 
-router.post('/feedback', (req, res) => {
+router.post('/feedback', authMiddleware, async (req, res) => {
   try {
-    const displayName = req.session.user.displayName;
+    const userName = req.session.user.userName;
     const { text } = req.body;
-    
-    if (!displayName || !text) {
-      return res.status(400).json({ error: 'displayName et texte requis' });
+
+    if (!userName || !text) {
+      return res.status(400).json({ error: 'username et texte requis' });
     }
 
-    const feedback = feedbackService.addFeedback(displayName, text);
+    const feedback = await feedbackService.addFeedback(userName, text);
     res.status(201).json(feedback);
   } catch (error) {
     console.error('Erreur route POST /feedback:', error);

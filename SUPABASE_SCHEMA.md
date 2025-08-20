@@ -139,3 +139,18 @@ create table public.ceki_scores (
   constraint ceki_scores_pkey primary key (id),
   constraint ceki_scores_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete CASCADE
 ) TABLESPACE pg_default;
+```
+
+### Table `public.feedbacks`
+
+```sql
+create table public.feedbacks (
+  id uuid not null default gen_random_uuid (),
+  username text not null,
+  text text not null,
+  state text not null default 'waiting'::text,
+  created_at timestamp with time zone not null default now(),
+  constraint feedbacks_pkey primary key (id),
+  constraint feedbacks_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete CASCADE
+) TABLESPACE pg_default;
+```

@@ -1,4 +1,4 @@
-import { Info } from "lucide-react";
+import { Info, Menu } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 
@@ -6,7 +6,7 @@ import { UserContext } from "../App";
  * Composant Header - Barre de navigation principale de l'application
  * Affiche le logo, le menu et les informations de classement de l'utilisateur
  */
-export default function Header() {
+export default function Header({ onMenuToggle }) { // Accept onMenuToggle prop
   // États locaux
   const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
 
@@ -42,10 +42,18 @@ export default function Header() {
     fetchRanking();
   }, [displayName]);
 
-
   return (
     <>
       <header className="bg-primary-dark text-white top-0 z-50 shadow-md sticky w-full overflow-visible">
+        {/* Bouton pour ouvrir le SlideMenu */}
+        <button
+          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white hover:bg-opacity-10 transition-colors"
+          onClick={onMenuToggle}
+          aria-label="Ouvrir le menu"
+        >
+          <Menu size={24} />
+        </button>
+
         {/* Logo et titre */}
         <div className="flex justify-center items-center h-20">
           <img src={"logo-title.png"} className="h-14 pr-2" alt="logo" />
@@ -73,7 +81,6 @@ export default function Header() {
             </div>
           </div>
         )}
-
       </header>
     </>
   );

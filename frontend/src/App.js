@@ -3,6 +3,9 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage.js";
 import Onboarding from "./components/Onboarding.js";
 import PageLayout from "./components/PageLayout";
+import SlideMenu from "./components/SlideMenu"; // Import SlideMenu
+import Header from "./components/Header"; // Import Header
+
 
 // Lazy load page components
 const Notes = lazy(() => import("./components/Notes"));
@@ -12,6 +15,11 @@ const Bdi = lazy(() => import("./components/Bdi"));
 const Links = lazy(() => import("./components/Links"));
 const Bibli = lazy(() => import("./components/Bibli"));
 const Cekilui = lazy(() => import("./components/Cekilui.js"));
+const InstallationPage = lazy(() => import("./components/InstallationPage.js"));
+const AboutPage = lazy(() => import("./components/AboutPage.js"));
+const FeedbackPage = lazy(() => import("./components/FeedbackPage.js"));
+const ContactPage = lazy(() => import("./components/ContactPage.js"));
+const LegalPage = lazy(() => import("./components/LegalPage.js"));
 
 export const UserContext = createContext();
 
@@ -21,6 +29,11 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [isSlideMenuOpen, setIsSlideMenuOpen] = useState(false); // State for SlideMenu
+
+  const toggleSlideMenu = () => {
+    setIsSlideMenuOpen(!isSlideMenuOpen);
+  };
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -79,67 +92,111 @@ const App = () => {
             onComplete={() => setNeedsOnboarding(false)}
           />
         ) : (
-          <Suspense fallback={<div>Chargement...</div>}>
-            <Routes>
-              <Route path="/" element={<Navigate to="/calendars" replace />} />
-              <Route
-                path="/notes"
-                element={
-                  <PageLayout>
-                    <Notes />
-                  </PageLayout>
-                }
-              />
-              <Route
-                path="/calendars"
-                element={
-                  <PageLayout>
-                    <Calendars />
-                  </PageLayout>
-                }
-              />
-              <Route
-                path="/communication"
-                element={
-                  <PageLayout>
-                    <Communication />
-                  </PageLayout>
-                }
-              />
-              <Route
-                path="/bdi"
-                element={
-                  <PageLayout>
-                    <Bdi />
-                  </PageLayout>
-                }
-              />
-              <Route
-                path="/links"
-                element={
-                  <PageLayout>
-                    <Links />
-                  </PageLayout>
-                }
-              />
-              <Route
-                path="/bibli"
-                element={
-                  <PageLayout>
-                    <Bibli />
-                  </PageLayout>
-                }
-              />
-              <Route
-                path="/cekilui"
-                element={
-                  <PageLayout>
-                    <Cekilui />
-                  </PageLayout>
-                }
-              />
-            </Routes>
-          </Suspense>
+          <>
+            <Header onMenuToggle={toggleSlideMenu} /> {/* Pass toggle function to Header */}
+            <SlideMenu isOpen={isSlideMenuOpen} onClose={toggleSlideMenu} /> {/* Pass state and toggle to SlideMenu */}
+            <Suspense fallback={<div>Chargement...</div>}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/calendars" replace />} />
+                <Route
+                  path="/notes"
+                  element={
+                    <PageLayout>
+                      <Notes />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/calendars"
+                  element={
+                    <PageLayout>
+                      <Calendars />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/communication"
+                  element={
+                    <PageLayout>
+                      <Communication />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/bdi"
+                  element={
+                    <PageLayout>
+                      <Bdi />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/links"
+                  element={
+                    <PageLayout>
+                      <Links />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/bibli"
+                  element={
+                    <PageLayout>
+                      <Bibli />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/cekilui"
+                  element={
+                    <PageLayout>
+                      <Cekilui />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/install"
+                  element={
+                    <PageLayout>
+                      <InstallationPage />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/about"
+                  element={
+                    <PageLayout>
+                      <AboutPage />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/feedback"
+                  element={
+                    <PageLayout>
+                      <FeedbackPage />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/contact"
+                  element={
+                    <PageLayout>
+                      <ContactPage />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/legal"
+                  element={
+                    <PageLayout>
+                      <LegalPage />
+                    </PageLayout>
+                  }
+                />
+              </Routes>
+            </Suspense>
+          </>
         )}
       </BrowserRouter>
     </UserContext.Provider>

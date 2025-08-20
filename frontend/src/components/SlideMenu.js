@@ -1,32 +1,12 @@
-import {
-  Download,
-  Facebook,
-  Github,
-  Info,
-  LinkedinIcon,
-  Mail,
-  MessageCircle,
-  MessageSquare,
-  Scale,
-  Send,
-  X,
-} from "lucide-react";
-import React from "react";
-import LegalNotice from "./LegalNotice";
+import { X } from "lucide-react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { slideMenuConfig } from "../config/slideMenuConfig";
 
 const SlideMenu = ({ isOpen, onClose }) => {
-  const [activeSection, setActiveSection] = React.useState("main");
-  const [feedback, setFeedback] = React.useState("");
-  const [submitStatus, setSubmitStatus] = React.useState("");
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
-    if (!isOpen) {
-      // Reset to main section when menu closes
-      setTimeout(() => {
-        setActiveSection("main");
-      }, 300); // Wait for the close animation to finish
-    }
-
+  useEffect(() => {
     // Prevent body scroll when menu is open
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -39,254 +19,52 @@ const SlideMenu = ({ isOpen, onClose }) => {
     };
   }, [isOpen]);
 
-  const sanitizeFeedback = (text) => {
-    const div = document.createElement("div");
-    div.appendChild(document.createTextNode(text));
-    return div.innerHTML;
-  };
-
-  const handleFeedbackSubmit = async (e) => {
-    e.preventDefault();
-
-    const sanitizedFeedback = sanitizeFeedback(feedback);
-    setSubmitStatus("Envoi en cours...");
-
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/feedback`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: sanitizedFeedback,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        setSubmitStatus("Merci pour votre feedback!");
-        setFeedback("");
-        setTimeout(() => {
-          setActiveSection("main");
-          setSubmitStatus("");
-        }, 3000);
-      } else {
-        throw new Error("Réponse serveur non valide");
-      }
-    } catch (error) {
-      console.error("Erreur:", error);
-      setSubmitStatus("Une erreur est survenue");
-      setTimeout(() => setSubmitStatus(""), 3000);
-    }
-  };
-
-  const getInstallInstructions = () => {
-    const ua = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua);
-    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-    const isFirefox = ua.toLowerCase().indexOf("firefox") > -1;
-    const isChrome = /chrome/i.test(ua);
-    const isAndroid = /android/i.test(ua);
-
-    if (isIOS) {
-      return "Sur iOS : Appuyez sur l'icône 'Partager' en bas de Safari, puis sélectionnez 'Sur l'écran d'accueil'";
-    } else if (isAndroid && isChrome) {
-      return "Sur Android : Appuyez sur les trois points en haut à droite, puis 'Ajouter à l'écran d'accueil'";
-    } else if (isFirefox) {
-      return "Sur Firefox : Appuyez sur les trois points dans la barre d'adresse, puis 'Installer l'application'";
-    } else if (isSafari) {
-      return "Sur Safari : Utilisez le menu 'Partager' puis 'Ajouter à l'écran d'accueil'";
-    }
-    return "Dans votre navigateur : Utilisez le menu (⋮) puis 'Installer l'application' ou 'Ajouter à l'écran d'accueil'";
-  };
-
-  console.log();
-
-  // Gestion spécifique des formulaires pour empêcher la propagation des événements
-  const handleFormInteraction = (e) => {
-    e.stopPropagation();
-  };
-
-  const menuSections = {
-    install: {
-      title: "Installer l'app",
-      icon: Download,
-      content: () => (
-        <div className="slide-menu__section">
-          <h3>Installer l'app</h3>
-          <p>{getInstallInstructions()}</p>
-        </div>
-      ),
-    },
-    about: {
-      title: "À propos",
-      icon: Info,
-      content: () => (
-        <div className="slide-menu__section">
-          <h3>À propos</h3>
-          <p>
-            Centraliz est votre outil de productivité tout-en-un pour Iteemiens,
-            Centraliens et Chimistes. Simplifiez votre organisation quotidienne
-            en centralisant vos calendriers, notes et mails.
-          </p>
-          <p className="version">Version {process.env.REACT_APP_VERSION}</p>
-        </div>
-      ),
-    },
-    feedback: {
-      title: "Feedback",
-      icon: MessageCircle,
-      content: () => (
-        <div className="slide-menu__section">
-          <h3>Feedback</h3>
-          <form onSubmit={handleFeedbackSubmit} onClick={handleFormInteraction}>
-            <textarea
-              value={feedback}
-              onChange={(e) => {
-                e.stopPropagation();
-                setFeedback(e.target.value);
-              }}
-              onFocus={handleFormInteraction}
-              onBlur={handleFormInteraction}
-              onKeyDown={handleFormInteraction}
-              onKeyUp={handleFormInteraction}
-              onClick={handleFormInteraction}
-              placeholder="Partagez vos suggestions..."
-              required
-              maxLength={800}
-            />
-            <button
-              type="submit"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <Send size={14} />
-              <span>Envoyer</span>
-            </button>
-            {submitStatus && (
-              <div className="status-message">{submitStatus}</div>
-            )}
-          </form>
-        </div>
-      ),
-    },
-    contact: {
-      title: "Contact",
-      icon: Mail,
-      content: () => (
-        <div className="slide-menu__section">
-          <h3>Contact</h3>
-          <p>
-            <strong>Foucault Wattinne</strong>
-          </p>
-          <a href="mailto:foucault.wattinne@iteem.centralelille.fr">
-            foucault.wattinne@iteem.centralelille.fr
-          </a>
-          <div className="social-links">
-            <a
-              href="https://github.com/foucault-watt/centraliz"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Github size={18} />
-            </a>
-            <a
-              href="https://linkedin.com/in/foucault-wattinne"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <LinkedinIcon size={18} />
-            </a>
-            <a
-              href="https://facebook.com/fukowatt"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Facebook size={18} />
-            </a>
-            <a
-              href="https://m.me/fukowatt"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <MessageSquare size={18} />
-            </a>
-          </div>
-        </div>
-      ),
-    },
-    legal: {
-      title: "Mentions légales",
-      icon: Scale,
-      content: () => (
-        <div className="slide-menu__section">
-          <LegalNotice />
-        </div>
-      ),
-    },
-  };
-
-  const renderContent = () => {
-    if (activeSection === "main") {
-      return (
-        <div className="slide-menu__main">
-          {Object.entries(menuSections).map(([key, section]) => (
-            <button
-              key={key}
-              onClick={(e) => {
-                e.stopPropagation(); // Empêcher la propagation du clic
-                setActiveSection(key);
-              }}
-            >
-              <section.icon size={18} />
-              <span>{section.title}</span>
-            </button>
-          ))}
-        </div>
-      );
-    }
-
-    const section = menuSections[activeSection];
-    return section ? section.content() : null;
+  const handleNavigation = (path) => {
+    navigate(path);
+    onClose();
   };
 
   return (
     <div
-      className={`slide-menu ${isOpen ? "open" : ""}`}
-      onClick={(e) => e.stopPropagation()} // Empêcher la propagation des clics au header
+      className={`fixed top-0 left-0 w-full h-full z-[1000] transition-all duration-300 ease-in-out ${
+        isOpen ? "visible opacity-100" : "invisible opacity-0"
+      }`}
+      onClick={onClose}
     >
       <div
-        className="slide-menu__overlay"
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
+        className={`fixed top-0 left-0 w-full h-full bg-game-overlay backdrop-blur-sm transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0"
+        }`}
       />
-      <div className="slide-menu__content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`fixed top-0 left-0 w-80 max-w-[85%] h-full bg-background-module shadow-lg flex flex-col p-5 pt-16 transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
-          className="slide-menu__close"
-          onClick={(e) => {
-            e.stopPropagation(); // Empêcher la propagation du clic
-            onClose();
-          }}
+          className="absolute top-4 right-4 p-2 text-text-secondary hover:text-text-primary hover:bg-slate-500 transition-colors"
+          onClick={onClose}
           aria-label="Fermer le menu"
         >
           <X size={24} />
         </button>
-        {activeSection !== "main" && (
-          <button
-            className="slide-menu__back"
-            onClick={(e) => {
-              e.stopPropagation(); // Empêcher la propagation du clic
-              setActiveSection("main");
-            }}
-          >
-            Retour
-          </button>
-        )}
-        {renderContent()}
+
+        <h2 className="text-xl font-semibold mb-4 text-text-primary bg-background-light p-3 rounded-lg">Autres onglets</h2>
+        <div className="border-b border-border-light mb-6"></div>
+
+        <nav className="flex flex-col gap-3">
+          {slideMenuConfig.map((page) => (
+            <button
+              key={page.id}
+              onClick={() => handleNavigation(page.path)}
+              className="flex items-center gap-3 p-3 rounded-lg text-white bg-primary-dark/80 hover:bg-primary-dark transition-colors"
+            >
+              <page.icon size={20} />
+              <span className="text-lg">{page.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
     </div>
   );

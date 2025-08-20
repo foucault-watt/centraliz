@@ -37,7 +37,8 @@
 .div-notes,
 .div-mail,
 .div-links,
-.div-bibli {
+.div-bibli,
+.div-card {
   @extend %card;
   background: $background-module;
 }

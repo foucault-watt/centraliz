@@ -7,15 +7,17 @@ module.exports = {
         primary: "#597ee5",
         "primary-dark": "#4267ce",
         secondary: "#2c3e50",
-        "background-light": "#f7f7f7",
-        "border-light": "#ddd",
-        success: "#49c16b",
-        warning: "#ff9800",
-        danger: "#e65656",
+        day: "#f7f7f7", // Correspond à $day
+        "background-light": "#f7f7f7", // Correspond à $day
+        "border-light": "#ddd", // Correspond à $day-border
+        success: "#49c16b", // Correspond à $green
+        warning: "#ff9800", // Correspond à $orange
+        danger: "#e65656", // Correspond à $red
         background: "#efece6",
         "background-module": "#fafafa",
         "text-primary": "#1a202c",
         "text-secondary": "#4a5568",
+        black: "#000", // Correspond à $first
         // Variables spécifiques au gameplay Cékilui
         game: {
           correct: "#22c55e", // Vert pour bonnes réponses

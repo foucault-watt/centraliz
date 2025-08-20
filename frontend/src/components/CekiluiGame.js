@@ -434,7 +434,7 @@ const CekiluiGame = ({ onBackToMenu }) => {
       <div>
         {/* Header fixe avec score et progression */}
         <header className="sticky top-0 z-10 bg-background-module/95 backdrop-blur-sm border-b border-gray-200">
-          <div className="flex items-center justify-between px-4 pb-4 -pt-4">
+          <div className="flex items-center justify-between px-4 pb-2 -pt-6">
             <button
               onClick={backToMenu}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-300"
@@ -477,7 +477,7 @@ const CekiluiGame = ({ onBackToMenu }) => {
         </header>
 
         {/* Zone de jeu principale */}
-        <main className="max-w-md mx-auto pt-4 pb-safe ">
+        <main className="max-w-md mx-auto pt-2 pb-safe ">
           {gamePhase === "playing" && currentRoundData ? (
             /* Interface de jeu directe - plus d'état "ready" */
             <div className="space-y-6 animate-scale-in">
@@ -485,7 +485,7 @@ const CekiluiGame = ({ onBackToMenu }) => {
                 <img
                   src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
                   alt="Photo mystère"
-                  className="w-full h-full object-cover"
+                  className="w-3/4 h-3/4 object-cover mx-auto"
                   onError={(e) => {
                     console.error(
                       "Erreur de chargement de l'image:",
@@ -500,9 +500,9 @@ const CekiluiGame = ({ onBackToMenu }) => {
 
                 {/* Timer circulaire comme bordure de l'image */}
                 {gameMode === "competitive" && timerStarted && (
-                  <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                     <svg
-                      className="w-full h-full transform -rotate-90"
+                      className="w-3/4 h-3/4 transform -rotate-90"
                       viewBox="0 0 100 100"
                     >
                       {/* Bordure de base */}
@@ -561,7 +561,7 @@ const CekiluiGame = ({ onBackToMenu }) => {
                 <img
                   src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
                   alt="Photo révélée"
-                  className="w-full h-full object-cover"
+                  className="w-3/4 h-3/4 object-cover mx-auto"
                   crossOrigin="use-credentials"
                 />
 

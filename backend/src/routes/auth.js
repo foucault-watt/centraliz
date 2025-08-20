@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const casService = require("../services/casService");
 const tokenService = require("../services/tokenService");
+const loginService = require("../services/loginService"); // Importez loginService
 const cookieParser = require('cookie-parser');
 
 // Middleware pour parser les cookies, nécessaire pour lire le cookie remember_me

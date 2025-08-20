@@ -1,0 +1,141 @@
+# Guide de Connexion et Schémas de Base de Données Supabase
+
+Ce document explique comment se connecter à votre base de données Supabase et fournit les schémas des tables principales.
+
+## 1. Connexion à Supabase
+
+Pour interagir avec votre base de données Supabase depuis une application Node.js (ou tout autre environnement JavaScript), vous utilisez le client Supabase JS.
+
+### Configuration des variables d'environnement
+
+Assurez-vous d'avoir un fichier `.env` à la racine de votre projet backend (ou dans un répertoire accessible) avec les variables suivantes :
+
+```
+SUPABASE_URL="VOTRE_URL_SUPABASE"
+SUPABASE_KEY="VOTRE_CLE_ANON_SUPABASE_OU_SERVICE_ROLE"
+```
+
+*   `SUPABASE_URL`: L'URL de votre projet Supabase. Vous la trouverez dans votre tableau de bord Supabase (Settings -> API).
+*   `SUPABASE_KEY`: Votre clé `anon` (publique) ou `service_role` (privée et à utiliser côté serveur uniquement) de Supabase. Pour les opérations côté serveur qui nécessitent des privilèges élevés (comme les migrations de données), il est recommandé d'utiliser la clé `service_role`.
+
+### Initialisation du client Supabase
+
+Le client Supabase est généralement initialisé dans un fichier comme `backend/src/utils/supabaseClient.js` :
+
+```javascript
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+module.exports = supabase;
+```
+
+Ce fichier exporte une instance configurée du client Supabase que vous pouvez importer et utiliser dans d'autres parties de votre application.
+
+### Utilisation du client
+
+Pour effectuer des opérations sur la base de données, importez l'instance `supabase` :
+
+```javascript
+const supabase = require('../utils/supabaseClient');
+
+async function fetchData() {
+  const { data, error } = await supabase
+    .from('nom_de_votre_table')
+    .select('*');
+
+  if (error) {
+    console.error('Erreur:', error);
+  } else {
+    console.log('Données:', data);
+  }
+}
+
+fetchData();
+```
+
+## 2. Schémas des Tables Supabase
+
+Voici les schémas SQL pour les tables de votre base de données, qui peuvent vous aider à comprendre la structure et à interagir avec elles.
+
+### Table `public.users`
+
+```sql
+create table public.users (
+  username text not null,
+  display_name text null,
+  ical_link text null,
+  birth_date date null,
+  "group" text null,
+  notes_count smallint null,
+  "hasPhoto" boolean not null default false,
+  "photoName" text null,
+  constraint users_pkey primary key (username)
+) TABLESPACE pg_default;
+```
+
+### Table `public.user_logins`
+
+```sql
+create table public.user_logins (
+  username text not null,
+  login_time timestamp with time zone not null,
+  id uuid not null default gen_random_uuid (),
+  constraint user_logins_pkey primary key (id),
+  constraint user_logins_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete CASCADE
+) TABLESPACE pg_default;
+```
+
+### Table `public.remember_me_token`
+
+```sql
+create table public.remember_me_token (
+  id uuid not null default gen_random_uuid (),
+  username text not null,
+  expires_at timestamp with time zone not null,
+  created_at timestamp with time zone not null default now(),
+  token_hash text not null,
+  constraint remember_me_token_pkey primary key (id),
+  constraint remember_me_token_token_hash_key unique (token_hash),
+  constraint remember_me_token_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete CASCADE
+) TABLESPACE pg_default;
+```
+
+### Table `public.passwords`
+
+```sql
+create table public.passwords (
+  username text not null,
+  encrypted_password text null,
+  creation_date timestamp without time zone null,
+  constraint passwords_pkey primary key (username),
+  constraint passwords_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete set default
+) TABLESPACE pg_default;
+```
+
+### Table `public.leaderboard`
+
+```sql
+create table public.leaderboard (
+  username text not null,
+  score smallint not null,
+  constraint leaderboard_pkey primary key (username),
+  constraint leaderboard_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete CASCADE
+) TABLESPACE pg_default;
+```
+
+### Table `public.ceki_scores`
+
+```sql
+create table public.ceki_scores (
+  id uuid not null default gen_random_uuid (),
+  username text not null,
+  score integer null,
+  mode text null,
+  created_at timestamp with time zone not null default now(),
+  constraint ceki_scores_pkey primary key (id),
+  constraint ceki_scores_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete CASCADE
+) TABLESPACE pg_default;

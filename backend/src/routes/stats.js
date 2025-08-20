@@ -1,25 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs");
-const path = require("path");
 const QuickChart = require("quickchart-js");
+const supabase = require("../utils/supabaseClient"); // Assurez-vous que le chemin est correct
+const ZimbraService = require("../services/zimbraService");
 
 router.get(`/stats`, async (req, res) => {
   console.log("Route /stats appelée");
 
-  // Chemins des fichiers
-  const loginsPath = path.join(__dirname, "../data/logins.json");
-  const usersPath = path.join(__dirname, "../data/users.json");
-
   try {
-    // Lecture des fichiers
-    const loginsData = JSON.parse(fs.readFileSync(loginsPath, "utf8"));
-    const { data: usersData, error } = await supabase
+    // Récupérer les utilisateurs depuis Supabase
+    const { data: usersData, error: usersError } = await supabase
       .from('users')
       .select('username, display_name, group, birth_date');
 
-    if (error) {
-      console.error('Error fetching users:', error);
+    if (usersError) {
+      console.error('Error fetching users:', usersError);
       return res.status(500).json({ error: "Erreur lors de la récupération des utilisateurs" });
     }
 
@@ -32,21 +27,26 @@ router.get(`/stats`, async (req, res) => {
       return acc;
     }, {});
 
+    // Récupérer les connexions depuis Supabase
+    const { data: loginsData, error: loginsError } = await supabase
+      .from('user_logins')
+      .select('username, login_time');
+
+    if (loginsError) {
+      console.error('Error fetching logins:', loginsError);
+      return res.status(500).json({ error: "Erreur lors de la récupération des connexions" });
+    }
+
     // Obtenir les connexions par jour
     const userLoginsPerDay = {};
-    let totalLogins = 0;
+    let totalLogins = loginsData.length;
 
     // Trouver la première date de connexion
     let firstDate = new Date();
-    for (const user in loginsData) {
-      if (loginsData[user].length > 0) {
-        const userFirstLogin = new Date(
-          Math.min(...loginsData[user].map((d) => new Date(d)))
-        );
-        if (userFirstLogin < firstDate) {
-          firstDate = userFirstLogin;
-        }
-      }
+    if (loginsData.length > 0) {
+      firstDate = new Date(
+        Math.min(...loginsData.map((d) => new Date(d.login_time)))
+      );
     }
 
     // Créer un tableau de toutes les dates entre la première connexion et aujourd'hui
@@ -61,16 +61,13 @@ router.get(`/stats`, async (req, res) => {
     }
 
     // Compter les utilisateurs uniques par jour
-    for (const user in loginsData) {
-      totalLogins += loginsData[user].length;
-      loginsData[user].forEach((timestamp) => {
-        const date = new Date(timestamp);
-        const dateString = date.toISOString().split("T")[0];
-        if (userLoginsPerDay[dateString]) {
-          userLoginsPerDay[dateString].add(user);
-        }
-      });
-    }
+    loginsData.forEach((login) => {
+      const date = new Date(login.login_time);
+      const dateString = date.toISOString().split("T")[0];
+      if (userLoginsPerDay[dateString]) {
+        userLoginsPerDay[dateString].add(login.username);
+      }
+    });
 
     // Préparer les données pour le graphique
     const labels = Object.keys(userLoginsPerDay).sort();
@@ -172,49 +169,62 @@ router.get(`/stats`, async (req, res) => {
 router.get(`/stats/${process.env.SECRET_API}/:userName`, async (req, res) => {
   const { userName } = req.params;
 
-  // Chemins des fichiers
-  const loginsPath = path.join(__dirname, "../data/logins.json");
-  const usersPath = path.join(__dirname, "../data/users.json");
-    const mdpPath = path.join(__dirname, "../data/mdp.json"); // TODO: Remove after migration
-
   try {
-    // Lecture des fichiers
-    const loginsData = JSON.parse(fs.readFileSync(loginsPath, "utf8"));
-    const usersData = JSON.parse(fs.readFileSync(usersPath, "utf8"));
-    const mdpData = JSON.parse(fs.readFileSync(mdpPath, "utf8"));
+    // Récupérer les informations de l'utilisateur depuis Supabase
+    const { data: userInfo, error: userError } = await supabase
+      .from('users')
+      .select('username, display_name, group, birth_date')
+      .eq('username', userName)
+      .single();
 
-    // Vérifier si l'utilisateur existe dans les données Supabase
-    const userInfo = users[userName];
-    if (!userInfo) {
-      console.log("Utilisateur non trouvé");
+    if (userError || !userInfo) {
+      console.error('Error fetching user:', userError);
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
 
-    // Récupérer les données de l'utilisateur
-    const hasMdp = await ZimbraService.hasStoredPassword(userName);
-    const { displayName, birthDate, group } = userInfo;
+    // Récupérer les connexions de l'utilisateur spécifique depuis Supabase
+    const { data: userLoginsData, error: userLoginsError } = await supabase
+      .from('user_logins')
+      .select('login_time')
+      .eq('username', userName);
+
+    if (userLoginsError) {
+      console.error('Error fetching user logins:', userLoginsError);
+      return res.status(500).json({ error: "Erreur lors de la récupération des connexions de l'utilisateur" });
+    }
+
+    // Récupérer toutes les connexions pour la courbe globale
+    const { data: allLoginsData, error: allLoginsError } = await supabase
+      .from('user_logins')
+      .select('username, login_time');
+
+    if (allLoginsError) {
+      console.error('Error fetching all logins:', allLoginsError);
+      return res.status(500).json({ error: "Erreur lors de la récupération de toutes les connexions" });
+    }
+
+    const hasMdp = await ZimbraService.hasStoredPassword(userName); // Assurez-vous que ZimbraService est importé
+    const { display_name: displayName, birth_date: birthDate, group } = userInfo;
 
     // Obtenir les connexions de tous les utilisateurs pour la courbe globale
     const globalLoginsPerDay = {};
-    for (const user in loginsData) {
-      loginsData[user].forEach((timestamp) => {
-        const date = new Date(timestamp);
-        const dateString = date.toISOString().split("T")[0];
-        if (!globalLoginsPerDay[dateString]) {
-          globalLoginsPerDay[dateString] = new Set();
-        }
-        globalLoginsPerDay[dateString].add(user);
-      });
-    }
+    allLoginsData.forEach((login) => {
+      const date = new Date(login.login_time);
+      const dateString = date.toISOString().split("T")[0];
+      if (!globalLoginsPerDay[dateString]) {
+        globalLoginsPerDay[dateString] = new Set();
+      }
+      globalLoginsPerDay[dateString].add(login.username);
+    });
 
     // Obtenir les connexions de l'utilisateur spécifique
-    const userLogins = loginsData[displayName] || [];
+    const userLogins = userLoginsData.map(login => login.login_time);
     const totalLogins = userLogins.length;
     const userLoginsPerDay = {};
 
     // Trouver la première et dernière date
     const dates = userLogins.map((timestamp) => new Date(timestamp));
-    const firstDate = new Date(Math.min(...dates));
+    const firstDate = dates.length > 0 ? new Date(Math.min(...dates)) : new Date();
     const lastDate = new Date();
 
     // Créer un tableau de toutes les dates entre la première connexion et aujourd'hui

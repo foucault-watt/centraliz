@@ -12,8 +12,6 @@ const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const PHOTO_SIZE = 500; // 500x500px
 const PHOTO_QUALITY = 90; // 90% qualité JPEG
 
-console.log("Ceki routes loaded");
-
 // Configuration de multer pour l'upload de fichiers
 const storage = multer.memoryStorage();
 const upload = multer({

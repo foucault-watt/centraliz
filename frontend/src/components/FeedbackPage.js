@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import PageLayout from "./PageLayout";
 import { MessageCircle, Send } from "lucide-react";
+import { useState } from "react";
+import PageLayout from "./PageLayout";
 
 const FeedbackPage = () => {
   const [feedback, setFeedback] = useState("");
@@ -49,14 +49,23 @@ const FeedbackPage = () => {
 
   return (
     <PageLayout>
-      <div className="p-4">
+      <div className="p-4 border text-secondary bg-background-module shadow-xl rounded-2xl">
         <h2 className="text-2xl font-bold mb-4 flex items-center">
           <MessageCircle className="mr-2" size={24} /> Feedback
         </h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Vous pouvez laisser vos feedbacks ici pour m'aider à améliorer l'application et partager vos avis.
+        </p>
         <form onSubmit={handleFeedbackSubmit} className="space-y-4">
           <textarea
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleFeedbackSubmit(e);
+              }
+            }}
             placeholder="Partagez vos suggestions..."
             required
             maxLength={800}
@@ -65,7 +74,7 @@ const FeedbackPage = () => {
           />
           <button
             type="submit"
-            className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="flex items-center justify-center px-4 py-2 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             <Send size={14} className="mr-2" />
             <span>Envoyer</span>

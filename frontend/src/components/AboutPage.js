@@ -14,7 +14,6 @@ const AboutPage = () => {
           Centraliens et Chimistes. Simplifiez votre organisation quotidienne
           en centralisant vos calendriers, notes et mails.
         </p>
-        <p className="text-gray-600 text-sm">Version {process.env.REACT_APP_VERSION}</p>
       </div>
     </PageLayout>
   );

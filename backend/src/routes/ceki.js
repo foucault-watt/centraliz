@@ -284,13 +284,13 @@ router.get("/game/round", authMiddleware, async (req, res) => {
           error: "Session de jeu non trouvée ou non autorisée.",
         });
       }
-      gameRound = await cekiService.generateGameRound(gameId);
+      gameRound = await cekiService.generateGameRound({ gameId });
     } else {
       // Mode sans fin (comportement existant)
       const selectedGroups = req.query.groups
         ? req.query.groups.split(",")
         : [];
-      gameRound = await cekiService.generateGameRound(selectedGroups);
+      gameRound = await cekiService.generateGameRound({ selectedGroups });
     }
 
     if (!gameRound) {
@@ -395,15 +395,19 @@ router.post("/game/answer", authMiddleware, async (req, res) => {
           error: "Session de jeu non trouvée ou non autorisée.",
         });
       }
-      result = await cekiService.verifyAnswer(
+      result = await cekiService.verifyAnswer({
         gameId,
         roundId,
-        parseInt(choiceId),
-        time
-      );
+        choiceId: parseInt(choiceId),
+        timeElapsed: time,
+      });
     } else {
       // Mode sans fin (comportement existant)
-      result = cekiService.verifyAnswer(roundId, parseInt(choiceId), time);
+      result = await cekiService.verifyAnswer({
+        roundId,
+        choiceId: parseInt(choiceId),
+        timeElapsed: time,
+      });
     }
 
     if (!result) {

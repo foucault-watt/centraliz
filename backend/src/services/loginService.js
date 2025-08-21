@@ -62,10 +62,6 @@ class LoginService {
   }
 
   async addLogin(username) {
-    // Ne pas enregistrer pour "Foucault Wattinne" - Assurez-vous que c'est le bon username
-    if (username === "foucault.wattinne") { // Assurez-vous que "foucault.wattinne" est le username correspondant
-      return;
-    }
 
     try {
       const { error } = await supabase

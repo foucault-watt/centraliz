@@ -342,37 +342,54 @@ function startRoundTimer(gameId, roundId) {
 
 /**
  * Génère un round de jeu aléatoire.
- * @param {string} gameId - L'ID de la session de jeu (obligatoire pour le mode compétitif).
+ * @param {Object} options - Options pour la génération du round.
+ * @param {string} [options.gameId] - L'ID de la session de jeu (pour le mode compétitif).
+ * @param {Array<string>} [options.selectedGroups] - Les groupes sélectionnés (pour le mode sans fin).
  * @returns {Promise<Object|null>}
  */
-async function generateGameRound(gameId) {
-  const session = activeCompetitiveGameSessions.get(gameId);
-  if (!session) {
-    console.error("Session de jeu compétitif non trouvée ou expirée:", gameId);
+async function generateGameRound({ gameId, selectedGroups }) {
+  let usersToPickFrom;
+  let currentRound = 0;
+  let totalScore = 0;
+  let session = null;
+
+  if (gameId) {
+    // Mode compétitif
+    session = activeCompetitiveGameSessions.get(gameId);
+    if (!session) {
+      console.error("Session de jeu compétitif non trouvée ou expirée:", gameId);
+      return null;
+    }
+    usersToPickFrom = await getUsersWithPhotosByGroups(session.selectedGroups);
+    currentRound = session.currentRound + 1;
+    totalScore = session.totalScore;
+  } else if (selectedGroups) {
+    // Mode sans fin
+    usersToPickFrom = await getUsersWithPhotosByGroups(selectedGroups);
+    // Pour le mode sans fin, currentRound et totalScore ne sont pas gérés par le backend de la même manière
+    // Ils sont gérés côté frontend ou ne sont pas pertinents pour la session backend.
+  } else {
+    console.error("Paramètres invalides pour generateGameRound. gameId ou selectedGroups sont requis.");
+    return null;
+  }
+
+  if (usersToPickFrom.length < 4) {
+    console.error(
+      "Pas assez d'utilisateurs avec photos dans les promos sélectionnées."
+    );
     return null;
   }
 
   try {
-    const usersWithPhotos = await getUsersWithPhotosByGroups(
-      session.selectedGroups
-    );
-    if (usersWithPhotos.length < 4) {
-      console.error(
-        "Pas assez d'utilisateurs avec photos dans les promos sélectionnées pour le gameId:",
-        gameId
-      );
-      return null;
-    }
-
-    const randomIndex = Math.floor(Math.random() * usersWithPhotos.length);
-    const selectedUser = usersWithPhotos[randomIndex];
+    const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
+    const selectedUser = usersToPickFrom[randomIndex];
 
     const correctChoice = {
       id: 1,
       displayName: selectedUser.display_name,
     };
 
-    const otherUsersWithPhotos = usersWithPhotos.filter(
+    const otherUsersWithPhotos = usersToPickFrom.filter(
       (user) =>
         user.username !== selectedUser.username &&
         user.display_name !== selectedUser.display_name
@@ -397,30 +414,35 @@ async function generateGameRound(gameId) {
 
     const roundId = crypto.randomBytes(16).toString("hex");
 
-    // Stocker les informations du round dans la session de jeu compétitif
-    session.roundDataMap.set(roundId, {
+    // Stocker les informations du round
+    const roundData = {
       correctChoiceId: correctChoiceId,
       correctDisplayName: selectedUser.display_name,
       correctGroup: selectedUser.group,
       photoName: selectedUser.photoName,
       timestamp: Date.now(),
-    });
+    };
 
-    // Mettre à jour le timestamp de la session pour éviter l'expiration prématurée
-    session.timestamp = Date.now();
-    activeCompetitiveGameSessions.set(gameId, session);
+    if (session) {
+      // Mode compétitif: stocker dans la session
+      session.roundDataMap.set(roundId, roundData);
+      session.timestamp = Date.now(); // Mettre à jour le timestamp de la session
+      activeCompetitiveGameSessions.set(gameId, session);
+    } else {
+      // Mode sans fin: stocker globalement (comme avant l'introduction du mode compétitif)
+      activeRounds.set(roundId, roundData);
+    }
 
     return {
       roundId: roundId,
       photoUrl: `/api/ceki/photo/${selectedUser.photoName}`,
       choices: choices,
-      currentRound: session.currentRound + 1, // Le round suivant
-      totalScore: session.totalScore,
+      currentRound: currentRound, // Sera 0 pour le mode sans fin, ou le numéro de round pour compétitif
+      totalScore: totalScore, // Sera 0 pour le mode sans fin, ou le score cumulé pour compétitif
     };
   } catch (error) {
     console.error(
-      "Erreur lors de la génération du round pour gameId:",
-      gameId,
+      "Erreur lors de la génération du round:",
       error
     );
     return null;
@@ -430,90 +452,114 @@ async function generateGameRound(gameId) {
 const MAX_ROUNDS_COMPETITIVE = 10;
 
 /**
- * Vérifie la réponse d'un utilisateur et met à jour l'état de la session de jeu compétitif.
- * @param {string} gameId - L'ID de la session de jeu compétitif.
- * @param {string} roundId - ID du round.
- * @param {number} choiceId - ID du choix sélectionné.
- * @param {number} timeElapsed - Temps écoulé pour la réponse en ms.
+ * Vérifie la réponse d'un utilisateur et met à jour l'état du jeu.
+ * @param {Object} options - Options pour la vérification de la réponse.
+ * @param {string} options.roundId - ID du round.
+ * @param {number} options.choiceId - ID du choix sélectionné.
+ * @param {string} [options.gameId] - L'ID de la session de jeu (pour le mode compétitif).
+ * @param {number} [options.timeElapsed] - Temps écoulé pour la réponse en ms (pour le mode sans fin).
  * @returns {Object|null}
  */
-async function verifyAnswer(gameId, roundId, choiceId, timeElapsed = null) {
-  const session = activeCompetitiveGameSessions.get(gameId);
-  if (!session) {
-    console.error("Session de jeu compétitif non trouvée ou expirée:", gameId);
-    return null;
+async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
+  let roundData;
+  let session = null;
+  let isCompetitiveMode = false;
+
+  if (gameId) {
+    // Mode compétitif
+    isCompetitiveMode = true;
+    session = activeCompetitiveGameSessions.get(gameId);
+    if (!session) {
+      console.error("Session de jeu compétitif non trouvée ou expirée:", gameId);
+      return null;
+    }
+    roundData = session.roundDataMap.get(roundId);
+  } else {
+    // Mode sans fin
+    roundData = activeRounds.get(roundId);
   }
 
-  const roundData = session.roundDataMap.get(roundId);
   if (!roundData) {
     console.error(
-      "Round non trouvé ou expiré dans la session:",
+      "Round non trouvé ou expiré:",
       roundId,
-      gameId
+      gameId ? `(gameId: ${gameId})` : "(mode sans fin)"
     );
     return null;
   }
 
   const isCorrect = roundData.correctChoiceId === choiceId;
-
-  // Calcul du temps écoulé côté serveur (plus fiable que le frontend)
-  let actualTimeElapsed = 0;
-  if (session.timerStartTime) {
-    actualTimeElapsed = Date.now() - session.timerStartTime;
-  } else {
-    // Fallback: utiliser le temps envoyé par le frontend si le chrono serveur n'a pas été démarré
-    actualTimeElapsed = timeElapsed || 0;
-    console.warn(
-      "Chrono serveur non démarré, utilisation du temps frontend pour gameId:",
-      gameId
-    );
-  }
-
-  // Calcul du score basé sur le temps serveur (max 5 secondes)
-  const MAX_TIME = 5000; // 5 secondes
   let scoreGainedThisRound = 0;
-  if (isCorrect) {
-    scoreGainedThisRound = Math.round(
-      Math.max(0, 100 * (1 - actualTimeElapsed / MAX_TIME))
-    );
-  }
+  let currentRound = 0;
+  let totalScore = 0;
+  let isGameOver = false;
+  let actualTimeElapsed = timeElapsed; // Par défaut, utiliser le temps du frontend pour le mode sans fin
 
-  // Mettre à jour la session
-  session.totalScore += scoreGainedThisRound;
-  session.currentRound++;
-  session.timestamp = Date.now(); // Mettre à jour le timestamp pour éviter l'expiration
-  session.timerStartTime = null; // Réinitialiser le chrono pour le prochain round
-  session.roundDataMap.delete(roundId); // Nettoyer le round une fois traité
-
-  const isGameOver = session.currentRound >= MAX_ROUNDS_COMPETITIVE;
-
-  if (isGameOver) {
-    // Sauvegarder le score final
-    const mode = session.selectedGroups.length === 1 ? "single_promo" : "all";
-    const promo =
-      session.selectedGroups.length === 1 ? session.selectedGroups[0] : null;
-    const saveSuccess = await saveGameScore(
-      session.userId,
-      session.totalScore,
-      mode,
-      promo
-    );
-    if (!saveSuccess) {
-      console.error(
-        "Erreur lors de la sauvegarde du score final pour gameId:",
+  if (isCompetitiveMode) {
+    // Calcul du temps écoulé côté serveur (plus fiable que le frontend)
+    if (session.timerStartTime) {
+      actualTimeElapsed = Date.now() - session.timerStartTime;
+    } else {
+      console.warn(
+        "Chrono serveur non démarré, utilisation du temps frontend pour gameId:",
         gameId
       );
     }
-    activeCompetitiveGameSessions.delete(gameId); // Nettoyer la session après la fin du jeu
+
+    // Calcul du score basé sur le temps serveur (max 5 secondes)
+    const MAX_TIME = 5000; // 5 secondes
+    if (isCorrect) {
+      scoreGainedThisRound = Math.round(
+        Math.max(0, 100 * (1 - actualTimeElapsed / MAX_TIME))
+      );
+    }
+
+    // Mettre à jour la session
+    session.totalScore += scoreGainedThisRound;
+    session.currentRound++;
+    session.timestamp = Date.now(); // Mettre à jour le timestamp pour éviter l'expiration
+    session.timerStartTime = null; // Réinitialiser le chrono pour le prochain round
+    session.roundDataMap.delete(roundId); // Nettoyer le round une fois traité
+
+    isGameOver = session.currentRound >= MAX_ROUNDS_COMPETITIVE;
+
+    if (isGameOver) {
+      // Sauvegarder le score final
+      const mode = session.selectedGroups.length === 1 ? "single_promo" : "all";
+      const promo =
+        session.selectedGroups.length === 1 ? session.selectedGroups[0] : null;
+      const saveSuccess = await saveGameScore(
+        session.userId,
+        session.totalScore,
+        mode,
+        promo
+      );
+      if (!saveSuccess) {
+        console.error(
+          "Erreur lors de la sauvegarde du score final pour gameId:",
+          gameId
+        );
+      }
+      activeCompetitiveGameSessions.delete(gameId); // Nettoyer la session après la fin du jeu
+    }
+    currentRound = session.currentRound;
+    totalScore = session.totalScore;
+  } else {
+    // Mode sans fin: pas de score cumulé ni de fin de jeu gérés par le backend
+    // Le score pour ce round peut être calculé si nécessaire, mais n'affecte pas une session globale
+    if (isCorrect) {
+      scoreGainedThisRound = 1; // Ou une autre logique de score simple pour le mode sans fin
+    }
+    activeRounds.delete(roundId); // Nettoyer le round une fois traité
   }
 
   return {
     correct: isCorrect,
     scoreGainedThisRound: scoreGainedThisRound,
-    totalScore: session.totalScore,
-    currentRound: session.currentRound,
-    isGameOver: isGameOver,
-    actualTimeElapsed: actualTimeElapsed, // Retourner le temps réel calculé côté serveur
+    totalScore: totalScore, // Sera 0 pour le mode sans fin, ou le score cumulé pour compétitif
+    currentRound: currentRound, // Sera 0 pour le mode sans fin, ou le numéro de round pour compétitif
+    isGameOver: isGameOver, // Indique si la partie est terminée (compétitif)
+    actualTimeElapsed: actualTimeElapsed,
     correctAnswer: {
       id: roundData.correctChoiceId,
       displayName: roundData.correctDisplayName,

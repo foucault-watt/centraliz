@@ -480,12 +480,12 @@ const CekiluiGame = ({ onBackToMenu }) => {
         <main className="max-w-md mx-auto pt-2 pb-safe ">
           {gamePhase === "playing" && currentRoundData ? (
             /* Interface de jeu directe - plus d'état "ready" */
-            <div className="space-y-6 animate-scale-in">
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
+            <div className="space-y-6 animate-scale-in flex flex-col items-center align-middle">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 w-3/4">
                 <img
                   src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
                   alt="Photo mystère"
-                  className="w-3/4 h-3/4 object-cover mx-auto"
+                  className="w-full h-full object-cover mx-auto"
                   onError={(e) => {
                     console.error(
                       "Erreur de chargement de l'image:",
@@ -500,9 +500,9 @@ const CekiluiGame = ({ onBackToMenu }) => {
 
                 {/* Timer circulaire comme bordure de l'image */}
                 {gameMode === "competitive" && timerStarted && (
-                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="absolute w-full h-full mx-auto inset-0 flex items-center justify-center">
                     <svg
-                      className="w-3/4 h-3/4 transform -rotate-90"
+                      className="w-full h-full transform -rotate-90"
                       viewBox="0 0 100 100"
                     >
                       {/* Bordure de base */}
@@ -532,7 +532,7 @@ const CekiluiGame = ({ onBackToMenu }) => {
               </div>
 
               {/* Boutons de choix - 4 lignes */}
-              <div className="flex flex-col space-y-4 items-center">
+              <div className="flex flex-col space-y-4 items-center w-5/6">
                 {currentRoundData.choices.map((choice) => (
                   <button
                     key={choice.id}
@@ -556,22 +556,20 @@ const CekiluiGame = ({ onBackToMenu }) => {
             </div>
           ) : gamePhase === "answered" && roundResult ? (
             /* État "Answered" - Affichage intégré du résultat */
-            <div className="space-y-6 animate-scale-in">
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border-4 border-game-photo-border">
+            <div className="space-y-6 animate-scale-in flex flex-col align-middle items-center">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border-4 border-game-photo-border w-3/4">
                 <img
                   src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`}
                   alt="Photo révélée"
-                  className="w-3/4 h-3/4 object-cover mx-auto"
+                  className="w-full h-full object-cover mx-auto"
                   crossOrigin="use-credentials"
                 />
 
                 {/* Overlay de résultat */}
                 <div
-                  className={`absolute inset-0 ${
-                    roundResult.correct
-                      ? "bg-success/50"
-                      : "bg-danger/50"
-                  } flex items-center justify-center`}
+                  className={`absolute w-full h-full mx-auto inset-0 flex items-center justify-center ${
+                    roundResult.correct ? "bg-success/50" : "bg-danger/50"
+                  }`}
                 >
                   <div className="text-center space-y-4">
                     <div className="text-white font-bold text-xl">
@@ -587,7 +585,7 @@ const CekiluiGame = ({ onBackToMenu }) => {
               </div>
 
               {/* Informations de la réponse */}
-              <div className="bg-white rounded-xl p-4 shadow-lg">
+              <div className="bg-white rounded-xl p-4 shadow-lg w-5/6">
                 <div className="text-center space-y-2">
                   <p className="text-gray-600 text-sm">Réponse :</p>
                   <p className="text-secondary font-semibold text-lg">

@@ -2,6 +2,8 @@ const supabase = require("../utils/supabaseClient");
 const path = require("path");
 const fs = require("fs").promises;
 const crypto = require("crypto");
+const axios = require('axios');
+const FormData = require('form-data');
 
 /**
  * Vérifie si un utilisateur a une photo de profil
@@ -112,6 +114,53 @@ async function deletePhotoFile(photoName) {
     return false;
   }
 }
+
+/**
+ * Vérifie si un visage est présent dans une image en utilisant l'API Sightengine.
+ * @param {Buffer} imageBuffer - Le buffer de l'image à analyser.
+ * @returns {Promise<boolean>} True si un visage est détecté, false sinon.
+ */
+async function verifyFaceInImage(imageBuffer) {
+  const VISAGE_VERIFICATION = process.env.VISAGE_VERIFICATION === 'true';
+  const API_USER = process.env.SIGHTENGINE_API_USER;
+  const API_SECRET = process.env.SIGHTENGINE_API_SECRET;
+
+  if (!VISAGE_VERIFICATION) {
+    return true; // Si la vérification est désactivée, on considère que l'image est "safe"
+  }
+
+  if (!API_USER || !API_SECRET) {
+    // En production, on pourrait vouloir logger cette erreur, mais pas la renvoyer au client
+    return false; // Ne pas autoriser l'upload si les clés sont manquantes et la vérification activée
+  }
+
+  try {
+    const data = new FormData();
+    data.append('media', imageBuffer, { filename: 'image.jpg', contentType: 'image/jpeg' });
+    data.append('models', 'faces');
+    data.append('api_user', API_USER);
+    data.append('api_secret', API_SECRET);
+
+    const response = await axios({
+      method: 'post',
+      url: 'https://api.sightengine.com/1.0/check.json',
+      data: data,
+      headers: data.getHeaders(),
+      timeout: 10000 // Timeout de 10 secondes
+    });
+
+    // Vérifier si le statut est succès et s'il y a EXACTEMENT UN visage détecté
+    if (response.data.status === 'success' && response.data.faces && response.data.faces.length === 1) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    // En production, on pourrait vouloir logger cette erreur
+    return false;
+  }
+}
+
 
 // Stockage temporaire des rounds de jeu (pour les parties en cours)
 const activeRounds = new Map();
@@ -615,4 +664,5 @@ module.exports = {
   saveGameScore,
   getCompetitiveGameSession, // Exporter pour les tests ou si nécessaire
   startRoundTimer, // Nouvelle fonction pour démarrer le chrono côté serveur
+  verifyFaceInImage,
 };

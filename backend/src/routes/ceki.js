@@ -84,19 +84,31 @@ router.post(
         await cekiService.deletePhotoFile(currentPhotoStatus.photoName);
       }
 
-      // Générer un nom de fichier unique
+      // Générer un nom de fichier unique (déclaré une seule fois)
       const fileExtension = req.file.mimetype === "image/png" ? "png" : "jpg";
       const fileName = cekiService.generateRandomFileName(fileExtension);
       const filePath = path.join(__dirname, "../data/profile-photos", fileName);
 
-      // Traitement et compression de l'image avec Sharp
-      await sharp(req.file.buffer)
+      // Traitement et compression de l'image avec Sharp pour obtenir le buffer traité
+      const processedImageBuffer = await sharp(req.file.buffer)
         .resize(PHOTO_SIZE, PHOTO_SIZE, {
           fit: "cover",
           position: "center",
         })
         .jpeg({ quality: PHOTO_QUALITY })
-        .toFile(filePath);
+        .toBuffer(); // Utiliser toBuffer() au lieu de toFile()
+
+      // Vérifier la présence de visage si la fonctionnalité est activée
+      const isFaceDetected = await cekiService.verifyFaceInImage(processedImageBuffer);
+      if (!isFaceDetected) {
+        return res.status(400).json({
+          success: false,
+          error: "Aucun visage détecté sur la photo. Veuillez en choisir une autre.",
+        });
+      }
+      
+      // Si la vérification de visage est réussie, écrire le fichier et mettre à jour la BDD
+      await fs.writeFile(filePath, processedImageBuffer); // Écrire le fichier seulement si la vérification réussit
 
       // Mettre à jour la base de données
       const updateSuccess = await cekiService.updateUserPhoto(

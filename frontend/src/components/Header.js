@@ -55,8 +55,8 @@ export default function Header({ onMenuToggle }) { // Accept onMenuToggle prop
         </button>
 
         {/* Logo et titre */}
-        <div className="flex justify-center items-center h-20">
-          <img src={"logo-title.png"} className="h-14 pr-2" alt="logo" />
+        <div className="flex justify-center items-center h-18">
+          <img src={"logo-title.png"} className="h-12 pr-2 py-1" alt="logo" />
           <h1 className="text-4xl font-semibold tracking-wide text-day">Centraliz</h1>
           <span className="text-2xl font-light opacity-80 text-day ml-0.5 tracking-tighter hidden sm:inline">.it</span>
         </div>

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Book, Info } from 'lucide-react';
 
 // Helper
-const getApiUrl = (path) => `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}${path}`;
+const getApiUrl = (path) => `${process.env.REACT_APP_URL_BACK}${path}`;
 
 // --- Sous-composants ---
 

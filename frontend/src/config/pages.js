@@ -5,6 +5,6 @@ export const pagesConfig = [
   { id: "links", label: "Liens", icon: ExternalLink },
   { id: "calendars", label: "Calendriers", icon: Calendar1 },
   { id: "communication", label: "Mails", icon: Mail },
+  { id: "cekilui", label: "Cékilui", icon: Users },
   // { id: "bibli", label: "Bibli", icon: LibraryBig },
-  { id: "cekilui", label: "Cékilui", icon: Users }
 ];

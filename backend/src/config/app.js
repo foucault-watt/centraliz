@@ -16,6 +16,7 @@ const statsRoutes = require("../routes/stats");
 const rankRoutes = require("../routes/ranking");
 const coefRoutes = require("../routes/coef");
 const cekiRoutes = require("../routes/ceki");
+const bibliRoutes = require("../routes/bibli");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -73,10 +74,11 @@ app.use("/api", statsRoutes);
 app.use("/api", rankRoutes);
 app.use("/api/coef", coefRoutes);
 app.use("/api/ceki", cekiRoutes);
+app.use("/api/bibli", bibliRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
-  res.send("CRASH");
+  res.send("Le serveur va planter maintenant, planter comme un navet.");
   process.exit(1);
 });
 

@@ -82,6 +82,14 @@ class LoginService {
       throw new Error('Impossible d\'enregistrer la connexion');
     }
   }
+
+  async getUser(username) {
+    return supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+  }
 }
 
 module.exports = new LoginService();

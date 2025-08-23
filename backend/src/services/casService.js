@@ -50,25 +50,25 @@ exports.callback = async (req, res) => {
       console.log("[CAS Service] Utilisateur mis à jour:", data);
     }
 
-    // Fetch the user's iCal link from Supabase
+    // Récupérer l'enregistrement utilisateur complet depuis Supabase
     const { data: user, error: fetchError } = await supabase
       .from('users')
-      .select('ical_link')
+      .select('*') // On sélectionne tout !
       .eq('username', userName)
       .single();
 
-    if (fetchError) {
-      console.error("[CAS Service] Erreur lors de la récupération du lien iCal:", fetchError);
+    if (fetchError || !user) {
+      console.error("[CAS Service] Erreur lors de la récupération de l'utilisateur complet:", fetchError);
+      return res.status(500).send("Erreur lors de la récupération des informations utilisateur.");
     }
 
-    console.log("[CAS Service] User object from Supabase:", user);
-    console.log("[CAS Service] fetchError object from Supabase:", fetchError);
-
+    // Créer la session avec les données complètes de la BDD
     req.session.user = {
-      userName,
-      casTicket: ticket,
-      displayName,
-      icalLink: user?.ical_link || null
+      username: user.username, // Nom d'utilisateur cohérent (lowercase)
+      displayName: user.display_name,
+      icalLink: user.ical_link,
+      is_admin: user.is_admin,
+      is_bibli_admin: user.is_bibli_admin // Le champ crucial !
     };
 
     if (req.session.rememberMe) {

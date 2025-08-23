@@ -24,8 +24,7 @@ const LegalPage = lazy(() => import("./components/LegalPage.js"));
 export const UserContext = createContext();
 
 const App = () => {
-  const [userName, setUserName] = useState(null);
-  const [displayName, setDisplayName] = useState(null);
+  const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
@@ -48,10 +47,8 @@ const App = () => {
         setIsAuthenticated(data.authenticated);
 
         if (data.authenticated) {
-          setUserName(data.user.userName);
-          setDisplayName(data.user.displayName);
-          const icalLink = data.user.icalLink;
-          setNeedsOnboarding(!icalLink);
+          setUser(data.user); // On stocke l'objet utilisateur complet
+          setNeedsOnboarding(!data.user.icalLink);
         }
       } catch (error) {
         console.error("Error checking auth status:", error);
@@ -84,11 +81,11 @@ const App = () => {
   }
 
   return (
-    <UserContext.Provider value={{ userName, displayName }}>
+    <UserContext.Provider value={{ user }}>
       <BrowserRouter>
         {needsOnboarding ? (
           <Onboarding
-            userName={userName}
+            userName={user.username}
             onComplete={() => setNeedsOnboarding(false)}
           />
         ) : (
@@ -142,7 +139,7 @@ const App = () => {
                   path="/bibli"
                   element={
                     <PageLayout>
-                      <Bibli />
+                      <Bibli user={user} />
                     </PageLayout>
                   }
                 />

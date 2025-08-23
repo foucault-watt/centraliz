@@ -18,12 +18,24 @@ router.get("/status", async (req, res) => {
     return res.json({ authenticated: false, user: null });
   }
 
-  const user = await tokenService.validateToken(rememberMeToken);
-  if (user) {
+  const validatedUser = await tokenService.validateToken(rememberMeToken);
+  if (validatedUser) {
+    // Le token est valide, on récupère les infos complètes de l'utilisateur
+    const { data: fullUser, error } = await loginService.getUser(validatedUser.username);
+
+    if (error || !fullUser) {
+      console.error("[Auth Status] Erreur: impossible de récupérer l'utilisateur complet pour la session remember_me");
+      res.clearCookie('remember_me');
+      return res.json({ authenticated: false, user: null });
+    }
+
+    // Créer la session avec les données complètes et correctes
     req.session.user = {
-      userName: user.username,
-      displayName: user.display_name,
-      icalLink: user.ical_link,
+      username: fullUser.username,
+      displayName: fullUser.display_name,
+      icalLink: fullUser.ical_link,
+      is_admin: fullUser.is_admin,
+      is_bibli_admin: fullUser.is_bibli_admin
     };
     return res.json({ authenticated: true, user: req.session.user });
   }

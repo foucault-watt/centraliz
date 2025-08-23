@@ -19,3 +19,4 @@ backend/src/data/leaderboard.json
 *.keystore
 
 profile-photos
+books.csv

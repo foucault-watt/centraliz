@@ -64,7 +64,7 @@ exports.callback = async (req, res) => {
 
     // Créer la session avec les données complètes de la BDD
     req.session.user = {
-      username: user.username, // Nom d'utilisateur cohérent (lowercase)
+      userName: user.username, // Rétablir l'ancien format pour la compatibilité
       displayName: user.display_name,
       icalLink: user.ical_link,
       is_admin: user.is_admin,

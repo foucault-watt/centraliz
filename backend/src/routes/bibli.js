@@ -48,7 +48,7 @@ router.get('/genres', async (req, res) => {
 router.post('/reservations', authMiddleware, async (req, res) => {
   try {
     const { book_id } = req.body;
-    const username = req.session.user.username; // Assure que l'utilisateur est connecté
+    const username = req.session.user.userName; // Utiliser userName pour la compatibilité
     
     if (!book_id) {
       return res.status(400).json({ message: 'Book ID is required.' });
@@ -73,7 +73,7 @@ router.post('/reservations', authMiddleware, async (req, res) => {
 // GET /api/bibli/reservations/mine
 router.get('/reservations/mine', authMiddleware, async (req, res) => {
   try {
-    const username = req.session.user.username;
+    const username = req.session.user.userName;
     const { data, error } = await bibliService.getUserReservations(username);
 
     if (error) throw new Error(error.message);
@@ -88,7 +88,7 @@ router.get('/reservations/mine', authMiddleware, async (req, res) => {
 router.put('/reservations/:id/cancel', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const username = req.session.user.username;
+    const username = req.session.user.userName;
     
     const { data, error } = await bibliService.cancelReservation(id, username);
 

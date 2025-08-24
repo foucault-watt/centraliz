@@ -31,7 +31,7 @@ router.get("/status", async (req, res) => {
 
     // Créer la session avec les données complètes et correctes
     req.session.user = {
-      username: fullUser.username,
+      userName: fullUser.username, // Rétablir l'ancien format pour la compatibilité
       displayName: fullUser.display_name,
       icalLink: fullUser.ical_link,
       is_admin: fullUser.is_admin,

@@ -85,7 +85,7 @@ const App = () => {
       <BrowserRouter>
         {needsOnboarding ? (
           <Onboarding
-            userName={user.username}
+            userName={user.userName}
             onComplete={() => setNeedsOnboarding(false)}
           />
         ) : (

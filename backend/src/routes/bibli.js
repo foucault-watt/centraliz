@@ -4,13 +4,14 @@ const bibliService = require('../services/bibliService');
 const authMiddleware = require("../middlewares/auth");
 const bibliAdminMiddleware = require('../middlewares/bibliAdmin');
 
-// Route pour obtenir la liste des livres avec filtres
-// GET /api/bibli/books?search=...&genre=...&available=...&sortBy=...
+// Route pour obtenir la liste des livres avec filtres et pagination
+// GET /api/bibli/books?search=...&genre=...&page=...&limit=...
 router.get('/books', async (req, res) => {
   try {
-    const { data, error } = await bibliService.getAllBooks(req.query);
+    const { page = 1, limit = 50, ...filters } = req.query;
+    const { data, count, error } = await bibliService.getAllBooks(filters, parseInt(page), parseInt(limit));
     if (error) throw new Error(error.message);
-    res.status(200).json(data);
+    res.status(200).json({ books: data, total: count });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -112,12 +113,14 @@ const adminRouter = express.Router();
 // Appliquer le middleware d'administration à toutes les routes de ce routeur
 adminRouter.use(bibliAdminMiddleware);
 
-// GET /api/bibli/admin/reservations - Lister toutes les réservations
+// GET /api/bibli/admin/reservations?status=...&page=...&limit=...
 adminRouter.get('/reservations', async (req, res) => {
   try {
-    const { data, error } = await bibliService.getAllReservations();
+    const { status, page = 1, limit = 20 } = req.query;
+    const filters = status ? { status } : {};
+    const { data, count, error } = await bibliService.getAllReservations(filters, parseInt(page), parseInt(limit));
     if (error) throw new Error(error.message);
-    res.status(200).json(data);
+    res.status(200).json({ reservations: data, total: count });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

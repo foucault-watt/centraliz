@@ -4,12 +4,14 @@ const axios = require("axios");
 const OPEN_LIBRARY_API = "https://openlibrary.org";
 
 /**
- * Récupère tous les livres avec filtres et tri.
- * @param {object} filters - Les filtres à appliquer (search, genre, available, sortBy).
- * @returns {Promise<{data: any, error: any}>}
+ * Récupère tous les livres avec filtres, tri et pagination.
+ * @param {object} filters - Les filtres à appliquer (search, genre).
+ * @param {number} page - Le numéro de la page.
+ * @param {number} limit - Le nombre d'éléments par page.
+ * @returns {Promise<{data: any, count: number, error: any}>}
  */
-const getAllBooks = async (filters = {}) => {
-  let query = supabase.from("books").select("*");
+const getAllBooks = async (filters = {}, page = 1, limit = 50) => {
+  let query = supabase.from("books").select("*", { count: 'exact' });
 
   // Filtre de recherche par titre ou auteur
   if (filters.search) {
@@ -23,22 +25,18 @@ const getAllBooks = async (filters = {}) => {
     query = query.eq("genre", filters.genre);
   }
 
-  // Filtre par disponibilité
-  if (filters.available) {
-    query = query.eq("is_available", filters.available === "true");
-  }
-
   // Tri
-  if (filters.sortBy) {
-    const [field, order] = filters.sortBy.split(":"); // ex: "title:asc"
-    query = query.order(field, { ascending: order === "asc" });
-  } else {
-    // Tri par défaut
-    query = query.order("title", { ascending: true });
-  }
+  query = query.order("title", { ascending: true });
 
-  return query;
+  // Pagination
+  const offset = (page - 1) * limit;
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  return { data, error, count };
 };
+
 
 /**
  * Récupère un livre par son ID et l'enrichit avec les données d'OpenLibrary.
@@ -60,19 +58,7 @@ const getBookById = async (id) => {
   // 2. Enrichir avec OpenLibrary (si un ISBN ou OLID est disponible)
   // Note: Nous devons ajouter une colonne 'isbn' ou 'olid' à notre table 'books' pour que cela fonctionne.
   // Pour l'instant, nous allons simuler cette partie en retournant simplement les données du livre.
-  // try {
-  //   const olid = book.olid; // Supposons que nous ayons un champ 'olid'
-  //   const bookDetails = await axios.get(`${OPEN_LIBRARY_API}/works/${olid}.json`);
-  //   const authorDetails = await axios.get(`${OPEN_LIBRARY_API}${bookDetails.data.authors[0].author.key}.json`);
-  //
-  //   book.description = bookDetails.data.description || 'Aucune description disponible.';
-  //   book.cover_url = `https://covers.openlibrary.org/b/id/${bookDetails.data.covers[0]}-L.jpg`;
-  //   book.author_name = authorDetails.data.name;
-  // } catch (e) {
-  //   console.error("Could not fetch data from OpenLibrary:", e);
-  //   book.description = 'Les informations complémentaires n\'ont pas pu être chargées.';
-  // }
-
+  
   return { data: book, error: null };
 };
 
@@ -121,20 +107,36 @@ const getUserReservations = async (username) => {
 // --- Fonctions Administrateur ---
 
 /**
- * Récupère toutes les réservations de tous les utilisateurs.
- * @returns {Promise<{data: any, error: any}>}
+ * Récupère toutes les réservations avec filtres et pagination.
+ * @param {object} filters - Les filtres (ex: { status: 'active' })
+ * @param {number} page - Le numéro de page
+ * @param {number} limit - Le nombre d'éléments par page
+ * @returns {Promise<{data: any, count: number, error: any}>}
  */
-const getAllReservations = async () => {
-  return supabase
+const getAllReservations = async (filters = {}, page = 1, limit = 20) => {
+  let query = supabase
     .from("books_reservations")
     .select(
       `
       *,
       users (username, display_name),
       books (title, author)
-    `
-    )
-    .order("reservation_date", { ascending: false });
+    `, { count: 'exact' }
+    );
+
+  // Filtre par statut
+  if (filters.status === 'active') {
+    query = query.in('status', ['pending', 'validated']);
+  }
+  // Si aucun filtre de statut, on récupère tout
+
+  // Tri et pagination
+  const offset = (page - 1) * limit;
+  query = query.order("reservation_date", { ascending: false })
+               .range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+  return { data, error, count };
 };
 
 /**

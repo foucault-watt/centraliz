@@ -1,121 +1,267 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Book, Info } from 'lucide-react';
+import { Book, Info, Search, Loader } from 'lucide-react';
+import { useInView } from 'react-intersection-observer';
 
-// Helper
-const getApiUrl = (path) => `${process.env.REACT_APP_URL_BACK}${path}`;
+// --- Hooks et Helpers ---
+
+const getApiUrl = (path) => `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}${path}`;
+
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+};
 
 // --- Sous-composants ---
 
-const GenreFilters = ({ genres, selectedGenre, onSelectGenre }) => {
-  const totalBooks = useMemo(() => genres.reduce((sum, g) => sum + parseInt(g.count, 10), 0), [genres]);
+const Spinner = () => (
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      style={{ display: 'inline-block' }}
+    >
+      <Loader className="text-primary" />
+    </motion.div>
+);
 
-  return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3 text-text-secondary">Parcourir par genre</h3>
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => onSelectGenre(null)}
-          className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
-            selectedGenre === null ? 'bg-primary text-white shadow-md' : 'bg-background-module text-text-secondary hover:bg-border-light'
-          }`}
-        >
-          Tous ({totalBooks})
-        </button>
-        {genres.map(g => g.genre && (
+const GenreFilters = ({ genres, selectedGenre, onSelectGenre }) => {
+    const totalBooks = useMemo(() => genres.reduce((sum, g) => sum + parseInt(g.count, 10), 0), [genres]);
+  
+    return (
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
           <button
-            key={g.genre}
-            onClick={() => onSelectGenre(g.genre)}
+            onClick={() => onSelectGenre(null)}
             className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
-              selectedGenre === g.genre ? 'bg-primary text-white shadow-md' : 'bg-background-module text-text-secondary hover:bg-border-light'
+              selectedGenre === null ? 'bg-primary text-white shadow-md' : 'bg-background-module text-text-secondary hover:bg-border-light'
             }`}
           >
-            {g.genre} ({g.count})
+            Tous ({totalBooks})
           </button>
-        ))}
+          {genres.map(g => g.genre && (
+            <button
+              key={g.genre}
+              onClick={() => onSelectGenre(g.genre)}
+              className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                selectedGenre === g.genre ? 'bg-primary text-white shadow-md' : 'bg-background-module text-text-secondary hover:bg-border-light'
+              }`}
+            >
+              {g.genre} ({g.count})
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
 };
 
 const BookCard = ({ book, onSelect }) => (
-  <motion.div
-    layout
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.9 }}
-    transition={{ duration: 0.3 }}
-    onClick={() => onSelect(book)}
-    className="relative bg-background-module p-4 rounded-lg shadow-sm hover:shadow-lg transition-shadow cursor-pointer border border-border-light"
-  >
-    <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${book.is_available ? 'bg-success' : 'bg-danger'}`} title={book.is_available ? 'Disponible' : 'Réservé'}></div>
-    <div className="flex flex-col h-full">
-      <div className="flex-grow mb-2">
-        <h3 className="font-bold text-md text-text-primary leading-tight">{book.title}</h3>
-        <p className="text-sm text-text-secondary mt-1">{book.author}</p>
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+      onClick={() => onSelect(book)}
+      className="relative bg-background-module p-4 rounded-lg shadow-sm hover:shadow-lg transition-shadow cursor-pointer border border-border-light"
+    >
+      <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${book.is_available ? 'bg-success' : 'bg-danger'}`} title={book.is_available ? 'Disponible' : 'Réservé'}></div>
+      <div className="flex flex-col h-full">
+        <div className="flex-grow mb-2">
+          {book.type && (
+            <p className="text-xs font-semibold text-primary mb-1 uppercase tracking-wider">{book.type}</p>
+          )}
+          <h3 className="font-bold text-md text-text-primary leading-tight">{book.title}</h3>
+          <p className="text-sm text-text-secondary mt-1">{book.author}</p>
+        </div>
+        <div className="flex justify-end items-center text-primary">
+          <Info size={16} />
+        </div>
       </div>
-      <div className="flex justify-end items-center text-primary">
-        <Info size={16} />
-      </div>
+    </motion.div>
+);
+
+const SearchBar = ({ searchTerm, setSearchTerm }) => (
+    <div className="relative mb-4">
+        <input
+            type="text"
+            placeholder="Rechercher par titre ou auteur..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-border-light rounded-full bg-background-module focus:ring-2 focus:ring-primary focus:outline-none"
+        />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
     </div>
-  </motion.div>
 );
 
 
 // --- Composant principal ---
 
 function Bibli({ user }) {
+  // State de vue
   const [view, setView] = useState('catalogue');
+  const [selectedBook, setSelectedBook] = useState(null);
+
+  // State de données
   const [books, setBooks] = useState([]);
   const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState(null);
   const [myReservations, setMyReservations] = useState([]);
   const [allReservations, setAllReservations] = useState([]);
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [loading, setLoading] = useState(true);
+  
+  // State de filtres et pagination
+  const [selectedGenre, setSelectedGenre] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  
+  // State pour la page admin des réservations
+  const [adminResPage, setAdminResPage] = useState(1);
+  const [adminResHasMore, setAdminResHasMore] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(false);
+  
+  // State de chargement et erreurs
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [reservationError, setReservationError] = useState(null);
+  
+  // Refs pour le scroll infini
+  const { ref: bookLoaderRef, inView: bookLoaderInView } = useInView({ threshold: 0.1 });
+  const { ref: adminResLoaderRef, inView: adminResLoaderInView } = useInView({ threshold: 0.1 });
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-        const [booksResponse, genresResponse] = await Promise.all([
-          axios.get(getApiUrl('/api/bibli/books')),
-          axios.get(getApiUrl('/api/bibli/genres'))
-        ]);
-        setBooks(booksResponse.data);
+  const fetchGenres = useCallback(async () => {
+    try {
+        const genresResponse = await axios.get(getApiUrl('/api/bibli/genres'));
         setGenres(genresResponse.data);
-        setError(null);
-      } catch (err) {
-        setError('Erreur lors du chargement des données. Veuillez réessayer plus tard.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchInitialData();
+    } catch (err) {
+        console.error("Failed to fetch genres", err);
+    }
   }, []);
 
-  const filteredBooks = useMemo(() => {
-    if (!selectedGenre) return books;
-    return books.filter(book => book.genre === selectedGenre);
-  }, [books, selectedGenre]);
+  const fetchBooks = useCallback(async (isNewSearch) => {
+    if (loadingMore && !isNewSearch) return;
+    setLoadingMore(true);
+    setError(null);
+  
+    try {
+      const currentPage = isNewSearch ? 1 : page;
+      const params = {
+        page: currentPage,
+        limit: 50,
+        genre: selectedGenre,
+        search: debouncedSearchTerm,
+      };
+      
+      const response = await axios.get(getApiUrl('/api/bibli/books'), { params });
+      const { books: newBooks, total } = response.data;
+  
+      setBooks(prevBooks => isNewSearch ? newBooks : [...prevBooks, ...newBooks]);
+      setPage(currentPage + 1);
+      setHasMore((isNewSearch ? newBooks.length : books.length + newBooks.length) < total);
+  
+    } catch (err) {
+      setError('Erreur lors du chargement des livres.');
+    } finally {
+      if(isNewSearch) setInitialLoading(false);
+      setLoadingMore(false);
+    }
+  }, [page, selectedGenre, debouncedSearchTerm, loadingMore, books.length]);
+
+  const fetchAdminReservations = useCallback(async (isNewSearch) => {
+    if (loadingMore && !isNewSearch) return;
+    setLoadingMore(true);
+    setError(null);
+
+    try {
+      const currentPage = isNewSearch ? 1 : adminResPage;
+      const params = {
+        page: currentPage,
+        limit: 20,
+        status: showCompleted ? 'all' : 'active',
+      };
+      const response = await axios.get(getApiUrl('/api/bibli/admin/reservations'), { params, withCredentials: true });
+      const { reservations: newReservations, total } = response.data;
+
+      setAllReservations(prev => isNewSearch ? newReservations : [...prev, ...newReservations]);
+      setAdminResPage(currentPage + 1);
+      setAdminResHasMore((isNewSearch ? newReservations.length : allReservations.length + newReservations.length) < total);
+
+    } catch (err) {
+      setError('Erreur lors du chargement des réservations admin.');
+    } finally {
+      if(isNewSearch) setInitialLoading(false);
+      setLoadingMore(false);
+    }
+  }, [adminResPage, showCompleted, loadingMore, allReservations.length]);
 
 
-  // ... (toutes les fonctions handle et fetch restent les mêmes)
+  // Premier chargement
+  useEffect(() => {
+    fetchGenres();
+  }, [fetchGenres]);
+
+  // Re-chargement sur filtre/recherche
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+        isInitialMount.current = false;
+        fetchBooks(true); // Fetch initial books
+    } else {
+        setBooks([]);
+        setPage(1);
+        setHasMore(true);
+        fetchBooks(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, selectedGenre]);
+
+
+  useEffect(() => {
+    if (bookLoaderInView && hasMore && !loadingMore && !initialLoading) {
+      fetchBooks(false);
+    }
+  }, [bookLoaderInView, hasMore, loadingMore, initialLoading, fetchBooks]);
+
+  useEffect(() => {
+    if (view === 'admin_reservations') {
+        setAllReservations([]);
+        setAdminResPage(1);
+        setAdminResHasMore(true);
+        fetchAdminReservations(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, showCompleted]);
+
+  useEffect(() => {
+    if (adminResLoaderInView && adminResHasMore && !loadingMore && !initialLoading) {
+        fetchAdminReservations(false);
+    }
+  }, [adminResLoaderInView, adminResHasMore, loadingMore, initialLoading, fetchAdminReservations]);
+
+
+  const handleSelectGenre = (genre) => {
+    setSelectedGenre(genre);
+  };
+
   const fetchMyReservations = async () => {
     try {
-      setLoading(true);
+      setInitialLoading(true);
       const response = await axios.get(getApiUrl('/api/bibli/reservations/mine'), { withCredentials: true });
       setMyReservations(response.data);
       setError(null);
     } catch (err) {
       setError('Erreur lors du chargement de vos réservations.');
-      console.error(err);
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
     }
   };
   
@@ -130,7 +276,6 @@ function Bibli({ user }) {
         book.id === bookId ? { ...book, is_available: true } : book
       ));
     } catch (err) {
-      console.error(err);
       alert(err.response?.data?.message || "Erreur lors de l'annulation.");
     }
   };
@@ -149,21 +294,6 @@ function Bibli({ user }) {
     } catch (err) {
       const message = err.response?.data?.message || 'Une erreur est survenue lors de la réservation.';
       setReservationError(message);
-      console.error(err);
-    }
-  };
-
-  const fetchAdminReservations = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(getApiUrl('/api/bibli/admin/reservations'), { withCredentials: true });
-      setAllReservations(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Erreur lors du chargement des réservations admin.');
-      console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -180,7 +310,6 @@ function Bibli({ user }) {
       setAllReservations(prev => prev.map(r => r.id === reservationId ? response.data : r));
     } catch (err) {
       alert('Erreur lors de la mise à jour.');
-      console.error(err);
     }
   };
 
@@ -191,7 +320,7 @@ function Bibli({ user }) {
 
     try {
       const response = await axios.post(getApiUrl('/api/bibli/admin/books'), { title, author }, { withCredentials: true });
-      setBooks(prev => [...prev, response.data]);
+      setBooks(prev => [response.data, ...prev]);
     } catch (err) {
       alert('Erreur lors de l\'ajout du livre.');
     }
@@ -213,15 +342,20 @@ function Bibli({ user }) {
 
   const renderCatalogue = () => (
     <div>
-      <GenreFilters genres={genres} selectedGenre={selectedGenre} onSelectGenre={setSelectedGenre} />
+      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <GenreFilters genres={genres} selectedGenre={selectedGenre} onSelectGenre={handleSelectGenre} />
       <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {filteredBooks.map(book => (
+        {books.map(book => (
           <BookCard key={book.id} book={book} onSelect={() => {
             setSelectedBook(book);
             setView('details');
           }} />
         ))}
       </motion.div>
+      <div ref={bookLoaderRef} className="h-20 flex justify-center items-center">
+        {loadingMore && <Spinner />}
+        {!hasMore && books.length > 0 && <p className="text-text-secondary">Vous avez atteint la fin de la liste.</p>}
+      </div>
     </div>
   );
 
@@ -261,88 +395,108 @@ function Bibli({ user }) {
     );
   };
 
-  const renderMyReservations = () => ( // ... reste inchangé
-    <div>
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Mes Réservations</h2>
-      {myReservations.length === 0 ? (
-        <p className="text-gray-600">Vous n'avez aucune réservation pour le moment.</p>
-      ) : (
-        <div className="space-y-4">
-          {myReservations.map(res => (
-            <div key={res.id} className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-              <div>
-                <p className="font-bold">{res.books.title}</p>
-                <p className="text-sm text-gray-600">par {res.books.author}</p>
-              </div>
-              <div className="text-right">
-                <p className={`font-semibold capitalize ${
-                  res.status === 'validated' ? 'text-green-600' : 
-                  res.status === 'pending' ? 'text-yellow-600' : 'text-gray-500'
-                }`}>
-                  {res.status === 'pending' ? 'En attente' : 
-                   res.status === 'validated' ? `Validée (Retour le ${new Date(res.return_date).toLocaleDateString()})` :
-                   'Terminée'}
-                </p>
+  const renderMyReservations = () => {
+    return (
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Mes Réservations</h2>
+          {myReservations.length === 0 ? (
+            <p className="text-gray-600">Vous n'avez aucune réservation pour le moment.</p>
+          ) : (
+            <div className="space-y-4">
+              {myReservations.map(res => (
+                <div key={res.id} className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
+                  <div>
+                    <p className="font-bold">{res.books.title}</p>
+                    <p className="text-sm text-gray-600">par {res.books.author}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-semibold capitalize ${
+                      res.status === 'validated' ? 'text-green-600' : 
+                      res.status === 'pending' ? 'text-yellow-600' : 'text-gray-500'
+                    }`}>
+                      {res.status === 'pending' ? 'En attente' : 
+                       res.status === 'validated' ? `Validée (Retour le ${new Date(res.return_date).toLocaleDateString()})` :
+                       'Terminée'}
+                    </p>
+                    {res.status === 'pending' && (
+                      <button 
+                        onClick={() => handleCancelReservation(res.id, res.books.id)}
+                        className="text-sm text-red-600 hover:underline mt-1 disabled:text-gray-400"
+                      >
+                        Annuler
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+  }
+  
+  const renderAdminReservations = () => {
+    return (
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-red-700">Gestion des Réservations</h2>
+          <div className="flex justify-end mb-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" checked={showCompleted} onChange={(e) => setShowCompleted(e.target.checked)} className="form-checkbox h-5 w-5 text-primary rounded" />
+              <span className="text-text-secondary">Afficher les terminées/refusées</span>
+            </label>
+          </div>
+          <div className="space-y-4">
+            {allReservations.length === 0 && !loadingMore ? (
+              <p className="text-center text-text-secondary py-10">Aucune réservation à afficher pour les filtres actuels.</p>
+            ) : (
+              allReservations.map(res => (
+              <div key={res.id} className="bg-yellow-50 p-4 rounded-lg shadow-sm">
+                <div className="flex justify-between items-start">
+                   <div>
+                    <p className="font-bold">{res.books ? res.books.title : '[Livre supprimé]'}</p>
+                    <p className="text-sm text-gray-600">
+                      Demandé par: 
+                      <span className="font-medium">{res.users ? res.users.display_name : '[Utilisateur supprimé]'}</span> 
+                      ({res.users ? res.users.username : 'N/A'})
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Le: {new Date(res.reservation_date).toLocaleString()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold capitalize">{res.status}</p>
+                    {res.status === 'validated' && <p className="text-xs">Retour le: {new Date(res.return_date).toLocaleDateString()}</p>}
+                  </div>
+                </div>
                 {res.status === 'pending' && (
-                  <button 
-                    onClick={() => handleCancelReservation(res.id, res.books.id)}
-                    className="text-sm text-red-600 hover:underline mt-1 disabled:text-gray-400"
-                  >
-                    Annuler
-                  </button>
+                  <div className="mt-3 pt-3 border-t border-yellow-200 flex space-x-2">
+                    <button onClick={() => handleUpdateReservationStatus(res.id, 'validated')} className="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600">Valider</button>
+                    <button onClick={() => handleUpdateReservationStatus(res.id, 'cancelled')} className="bg-red-500 text-white px-3 py-1 text-sm rounded hover:bg-red-600">Refuser</button>
+                  </div>
+                )}
+                {res.status === 'validated' && (
+                  <div className="mt-3 pt-3 border-t border-yellow-200">
+                    <button onClick={() => handleUpdateReservationStatus(res.id, 'returned')} className="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600">Marquer comme Rendu</button>
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-  
-  const renderAdminReservations = () => ( // ... reste inchangé
-    <div>
-      <h2 className="text-2xl font-bold mb-4 text-red-700">Gestion des Réservations</h2>
-      <div className="space-y-4">
-        {allReservations.map(res => (
-          <div key={res.id} className="bg-yellow-50 p-4 rounded-lg shadow-sm">
-            <div className="flex justify-between items-start">
-               <div>
-                <p className="font-bold">{res.books ? res.books.title : '[Livre supprimé]'}</p>
-                <p className="text-sm text-gray-600">
-                  Demandé par: 
-                  <span className="font-medium">{res.users ? res.users.display_name : '[Utilisateur supprimé]'}</span> 
-                  ({res.users ? res.users.username : 'N/A'})
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Le: {new Date(res.reservation_date).toLocaleString()}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold capitalize">{res.status}</p>
-                {res.status === 'validated' && <p className="text-xs">Retour le: {new Date(res.return_date).toLocaleDateString()}</p>}
-              </div>
-            </div>
-            {res.status === 'pending' && (
-              <div className="mt-3 pt-3 border-t border-yellow-200 flex space-x-2">
-                <button onClick={() => handleUpdateReservationStatus(res.id, 'validated')} className="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600">Valider</button>
-                <button onClick={() => handleUpdateReservationStatus(res.id, 'cancelled')} className="bg-red-500 text-white px-3 py-1 text-sm rounded hover:bg-red-600">Refuser</button>
-              </div>
-            )}
-            {res.status === 'validated' && (
-              <div className="mt-3 pt-3 border-t border-yellow-200">
-                <button onClick={() => handleUpdateReservationStatus(res.id, 'returned')} className="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600">Marquer comme Rendu</button>
-              </div>
-            )}
+            )))}
           </div>
-        ))}
-      </div>
-    </div>
-  );
+          <div ref={adminResLoaderRef} className="h-20 flex justify-center items-center">
+            {loadingMore && <Spinner />}
+            {!adminResHasMore && allReservations.length > 0 && <p className="text-text-secondary">Vous avez atteint la fin de la liste.</p>}
+          </div>
+        </div>
+      );
+  }
   
-  const renderAdminBooks = () => ( // ... reste inchangé
+  const renderAdminBooks = () => (
     <div>
       <h2 className="text-2xl font-bold mb-4 text-red-700">Gestion des Livres</h2>
-      <button onClick={handleAddBook} className="mb-4 bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">
-        + Ajouter un livre
-      </button>
+      <div className="flex justify-between items-center mb-4">
+        <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <button onClick={handleAddBook} className="ml-4 bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 whitespace-nowrap">
+          + Ajouter
+        </button>
+      </div>
       <div className="space-y-2">
         {books.map(book => (
           <div key={book.id} className="bg-gray-50 p-3 rounded-lg flex justify-between items-center">
@@ -357,6 +511,10 @@ function Bibli({ user }) {
           </div>
         ))}
       </div>
+      <div ref={bookLoaderRef} className="h-10 text-center">
+        {loadingMore && <Spinner />}
+        {!hasMore && books.length > 0 && <p>Vous avez atteint la fin de la liste.</p>}
+      </div>
     </div>
   );
   
@@ -370,7 +528,7 @@ function Bibli({ user }) {
           <div className="mt-4 border-b border-border-light">
             <nav className="-mb-px flex space-x-6 overflow-x-auto">
               <button
-                onClick={() => setView('catalogue')}
+                onClick={() => { setView('catalogue'); setInitialLoading(true); }}
                 className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   view === 'catalogue' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
                 }`}
@@ -392,7 +550,7 @@ function Bibli({ user }) {
                 <button
                   onClick={() => {
                     setView('admin_reservations');
-                    fetchAdminReservations();
+                    setInitialLoading(true);
                   }}
                   className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     view === 'admin_reservations' ? 'border-danger text-danger' : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
@@ -403,7 +561,10 @@ function Bibli({ user }) {
               )}
               {user?.is_bibli_admin && (
                 <button
-                  onClick={() => setView('admin_books')}
+                  onClick={() => {
+                    setView('admin_books');
+                    setInitialLoading(true);
+                  }}
                   className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     view === 'admin_books' ? 'border-danger text-danger' : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
                   }`}
@@ -416,10 +577,10 @@ function Bibli({ user }) {
         </header>
         
         <main>
-          {loading && <div className="text-center p-10"><p>Chargement...</p></div>}
+          {initialLoading && <div className="text-center p-10"><Spinner /></div>}
           {error && <div className="text-center p-10 text-danger"><p>{error}</p></div>}
           
-          {!loading && !error && (
+          {!initialLoading && !error && (
             <>
               {view === 'catalogue' && renderCatalogue()}
               {view === 'details' && renderBookDetails()}

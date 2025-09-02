@@ -106,9 +106,7 @@ const App = () => {
                 <Route
                   path="/calendars"
                   element={
-                    <PageLayout>
-                      <Calendars />
-                    </PageLayout>
+                    <PageLayout><Calendars user={user} /></PageLayout>
                   }
                 />
                 <Route

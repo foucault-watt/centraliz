@@ -21,7 +21,6 @@ import React, {
   useState,
 } from "react";
 import ReactDOM from "react-dom";
-import { UserContext } from "../App";
 
 moment.locale("fr");
 
@@ -84,7 +83,7 @@ const monthsOrder = [
   "juillet",
 ];
 
-const HpCalendar = () => {
+const HpCalendar = ({ user }) => { // Accepte user comme prop
   const [icalData, setIcalData] = useState("");
   const [currentDate, setCurrentDate] = useState(() => {
     const today = moment();
@@ -104,7 +103,7 @@ const HpCalendar = () => {
     // Sinon on reste sur la semaine courante
     return moment().startOf("week").add(1, "day");
   });
-  const { userName } = useContext(UserContext);
+  const { userName } = user || {}; // Récupère userName directement de la prop user
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);

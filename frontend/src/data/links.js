@@ -41,7 +41,7 @@ export const links = [
   },
   {
     name: "Promo 2028",
-    link: "https://www.facebook.com/groups/admis2025centralelille/",
+    link: "https://www.facebook.com/groups/1434666387651299/",
     image: process.env.PUBLIC_URL + "/links/facebook.png",
   },
   {

@@ -1,17 +1,12 @@
 export const steps = [
     {
       title: "Bienvenue sur Centraliz !",
-      content: `Hey ! 👋 Tu vas voir, Centraliz va t'aider dans la vie à Centrale. Fini les galères avec les différents sites !`,
+      content: `Laisse moi te présenter Centraliz, l'app qui centralise la vie à Centrale.`,
       icon: "✨",
     },
     {
-      title: "Fini la galère de l'ENT !",
-      content: "L'ENT, Hyperplanning, Zimbra... Tout ça c'est du passé ! Tu retrouves tout dans une seule app moderne et simple à utiliser.",
-      icon: "🎯",
-    },
-    {
-      title: "Un emploi du temps intelligent",
-      content: "Ton planning devient ENFIN lisible ! Les CB sont en rouge, les cours en bleu et les TNE en vert.",
+      title: "Tous les emplois du temps",
+      content: "Lache hyperplanning ! On centralise l'emploi du temps de tes potes, de tes profs et même des salles !",
       icon: "📅",
     },
     {
@@ -25,7 +20,7 @@ export const steps = [
       icon: "✉️",
     },
     {
-      title: "Une vraie app mobile",
+      title: "Ajoute à l'écran d'accueil de ton téléphone",
       content: "Sur ton téléphone, appuie sur 'Ajouter à l'écran d'accueil' pour avoir Centraliz comme une vraie app ! Pratique pour checker ton planning rapidement.",
       icon: "📱",
     },
@@ -35,7 +30,7 @@ export const steps = [
       icon: "🚀",
     },
     {
-      title: "Ensemble, on va plus loin",
+      title: "Donne moi des feedbacks",
       content: "Aide moi à améliorer Centraliz ! Le bouton feedback dans le menu te permet de suggérer des améliorations directement.",
       icon: "💡",
     },

@@ -28,7 +28,7 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
   try {
     const jsonData = await ZimbraService.authenticateWithStoredPassword(username);
     const mails = await ZimbraService.parseMails(jsonData);
-    req.session.zimbraToken = ZimbraService.getTokenFromUsername(username);
+    req.session.zimbraToken = await ZimbraService.getTokenFromUsername(username);
     res.json({ success: true, mails });
   } catch (error) {
     console.error(`[Zimbra Route] Échec de l'authentification automatique pour ${username}:`, error.message);
@@ -42,7 +42,6 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
  */
 router.post("/", authMiddleware, async (req, res) => {
   const { username, password, rememberMe } = req.body;
-  
   if (!username || !password) {
     console.warn("[Zimbra Route] Nom d'utilisateur ou mot de passe manquant");
     return res.status(400).json({ error: "Nom d'utilisateur et mot de passe requis" });

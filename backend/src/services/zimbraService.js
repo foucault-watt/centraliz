@@ -177,14 +177,14 @@ class ZimbraService {
 
   static async authenticateWithStoredPassword(username) {
     const email = username;
-    const encryptedPassword = this.getStoredPassword(email);
+    const encryptedPassword = await this.getStoredPassword(email);
     const password = this.decryptPassword(email, encryptedPassword);
     return await this.authenticate(username, password);
   }
 
-  static getTokenFromUsername(username) {
+  static async getTokenFromUsername(username) {
     const email = username;
-    const encryptedPassword = this.getStoredPassword(email);
+    const encryptedPassword = await this.getStoredPassword(email);
     const password = this.decryptPassword(email, encryptedPassword);
     return Buffer.from(`${username}:${password}`).toString("base64");
   }

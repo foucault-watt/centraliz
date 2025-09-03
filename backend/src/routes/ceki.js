@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs").promises;
 const cekiService = require("../services/cekiService");
 const authMiddleware = require("../middlewares/auth");
+const adminMiddleware = require("../middlewares/admin");
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -46,6 +47,8 @@ router.get("/photo-status", authMiddleware, async (req, res) => {
       success: true,
       hasPhoto: photoStatus.hasPhoto,
       photoName: photoStatus.photoName,
+      isBanned: photoStatus.isBanned,
+      isAdmin: photoStatus.isAdmin,
     });
   } catch (error) {
     console.error(
@@ -80,6 +83,12 @@ router.post(
 
       // Vérifier si l'utilisateur a déjà une photo et la supprimer
       const currentPhotoStatus = await cekiService.checkUserPhoto(userName);
+      if (currentPhotoStatus.isBanned) {
+       return res.status(403).json({
+         success: false,
+         error: "Vous êtes temporairement banni de l'upload de photos.",
+       });
+     }
       if (currentPhotoStatus.hasPhoto && currentPhotoStatus.photoName) {
         await cekiService.deletePhotoFile(currentPhotoStatus.photoName);
       }
@@ -305,11 +314,10 @@ router.get("/game/round", authMiddleware, async (req, res) => {
       gameRound = await cekiService.generateGameRound({ selectedGroups });
     }
 
-    if (!gameRound) {
-      return res.status(503).json({
+    if (!gameRound || gameRound.error) {
+      return res.status(400).json({
         success: false,
-        error:
-          "Impossible de générer un round de jeu. Pas assez d'utilisateurs avec des photos dans les promos sélectionnées.",
+        error: gameRound.error || "Impossible de générer un round de jeu. Pas assez d'utilisateurs avec des photos dans les promos sélectionnées.",
       });
     }
 
@@ -496,6 +504,172 @@ router.get("/photo/:filename", authMiddleware, async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Erreur lors de la récupération de la photo",
+    });
+  }
+});
+
+/**
+* POST /api/ceki/report-photo
+* Permet à un utilisateur de signaler une photo.
+*/
+router.post("/report-photo", authMiddleware, async (req, res) => {
+ try {
+   const { photoName, reason, details } = req.body;
+   const reportedByUsername = req.session.user.userName;
+
+   if (!photoName || !reason) {
+     return res.status(400).json({
+       success: false,
+       error: "Le nom de la photo et la raison sont requis.",
+     });
+   }
+
+   const success = await cekiService.createPhotoReport({
+     photoName,
+     reportedByUsername,
+     reason,
+     details,
+   });
+
+   if (!success) {
+     return res.status(500).json({
+       success: false,
+       error: "Erreur lors de la création du signalement.",
+     });
+   }
+
+   res.json({
+     success: true,
+     message: "La photo a été signalée avec succès.",
+   });
+ } catch (error) {
+   console.error("Erreur lors du signalement de la photo:", error);
+   res.status(500).json({
+     success: false,
+     error: "Erreur serveur lors du signalement de la photo.",
+   });
+ }
+});
+
+/**
+* GET /api/ceki/admin/reported-photos
+* Récupère toutes les photos signalées. Accès admin uniquement.
+*/
+router.get("/admin/reported-photos", authMiddleware, adminMiddleware, async (req, res) => {
+ try {
+   const reportedPhotos = await cekiService.getReportedPhotos();
+
+   if (reportedPhotos === null) {
+     return res.status(500).json({
+       success: false,
+       error: "Erreur lors de la récupération des photos signalées.",
+     });
+   }
+
+   res.json({
+     success: true,
+     reportedPhotos: reportedPhotos,
+   });
+ } catch (error) {
+   console.error("Erreur dans la route getReportedPhotos:", error);
+   res.status(500).json({
+     success: false,
+     error: "Erreur serveur lors de la récupération des photos signalées.",
+   });
+ }
+});
+
+/**
+* POST /api/ceki/admin/resolve-report
+* Permet à un admin de résoudre un signalement.
+*/
+router.post("/admin/resolve-report", authMiddleware, adminMiddleware, async (req, res) => {
+ const { action, photoName, username, banDuration } = req.body;
+
+ try {
+   if (!action || !photoName) {
+     return res.status(400).json({ success: false, error: "Action et nom de photo requis." });
+   }
+
+   let resolutionStatus;
+
+   switch (action) {
+     case 'delete_photo':
+       // On doit récupérer le nom de l'utilisateur qui a posté la photo
+       const {data: user, error} = await cekiService.getUserByPhotoName(photoName);
+       if(error || !user) {
+           return res.status(404).json({ success: false, error: "Utilisateur de la photo non trouvé." });
+       }
+       await cekiService.deletePhotoFile(photoName);
+       await cekiService.removeUserPhoto(user.username);
+       resolutionStatus = await cekiService.resolveReportsForPhoto(photoName, 'resolved_photo_deleted');
+       break;
+
+     case 'ban_user':
+       if (!banDuration) {
+         return res.status(400).json({ success: false, error: "La durée de bannissement est requise." });
+       }
+       const { data: userToBan, error: banError } = await cekiService.getUserByPhotoName(photoName);
+       if (banError || !userToBan) {
+           return res.status(404).json({ success: false, error: "Utilisateur de la photo non trouvé." });
+       }
+       await cekiService.banUserPhotoUpload(userToBan.username, banDuration);
+       resolutionStatus = await cekiService.resolveReportsForPhoto(photoName, `resolved_user_banned_${banDuration}d`);
+       break;
+       
+     case 'dismiss':
+       resolutionStatus = await cekiService.resolveReportsForPhoto(photoName, 'resolved_dismissed');
+       break;
+
+     default:
+       return res.status(400).json({ success: false, error: "Action non valide." });
+   }
+
+   if (!resolutionStatus) {
+       return res.status(500).json({ success: false, error: "Erreur lors de la résolution du signalement." });
+   }
+
+   res.json({ success: true, message: `Signalement pour ${photoName} traité avec succès.` });
+
+ } catch (error) {
+   console.error("Erreur lors de la résolution du signalement:", error);
+   res.status(500).json({ success: false, error: "Erreur serveur." });
+ }
+});
+
+/**
+ * GET /api/ceki/leaderboard
+ * Récupère le classement pour un type de jeu donné.
+ */
+router.get("/leaderboard", authMiddleware, async (req, res) => {
+  try {
+    const gameType = req.query.type;
+
+    if (!gameType) {
+      return res.status(400).json({
+        success: false,
+        error: "Le paramètre 'type' est requis.",
+      });
+    }
+
+    const leaderboard = await cekiService.getLeaderboard(gameType);
+
+    if (leaderboard === null) {
+      return res.status(500).json({
+        success: false,
+        error: "Erreur lors de la récupération du classement.",
+      });
+    }
+
+    res.json({
+      success: true,
+      leaderboard: leaderboard,
+    });
+  } catch (error) {
+    console.error("Erreur dans la route getLeaderboard:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur serveur lors de la récupération du classement.",
     });
   }
 });

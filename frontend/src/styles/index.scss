@@ -41,3 +41,22 @@
     transform: scale(1.2);
   }
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .animate-countdown {
+      animation: countdown 3s linear forwards;
+    }
+   
+    @keyframes countdown {
+      from {
+        width: 100%;
+      }
+      to {
+        width: 0%;
+      }
+    }
+  }

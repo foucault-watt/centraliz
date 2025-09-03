@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import CekiluiGame from "./CekiluiGame";
 import PhotoUploader from "./PhotoUploader";
+import CekiluiAdmin from "./CekiluiAdmin";
+import CekiluiLeaderboard from "./CekiluiLeaderboard";
+import { Shield, Trophy } from "lucide-react";
 
 function Cekilui() {
   const [photoStatus, setPhotoStatus] = useState({
@@ -10,9 +13,12 @@ function Cekilui() {
   });
   const [showUploader, setShowUploader] = useState(false);
   const [showGame, setShowGame] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false); // État pour l'interface admin
+  const [isAdmin, setIsAdmin] = useState(false); // TODO: Récupérer dynamiquement
   const [message, setMessage] = useState("");
 
-  // Vérifier le statut de la photo au chargement du composant
+  // Vérifier le statut de la photo et le statut admin au chargement
   useEffect(() => {
     checkPhotoStatus();
   }, []);
@@ -37,6 +43,7 @@ function Cekilui() {
           photoName: result.photoName,
           loading: false,
         });
+        setIsAdmin(result.isAdmin || false); // Définir le statut admin depuis l'API
       } else {
         console.error(
           "Erreur lors de la vérification du statut:",
@@ -99,12 +106,31 @@ function Cekilui() {
   const handleBackToMenu = () => {
     setShowGame(false);
     setShowUploader(false);
+    setShowLeaderboard(false);
     setMessage("");
   };
 
-  if (photoStatus.loading) {
-    return (
-      <div className="max-w-md mx-auto">
+  const handleShowAdmin = () => {
+   setShowAdmin(true);
+   setShowGame(false);
+   setShowUploader(false);
+   setMessage("");
+ };
+
+ const handleBackToMenuFromAdmin = () => {
+   setShowAdmin(false);
+ };
+
+ const handleShowLeaderboard = () => {
+   setShowLeaderboard(true);
+   setShowGame(false);
+   setShowUploader(false);
+   setMessage("");
+ };
+
+ if (photoStatus.loading) {
+   return (
+     <div className="max-w-md mx-auto">
         <div className="bg-background-module rounded-game shadow-game-default p-6 animate-scale-in">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -140,8 +166,12 @@ function Cekilui() {
       )}
 
       <div className="bg-background-module rounded-game shadow-game-default p-6 animate-scale-in">
-        {showGame ? (
-          <CekiluiGame onBackToMenu={handleBackToMenu} />
+        {showAdmin ? (
+         <CekiluiAdmin onBack={handleBackToMenuFromAdmin} />
+        ) : showLeaderboard ? (
+          <CekiluiLeaderboard onBack={handleBackToMenu} />
+        ) : showGame ? (
+          <CekiluiGame onBackToMenu={handleBackToMenu} onShowLeaderboard={handleShowLeaderboard} />
         ) : showUploader ? (
           <PhotoUploader
             onUploadSuccess={handleUploadSuccess}
@@ -176,6 +206,22 @@ function Cekilui() {
                   >
                     Changer ma photo
                   </button>
+                  <button
+                    onClick={handleShowLeaderboard}
+                    className="w-full flex items-center justify-center space-x-2 bg-secondary hover:bg-secondary-dark text-white py-3 px-6 rounded-xl font-medium transition-all duration-300"
+                  >
+                    <Trophy size={20} />
+                    <span>Classement</span>
+                  </button>
+                  {isAdmin && (
+                   <button
+                     onClick={handleShowAdmin}
+                     className="w-full flex items-center justify-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white py-3 px-6 rounded-xl font-medium transition-all duration-300"
+                   >
+                     <Shield size={20} />
+                     <span>Modération</span>
+                   </button>
+                 )}
                 </div>
               </>
             ) : (
@@ -199,6 +245,15 @@ function Cekilui() {
                 >
                   Ajouter une photo
                 </button>
+                {isAdmin && (
+                 <button
+                   onClick={handleShowAdmin}
+                   className="w-full flex items-center justify-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white py-3 px-6 rounded-xl font-medium transition-all duration-300"
+                 >
+                   <Shield size={20} />
+                   <span>Modération</span>
+                 </button>
+               )}
               </>
             )}
           </div>

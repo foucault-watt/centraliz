@@ -8,28 +8,32 @@ const FormData = require('form-data');
 /**
  * Vérifie si un utilisateur a une photo de profil
  * @param {string} username - Nom d'utilisateur
- * @returns {Promise<{hasPhoto: boolean, photoName: string|null}>}
+ * @returns {Promise<{hasPhoto: boolean, photoName: string|null, isBanned: boolean, isAdmin: boolean}>}
  */
 async function checkUserPhoto(username) {
   try {
     const { data, error } = await supabase
       .from("users")
-      .select("hasPhoto, photoName")
+      .select("hasPhoto, photoName, photo_banned_until, is_admin")
       .eq("username", username)
       .single();
 
     if (error) {
       console.error("Erreur lors de la vérification de la photo:", error);
-      return { hasPhoto: false, photoName: null };
+      return { hasPhoto: false, photoName: null, isBanned: false, isAdmin: false };
     }
+
+    const isBanned = data.photo_banned_until ? new Date(data.photo_banned_until) > new Date() : false;
 
     return {
       hasPhoto: data.hasPhoto || false,
       photoName: data.photoName || null,
+      isBanned: isBanned,
+      isAdmin: data.is_admin || false,
     };
   } catch (error) {
     console.error("Erreur lors de la vérification de la photo:", error);
-    return { hasPhoto: false, photoName: null };
+    return { hasPhoto: false, photoName: null, isBanned: false, isAdmin: false };
   }
 }
 
@@ -349,6 +353,7 @@ function createCompetitiveGameSession(userId, selectedGroups) {
     timestamp: Date.now(),
     roundDataMap: new Map(), // Pour stocker les roundData pour chaque tour
     timerStartTime: null, // Timestamp de début du chrono pour le round actuel
+    usedUsernames: new Set(), // Pour garantir l'unicité des questions
   });
   return gameId;
 }
@@ -409,7 +414,13 @@ async function generateGameRound({ gameId, selectedGroups }) {
       console.error("Session de jeu compétitif non trouvée ou expirée:", gameId);
       return null;
     }
-    usersToPickFrom = await getUsersWithPhotosByGroups(session.selectedGroups);
+    const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(session.selectedGroups);
+    
+    // Filtrer les utilisateurs déjà utilisés dans cette session
+    usersToPickFrom = allUsersInSelectedGroups.filter(
+      (user) => !session.usedUsernames.has(user.username)
+    );
+
     currentRound = session.currentRound + 1;
     totalScore = session.totalScore;
   } else if (selectedGroups) {
@@ -422,11 +433,21 @@ async function generateGameRound({ gameId, selectedGroups }) {
     return null;
   }
 
+  // Pour le premier round, on vérifie qu'il y a assez de joueurs pour toute la partie
+  if (currentRound === 1 && usersToPickFrom.length < MAX_ROUNDS_COMPETITIVE) {
+    console.error(
+      `Pas assez d'utilisateurs uniques pour une partie compétitive. Requis: ${MAX_ROUNDS_COMPETITIVE}, Disponible: ${usersToPickFrom.length}`
+    );
+    return { error: `Il faut au moins ${MAX_ROUNDS_COMPETITIVE} personnes différentes dans les promos sélectionnées pour lancer une partie.` };
+  }
+
+  // Pour chaque round, on vérifie qu'il y a au moins 4 choix possibles
   if (usersToPickFrom.length < 4) {
     console.error(
-      "Pas assez d'utilisateurs avec photos dans les promos sélectionnées."
+      "Pas assez d'utilisateurs restants pour générer un round valide."
     );
-    return null;
+    // Cela peut arriver en fin de partie si le pool de joueurs s'épuise
+    return { error: "Plus assez de joueurs uniques pour continuer la partie." };
   }
 
   try {
@@ -475,6 +496,7 @@ async function generateGameRound({ gameId, selectedGroups }) {
     if (session) {
       // Mode compétitif: stocker dans la session
       session.roundDataMap.set(roundId, roundData);
+      session.usedUsernames.add(selectedUser.username); // Ajouter l'utilisateur aux utilisés
       session.timestamp = Date.now(); // Mettre à jour le timestamp de la session
       activeCompetitiveGameSessions.set(gameId, session);
     } else {
@@ -498,7 +520,7 @@ async function generateGameRound({ gameId, selectedGroups }) {
   }
 }
 
-const MAX_ROUNDS_COMPETITIVE = 10;
+const MAX_ROUNDS_COMPETITIVE = 10; // Le nombre de rounds dans une partie
 
 /**
  * Vérifie la réponse d'un utilisateur et met à jour l'état du jeu.
@@ -573,22 +595,14 @@ async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
     isGameOver = session.currentRound >= MAX_ROUNDS_COMPETITIVE;
 
     if (isGameOver) {
-      // Sauvegarder le score final
-      const mode = session.selectedGroups.length === 1 ? "single_promo" : "all";
-      const promo =
-        session.selectedGroups.length === 1 ? session.selectedGroups[0] : null;
-      const saveSuccess = await saveGameScore(
-        session.userId,
-        session.totalScore,
-        mode,
-        promo
-      );
-      if (!saveSuccess) {
-        console.error(
-          "Erreur lors de la sauvegarde du score final pour gameId:",
-          gameId
-        );
-      }
+      // Déterminer le game_type
+      const gameType = session.selectedGroups.length > 1 || session.selectedGroups.length === 0
+        ? 'all_promos'
+        : session.selectedGroups[0];
+
+      // Soumettre le score final au nouveau système de classement
+      await submitScore(session.userId, session.totalScore, gameType);
+
       activeCompetitiveGameSessions.delete(gameId); // Nettoyer la session après la fin du jeu
     }
     currentRound = session.currentRound;
@@ -618,35 +632,236 @@ async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
 }
 
 /**
- * Enregistre le score d'une partie
- * @param {string} username - Nom d'utilisateur
- * @param {number} score - Score final
- * @param {string} mode - Mode de jeu ('all', 'single_promo', 'endless')
- * @param {string|null} promo - Nom de la promo si mode 'single_promo'
+ * Soumet un score au classement.
+ * Utilise la fonction RPC `upsert_best_score` pour insérer ou mettre à jour le score
+ * uniquement s'il est meilleur que le précédent.
+ * @param {string} username - Nom d'utilisateur.
+ * @param {number} score - Score final.
+ * @param {string} gameType - Type de jeu ('all_promos' ou nom de la promo).
+ * @returns {Promise<void>}
+ */
+async function submitScore(username, score, gameType) {
+  try {
+    const { error } = await supabase.rpc('upsert_best_score', {
+      username_in: username,
+      score_in: score,
+      game_type_in: gameType,
+    });
+
+    if (error) {
+      console.error("Erreur lors de la soumission du score via RPC:", error);
+    }
+  } catch (error) {
+    console.error("Erreur inattendue lors de la soumission du score:", error);
+  }
+}
+
+/**
+ * Récupère le classement pour un type de jeu donné.
+ * @param {string} gameType - Le type de jeu ('all_promos' ou une promo spécifique).
+ * @returns {Promise<Array|null>}
+ */
+async function getLeaderboard(gameType) {
+  try {
+    const { data, error } = await supabase
+      .from('ceki_best_scores')
+      .select(`
+        score,
+        users (
+          display_name
+        )
+      `)
+      .eq('game_type', gameType)
+      .order('score', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error("Erreur lors de la récupération du classement:", error);
+      return null;
+    }
+
+    // Transformer les données pour un format plus simple
+    return data.map(entry => ({
+      displayName: entry.users.display_name,
+      score: entry.score,
+    }));
+
+  } catch (error) {
+    console.error("Erreur inattendue lors de la récupération du classement:", error);
+    return null;
+  }
+}
+
+
+/**
+ * Crée un signalement pour une photo.
+ * @param {object} reportData - Données du signalement.
+ * @param {string} reportData.photoName - Nom de la photo signalée.
+ * @param {string} reportData.reportedByUsername - Auteur du signalement.
+ * @param {string} reportData.reason - Raison du signalement.
+ * @param {string} [reportData.details] - Détails supplémentaires.
  * @returns {Promise<boolean>}
  */
-async function saveGameScore(username, score, mode, promo = null) {
+async function createPhotoReport({ photoName, reportedByUsername, reason, details }) {
   try {
-    const { error } = await supabase.from("ceki_scores").insert([
+    const { error } = await supabase.from('ceki_photo_reports').insert([
       {
-        username: username,
-        score: score,
-        mode: mode,
-        promo: promo,
+        photo_name: photoName,
+        reported_by_username: reportedByUsername,
+        reason: reason,
+        details: details,
       },
     ]);
 
     if (error) {
-      console.error("Erreur lors de la sauvegarde du score:", error);
+      console.error('Erreur lors de la création du signalement:', error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("Erreur lors de la sauvegarde du score:", error);
+    console.error('Erreur inattendue lors de la création du signalement:', error);
     return false;
   }
 }
+
+/**
+ * Récupère toutes les photos signalées, groupées par nom de photo.
+ * @returns {Promise<Array|null>}
+ */
+async function getReportedPhotos() {
+  try {
+    // Cette requête est complexe. On utilise rpc pour appeler une fonction SQL ou on le fait en plusieurs étapes.
+    // Étape 1: Récupérer tous les signalements non résolus.
+    const { data: reports, error: reportsError } = await supabase
+      .from('ceki_photo_reports')
+      .select(`
+        photo_name,
+        reason,
+        details,
+        created_at,
+        reported_by_username,
+        users (
+          display_name
+        )
+      `)
+      .eq('status', 'pending');
+
+    if (reportsError) {
+      console.error("Erreur lors de la récupération des signalements:", reportsError);
+      return null;
+    }
+
+    // Étape 2: Grouper les signalements par photo
+    const groupedReports = reports.reduce((acc, report) => {
+      const { photo_name } = report;
+      if (!acc[photo_name]) {
+        acc[photo_name] = {
+          photoName: photo_name,
+          reports: [],
+          reportCount: 0,
+          reporters: new Set(),
+        };
+      }
+      acc[photo_name].reports.push({
+        reason: report.reason,
+        details: report.details,
+        createdAt: report.created_at,
+        reportedBy: report.users.display_name || report.reported_by_username,
+      });
+      acc[photo_name].reporters.add(report.reported_by_username);
+      acc[photo_name].reportCount = acc[photo_name].reporters.size;
+      return acc;
+    }, {});
+    
+    // Convertir l'objet en tableau et trier par nombre de signalements
+    const sortedReports = Object.values(groupedReports).sort((a, b) => b.reportCount - a.reportCount);
+
+    return sortedReports;
+
+  } catch (error) {
+    console.error("Erreur lors du groupement des photos signalées:", error);
+    return null;
+  }
+}
+
+
+/**
+ * Bannit un utilisateur de l'upload de photos pour une durée déterminée.
+ * @param {string} username - Nom d'utilisateur à bannir.
+ * @param {number} days - Durée du bannissement en jours.
+ * @returns {Promise<boolean>}
+ */
+async function banUserPhotoUpload(username, days) {
+  try {
+    const banUntil = new Date();
+    banUntil.setDate(banUntil.getDate() + days);
+
+    const { error } = await supabase
+      .from('users')
+      .update({ photo_banned_until: banUntil.toISOString() })
+      .eq('username', username);
+
+    if (error) {
+      console.error("Erreur lors du bannissement de l'utilisateur:", error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error("Erreur inattendue lors du bannissement:", error);
+    return false;
+  }
+}
+
+/**
+ * Met à jour le statut de tous les signalements pour une photo donnée.
+ * @param {string} photoName - Nom de la photo.
+ * @param {string} newStatus - Nouveau statut des signalements.
+ * @returns {Promise<boolean>}
+ */
+async function resolveReportsForPhoto(photoName, newStatus) {
+    try {
+        const { error } = await supabase
+            .from('ceki_photo_reports')
+            .update({ status: newStatus })
+            .eq('photo_name', photoName);
+
+        if (error) {
+            console.error("Erreur lors de la résolution des signalements:", error);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error("Erreur inattendue lors de la résolution des signalements:", error);
+        return false;
+    }
+}
+
+/**
+ * Récupère un utilisateur par le nom de sa photo.
+ * @param {string} photoName - Nom du fichier photo.
+ * @returns {Promise<{data: object|null, error: object|null}>}
+ */
+async function getUserByPhotoName(photoName) {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("username")
+      .eq("photoName", photoName)
+      .single();
+
+    if (error) {
+      console.error("Erreur lors de la récupération de l'utilisateur par nom de photo:", error);
+      return { data: null, error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error("Erreur inattendue lors de la récupération de l'utilisateur par nom de photo:", error);
+    return { data: null, error };
+  }
+}
+
 
 module.exports = {
   checkUserPhoto,
@@ -661,8 +876,14 @@ module.exports = {
   createCompetitiveGameSession,
   generateGameRound,
   verifyAnswer,
-  saveGameScore,
+  submitScore,
+  getLeaderboard,
   getCompetitiveGameSession, // Exporter pour les tests ou si nécessaire
   startRoundTimer, // Nouvelle fonction pour démarrer le chrono côté serveur
   verifyFaceInImage,
+  createPhotoReport,
+  getReportedPhotos,
+  banUserPhotoUpload,
+  resolveReportsForPhoto,
+  getUserByPhotoName,
 };

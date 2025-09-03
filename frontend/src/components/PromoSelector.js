@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 
 const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
   const [promos, setPromos] = useState([]);
@@ -109,6 +110,8 @@ const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
     selectedPromos.length === 1 ||
     (promos.length > 0 && selectedPromos.length === promos.length);
 
+  const minPeopleRequired = gameMode === "competitive" ? 10 : 4;
+
   return (
     <div className="space-y-6 animate-scale-in">
       {/* Header */}
@@ -180,10 +183,10 @@ const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
           {selectedPromos.length > 1 ? "s" : ""} ({totalSelectedPeople} personne
           {totalSelectedPeople > 1 ? "s" : ""})
         </p>
-        {totalSelectedPeople < 4 && (
+        {totalSelectedPeople < minPeopleRequired && (
           <div className="flex items-center justify-center space-x-2 text-game-warning">
             <span>⚠️</span>
-            <span className="text-sm font-medium">Il faut au moins 4 personnes pour jouer</span>
+            <span className="text-sm font-medium">Il faut au moins {minPeopleRequired} personnes pour jouer</span>
           </div>
         )}
       </div>
@@ -194,7 +197,7 @@ const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
           <>
             <button
               onClick={() => onStartGame(selectedPromos)}
-              disabled={!isCompetitiveModeValid || totalSelectedPeople < 4}
+              disabled={!isCompetitiveModeValid || totalSelectedPeople < minPeopleRequired}
               className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
             >
               Lancer le défi ({selectedPromos.length} promo
@@ -213,7 +216,7 @@ const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
         ) : (
           <button
             onClick={() => onStartGame(selectedPromos)}
-            disabled={selectedPromos.length === 0 || totalSelectedPeople < 4}
+            disabled={selectedPromos.length === 0 || totalSelectedPeople < minPeopleRequired}
             className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
           >
             Jouer en mode sans fin
@@ -222,9 +225,10 @@ const PromoSelector = ({ onStartGame, onCancel, gameMode }) => {
         
         <button
           onClick={onCancel}
-          className="w-full bg-gray-100 hover:bg-gray-200 text-secondary py-3 px-6 rounded-xl font-medium transition-all duration-300 border border-gray-200"
+          className="w-full flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 text-secondary py-3 px-6 rounded-xl font-medium transition-all duration-300 border border-gray-200"
         >
-          Retour
+          <ArrowLeft size={16} />
+          <span>Retour</span>
         </button>
       </div>
     </div>

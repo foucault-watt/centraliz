@@ -34,30 +34,31 @@ const App = () => {
     setIsSlideMenuOpen(!isSlideMenuOpen);
   };
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/auth/status`,
-          {
-            credentials: "include",
-          }
-        );
-        const data = await response.json();
-        setIsAuthenticated(data.authenticated);
-
-        if (data.authenticated) {
-          setUser(data.user); // On stocke l'objet utilisateur complet
-          setNeedsOnboarding(!data.user.icalLink);
+  const refreshAuthStatus = async () => {
+    setIsLoading(true); // Afficher l'écran de chargement pendant le rafraîchissement
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/auth/status`,
+        {
+          credentials: "include",
         }
-      } catch (error) {
-        console.error("Error checking auth status:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      );
+      const data = await response.json();
+      setIsAuthenticated(data.authenticated);
 
-    checkAuthStatus();
+      if (data.authenticated) {
+        setUser(data.user); // On stocke l'objet utilisateur complet
+        setNeedsOnboarding(!data.user.icalLink);
+      }
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshAuthStatus();
   }, []);
 
   if (isLoading) {
@@ -86,7 +87,7 @@ const App = () => {
         {needsOnboarding ? (
           <Onboarding
             userName={user.userName}
-            onComplete={() => setNeedsOnboarding(false)}
+            onComplete={refreshAuthStatus}
           />
         ) : (
           <>

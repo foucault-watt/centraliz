@@ -16,7 +16,7 @@ export const links = [
   },
   {
     name: "Moodle",
-    link: "https://moodle2425.centralelille.fr/login/index.php?authCAS=CAS",
+    link: "https://moodle2526.centralelille.fr/login/index.php?authCAS=CAS",
     image: process.env.PUBLIC_URL + "/links/moodle.png",
   },
   {
@@ -40,8 +40,8 @@ export const links = [
     image: process.env.PUBLIC_URL + "/links/cla.png",
   },
   {
-    name: "Promo 2027",
-    link: "https://www.facebook.com/groups/admis2024centralelille/",
+    name: "Promo 2028",
+    link: "https://www.facebook.com/groups/admis2025centralelille/",
     image: process.env.PUBLIC_URL + "/links/facebook.png",
   },
   {

@@ -83,7 +83,7 @@ exports.callback = async (req, res) => {
       }
     }
 
-    loginService.addLogin(displayName);
+    loginService.addLogin(userName);
     res.redirect(process.env.URL_FRONT);
 
   } catch (error) {

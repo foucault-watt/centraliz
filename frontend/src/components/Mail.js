@@ -2,7 +2,6 @@ import DOMPurify from "dompurify";
 import React, { useCallback, useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { motion, AnimatePresence } from "framer-motion";
-import MailItem from "./mail/mailItem";
 import ZimbraAuth from "./mail/zimbraAuth";
 import MailModal from "./MailModal";
 import Loader from "./Loader";
@@ -10,6 +9,7 @@ import Loader from "./Loader";
 function Mail() {
   const [allMails, setAllMails] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authStatus, setAuthStatus] = useState("pending"); // 'pending', 'success', 'failure'
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mailContents, setMailContents] = useState({});
@@ -118,8 +118,10 @@ function Mail() {
         const authData = await authResponse.json();
         if (authResponse.ok && authData.success) {
           setIsAuthenticated(true);
+          setAuthStatus("success");
           setStatus("");
         } else {
+          setAuthStatus("failure");
           setStatus("Échec de l'authentification automatique");
         }
       } catch (error) {
@@ -140,6 +142,8 @@ function Mail() {
         if (data.hasPassword) {
           setStatus("Authentification automatique...");
           await autoAuthenticate();
+        } else {
+          setAuthStatus("failure");
         }
       } catch (error) {
         console.error("Erreur de vérification du mot de passe:", error);
@@ -182,7 +186,10 @@ function Mail() {
       <h2 className="module-title">Vos derniers mails</h2>
 
       {!isAuthenticated ? (
-        <ZimbraAuth setIsAuthenticated={setIsAuthenticated} />
+        <ZimbraAuth
+          setIsAuthenticated={setIsAuthenticated}
+          authStatus={authStatus}
+        />
       ) : (
         <div className="mail-container">
           {status && <p className="mail-status">{status}</p>}

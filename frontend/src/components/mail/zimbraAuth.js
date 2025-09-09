@@ -1,8 +1,11 @@
 import React, { useContext, useState } from "react";
 import { UserContext } from "../../App";
+import { motion, AnimatePresence } from "framer-motion";
+import Loader from "../Loader";
 
-const ZimbraAuth = ({ setIsAuthenticated }) => {
-  const { userName } = useContext(UserContext);
+const ZimbraAuth = ({ setIsAuthenticated, authStatus }) => {
+  const { user } = useContext(UserContext);
+  const userName = user?.userName;
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -12,9 +15,6 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
     setStatus("Traitement...");
 
     try {
-      console.log(
-        `[ZimbraAuth] Envoi de la requête pour l'utilisateur: ${userName}`
-      );
       const response = await fetch(
         `${process.env.REACT_APP_URL_BACK}/api/zimbra`,
         {
@@ -23,18 +23,15 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ username: userName, password, rememberMe }),
+          body: JSON.stringify({ password, rememberMe }),
         }
       );
 
-      console.log(`[ZimbraAuth] Statut de la réponse: ${response.status}`);
-
       const data = await response.json();
-      console.log(`[ZimbraAuth] Données reçues:`);
 
       if (response.ok && data.success) {
         setStatus("Authentification réussie !");
-        setIsAuthenticated(true); // Met à jour l'état d'authentification
+        setIsAuthenticated(true);
       } else {
         setStatus(data.error || "Échec de l'authentification.");
       }
@@ -45,37 +42,59 @@ const ZimbraAuth = ({ setIsAuthenticated }) => {
   };
 
   const handlePasswordChange = (e) => {
-    e.stopPropagation(); // Arrêter la propagation
+    e.stopPropagation();
     setPassword(e.target.value);
   };
 
   return (
     <div className="zimbra-auth-container" onClick={(e) => e.stopPropagation()}>
-      <h2>Accès à vos derniers mails</h2>
-      <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
-        <input
-          type="password"
-          value={password}
-          placeholder="Entrez votre mot de passe ENT"
-          onChange={handlePasswordChange}
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-          autoComplete="current-password"
-          required
-        />
-        <div className="remember-me">
-          <label>
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            Se souvenir du mot de passe
-          </label>
-        </div>
-        <button type="submit">Se connecter</button>
-      </form>
-      {status && <p>{status}</p>}
+      <AnimatePresence mode="wait">
+        {authStatus === "pending" && (
+          <motion.div
+            key="loader"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Loader />
+          </motion.div>
+        )}
+
+        {authStatus === "failure" && (
+          <motion.div
+            key="form"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <h2>Accès à vos derniers mails</h2>
+            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+              <input
+                type="password"
+                value={password}
+                placeholder="Entrez votre mot de passe ENT"
+                onChange={handlePasswordChange}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                autoComplete="current-password"
+                required
+              />
+              <div className="remember-me">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  Se souvenir du mot de passe
+                </label>
+              </div>
+              <button type="submit">Se connecter</button>
+            </form>
+            {status && <p>{status}</p>}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

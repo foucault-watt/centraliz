@@ -41,8 +41,9 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
  * POST /api/zimbra
  */
 router.post("/", authMiddleware, async (req, res) => {
-  const { username, password, rememberMe } = req.body;
-  if (!username || !password) {
+  const { password, rememberMe } = req.body;
+  const username = req.session.user.userName;
+  if (!password) {
     console.warn("[Zimbra Route] Nom d'utilisateur ou mot de passe manquant");
     return res.status(400).json({ error: "Nom d'utilisateur et mot de passe requis" });
   }

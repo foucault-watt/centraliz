@@ -94,39 +94,7 @@ const App = () => {
           <>
             <Header onMenuToggle={toggleSlideMenu} /> {/* Pass toggle function to Header */}
             <SlideMenu isOpen={isSlideMenuOpen} onClose={toggleSlideMenu} /> {/* Pass state and toggle to SlideMenu */}
-            <Suspense
-              fallback={
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100vh",
-                  }}
-                >
-                  <motion.div
-                    animate={{
-                      rotate: 360,
-                      borderRadius: ["50% 50%", "2% 50%"],
-                      x: 75,
-                    }}
-                    initial={{
-                      x: -75,
-                    }}
-                    transition={{
-                      flip: Infinity,
-                      duration: 2,
-                      ease: "easeInOut",
-                    }}
-                    style={{
-                      height: 50,
-                      width: 50,
-                      background: "linear-gradient(to right, #5A67D8, #4C51BF)",
-                    }}
-                  />
-                </div>
-              }
-            >
+            <Suspense fallback={<div></div>}>
               <Routes>
                 <Route path="/" element={<Navigate to="/calendars" replace />} />
                 <Route

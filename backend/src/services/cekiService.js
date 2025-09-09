@@ -359,6 +359,28 @@ function createCompetitiveGameSession(userId, selectedGroups) {
 }
 
 /**
+ * Crée et initialise une session de jeu en mode sans fin.
+ * @param {string} userId - L'ID de l'utilisateur.
+ * @param {Array<string>} selectedGroups - Les groupes de promotions sélectionnés.
+ * @returns {string} Le gameId de la session créée.
+ */
+function createEndlessGameSession(userId, selectedGroups) {
+  const gameId = crypto.randomBytes(16).toString("hex");
+  activeCompetitiveGameSessions.set(gameId, {
+    userId: userId,
+    selectedGroups: selectedGroups,
+    currentRound: 0,
+    totalScore: 0, // Non utilisé en mode sans fin, mais gardé pour la cohérence
+    timestamp: Date.now(),
+    roundDataMap: new Map(),
+    timerStartTime: null,
+    usedUsernames: new Set(),
+    isEndless: true, // Marqueur pour le mode sans fin
+  });
+  return gameId;
+}
+
+/**
  * Récupère une session de jeu compétitif.
  * @param {string} gameId - L'ID de la session de jeu.
  * @returns {Object|undefined} La session de jeu ou undefined si non trouvée/expirée.
@@ -408,11 +430,11 @@ async function generateGameRound({ gameId, selectedGroups }) {
   let session = null;
 
   if (gameId) {
-    // Mode compétitif
+    // Mode compétitif ou sans fin avec session
     session = activeCompetitiveGameSessions.get(gameId);
     if (!session) {
-      console.error("Session de jeu compétitif non trouvée ou expirée:", gameId);
-      return null;
+      console.error("Session de jeu non trouvée ou expirée:", gameId);
+      return { error: "La session de jeu a expiré, veuillez relancer une partie." };
     }
     const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(session.selectedGroups);
     
@@ -421,44 +443,57 @@ async function generateGameRound({ gameId, selectedGroups }) {
       (user) => !session.usedUsernames.has(user.username)
     );
 
+    // Si tous les joueurs ont été vus en mode sans fin, c'est la fin.
+    if (session.isEndless && usersToPickFrom.length === 0) {
+      return { error: "Félicitations, vous avez vu tout le monde !" };
+    }
+
     currentRound = session.currentRound + 1;
     totalScore = session.totalScore;
   } else if (selectedGroups) {
-    // Mode sans fin
+    // Ancien mode sans fin (sans session), déprécié mais gardé pour compatibilité
     usersToPickFrom = await getUsersWithPhotosByGroups(selectedGroups);
-    // Pour le mode sans fin, currentRound et totalScore ne sont pas gérés par le backend de la même manière
-    // Ils sont gérés côté frontend ou ne sont pas pertinents pour la session backend.
   } else {
     console.error("Paramètres invalides pour generateGameRound. gameId ou selectedGroups sont requis.");
     return null;
   }
 
-  // Pour le premier round, on vérifie qu'il y a assez de joueurs pour toute la partie
-  if (currentRound === 1 && usersToPickFrom.length < MAX_ROUNDS_COMPETITIVE) {
+  // Pour le premier round d'un mode compétitif, on vérifie qu'il y a assez de joueurs pour toute la partie
+  if (session && !session.isEndless && currentRound === 1 && usersToPickFrom.length < MAX_ROUNDS_COMPETITIVE) {
     console.error(
       `Pas assez d'utilisateurs uniques pour une partie compétitive. Requis: ${MAX_ROUNDS_COMPETITIVE}, Disponible: ${usersToPickFrom.length}`
     );
     return { error: `Il faut au moins ${MAX_ROUNDS_COMPETITIVE} personnes différentes dans les promos sélectionnées pour lancer une partie.` };
   }
 
-  // Pour chaque round, on vérifie qu'il y a au moins 4 choix possibles
-  if (usersToPickFrom.length < 4) {
-    console.error(
-      "Pas assez d'utilisateurs restants pour générer un round valide."
-    );
-    // Cela peut arriver en fin de partie si le pool de joueurs s'épuise
-    return { error: "Plus assez de joueurs uniques pour continuer la partie." };
+  // Pour chaque round, on vérifie qu'il y a au moins 4 choix possibles (ou moins si c'est la fin)
+  if (usersToPickFrom.length < 4 && usersToPickFrom.length > 0) {
+     // S'il reste moins de 4 joueurs, on complète avec des joueurs déjà vus pour avoir 4 choix
+     const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(session.selectedGroups);
+     const additionalChoices = allUsersInSelectedGroups.filter(
+         (user) => !usersToPickFrom.some(u => u.username === user.username)
+     );
+     usersToPickFrom = [...usersToPickFrom, ...shuffleArray(additionalChoices)].slice(0, 4);
   }
 
+  if (usersToPickFrom.length < 1) {
+    return { error: "Plus aucun joueur à afficher." };
+  }
+
+
   try {
-    const randomIndex = Math.floor(Math.random() * usersToPickFrom.length);
-    const selectedUser = usersToPickFrom[randomIndex];
+    // Le joueur à deviner est toujours pris parmi ceux pas encore vus
+    const notSeenUsers = session ? (await getUsersWithPhotosByGroups(session.selectedGroups)).filter(user => !session.usedUsernames.has(user.username)) : usersToPickFrom;
+    const randomIndex = Math.floor(Math.random() * notSeenUsers.length);
+    const selectedUser = notSeenUsers[randomIndex];
+
 
     const correctChoice = {
       id: 1,
       displayName: selectedUser.display_name,
     };
 
+    // Les mauvais choix sont pris parmi tous les autres joueurs possibles pour garantir 4 choix
     const otherUsersWithPhotos = usersToPickFrom.filter(
       (user) =>
         user.username !== selectedUser.username &&
@@ -470,6 +505,11 @@ async function generateGameRound({ gameId, selectedGroups }) {
       id: index + 2,
       displayName: user.display_name,
     }));
+
+    // S'il n'y a pas assez de mauvais choix, on remplit avec la bonne réponse pour éviter un crash
+    while (wrongChoices.length < 3) {
+      wrongChoices.push({ id: wrongChoices.length + 2, displayName: correctChoice.displayName });
+    }
 
     const allChoices = shuffleArray([correctChoice, ...wrongChoices]);
 
@@ -484,7 +524,6 @@ async function generateGameRound({ gameId, selectedGroups }) {
 
     const roundId = crypto.randomBytes(16).toString("hex");
 
-    // Stocker les informations du round
     const roundData = {
       correctChoiceId: correctChoiceId,
       correctDisplayName: selectedUser.display_name,
@@ -494,13 +533,11 @@ async function generateGameRound({ gameId, selectedGroups }) {
     };
 
     if (session) {
-      // Mode compétitif: stocker dans la session
       session.roundDataMap.set(roundId, roundData);
-      session.usedUsernames.add(selectedUser.username); // Ajouter l'utilisateur aux utilisés
-      session.timestamp = Date.now(); // Mettre à jour le timestamp de la session
+      session.usedUsernames.add(selectedUser.username);
+      session.timestamp = Date.now();
       activeCompetitiveGameSessions.set(gameId, session);
     } else {
-      // Mode sans fin: stocker globalement (comme avant l'introduction du mode compétitif)
       activeRounds.set(roundId, roundData);
     }
 
@@ -508,8 +545,8 @@ async function generateGameRound({ gameId, selectedGroups }) {
       roundId: roundId,
       photoUrl: `/api/ceki/photo/${selectedUser.photoName}`,
       choices: choices,
-      currentRound: currentRound, // Sera 0 pour le mode sans fin, ou le numéro de round pour compétitif
-      totalScore: totalScore, // Sera 0 pour le mode sans fin, ou le score cumulé pour compétitif
+      currentRound: currentRound,
+      totalScore: totalScore,
     };
   } catch (error) {
     console.error(
@@ -537,16 +574,18 @@ async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
   let isCompetitiveMode = false;
 
   if (gameId) {
-    // Mode compétitif
-    isCompetitiveMode = true;
     session = activeCompetitiveGameSessions.get(gameId);
     if (!session) {
-      console.error("Session de jeu compétitif non trouvée ou expirée:", gameId);
+      console.error("Session de jeu non trouvée ou expirée pour gameId:", gameId);
       return null;
     }
+        
+    // On détermine le mode en fonction de la session et non plus de la simple présence du gameId
+    isCompetitiveMode = !session.isEndless;
+    
     roundData = session.roundDataMap.get(roundId);
   } else {
-    // Mode sans fin
+    // Mode sans fin (ancien)
     roundData = activeRounds.get(roundId);
   }
 
@@ -594,26 +633,31 @@ async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
 
     isGameOver = session.currentRound >= MAX_ROUNDS_COMPETITIVE;
 
-    if (isGameOver) {
-      // Déterminer le game_type
+    if (isGameOver && !session.isEndless) {
       const gameType = session.selectedGroups.length > 1 || session.selectedGroups.length === 0
         ? 'all_promos'
         : session.selectedGroups[0];
-
-      // Soumettre le score final au nouveau système de classement
       await submitScore(session.userId, session.totalScore, gameType);
-
-      activeCompetitiveGameSessions.delete(gameId); // Nettoyer la session après la fin du jeu
+      activeCompetitiveGameSessions.delete(gameId);
     }
+    
+    // Pour le mode sans fin, on vérifie si tous les joueurs ont été vus
+    if (session.isEndless) {
+        const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(session.selectedGroups);
+        if (session.usedUsernames.size >= allUsersInSelectedGroups.length) {
+            isGameOver = true;
+            activeCompetitiveGameSessions.delete(gameId); // Nettoyer la session
+        }
+    }
+
     currentRound = session.currentRound;
     totalScore = session.totalScore;
   } else {
-    // Mode sans fin: pas de score cumulé ni de fin de jeu gérés par le backend
-    // Le score pour ce round peut être calculé si nécessaire, mais n'affecte pas une session globale
+    // Mode sans fin (ancien)
     if (isCorrect) {
-      scoreGainedThisRound = 1; // Ou une autre logique de score simple pour le mode sans fin
+      scoreGainedThisRound = 1;
     }
-    activeRounds.delete(roundId); // Nettoyer le round une fois traité
+    activeRounds.delete(roundId);
   }
 
   return {
@@ -874,6 +918,7 @@ module.exports = {
   getPromosStats,
   getUsersWithPhotosByGroups,
   createCompetitiveGameSession,
+  createEndlessGameSession, // Ajout de la nouvelle fonction
   generateGameRound,
   verifyAnswer,
   submitScore,

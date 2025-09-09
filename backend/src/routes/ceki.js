@@ -277,6 +277,41 @@ router.post("/game/start-competitive", authMiddleware, async (req, res) => {
 });
 
 /**
+ * POST /api/ceki/game/start-endless
+ * Démarre une nouvelle session de jeu en mode sans fin.
+ */
+router.post("/game/start-endless", authMiddleware, async (req, res) => {
+  try {
+    const userName = req.session.user.userName;
+    const { selectedGroups } = req.body;
+
+    // La sélection de groupe est optionnelle pour le mode sans fin, mais si elle est vide, on prend tout.
+    const groups = selectedGroups && selectedGroups.length > 0 ? selectedGroups : [];
+
+    const userPhotoStatus = await cekiService.checkUserPhoto(userName);
+    if (!userPhotoStatus.hasPhoto) {
+      return res.status(403).json({
+        success: false,
+        error: "Vous devez avoir une photo de profil pour jouer.",
+      });
+    }
+
+    const gameId = cekiService.createEndlessGameSession(userName, groups);
+
+    res.json({
+      success: true,
+      gameId: gameId,
+    });
+  } catch (error) {
+    console.error("Erreur lors du démarrage du jeu sans fin:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors du démarrage du jeu sans fin.",
+    });
+  }
+});
+
+/**
  * GET /api/ceki/game/round
  * Génère un nouveau round de jeu.
  * Pour le mode compétitif, nécessite un gameId.
@@ -307,10 +342,10 @@ router.get("/game/round", authMiddleware, async (req, res) => {
       }
       gameRound = await cekiService.generateGameRound({ gameId });
     } else {
-      // Mode sans fin (comportement existant)
-      const selectedGroups = req.query.groups
-        ? req.query.groups.split(",")
-        : [];
+      // Mode sans fin (comportement existant) - DÉPRÉCIÉ, passe maintenant par gameId
+      // On garde ce bloc pour une potentielle compatibilité descendante, mais la logique
+      // frontend devrait être mise à jour pour toujours créer une session et passer un gameId.
+      const selectedGroups = req.query.groups ? req.query.groups.split(",") : [];
       gameRound = await cekiService.generateGameRound({ selectedGroups });
     }
 

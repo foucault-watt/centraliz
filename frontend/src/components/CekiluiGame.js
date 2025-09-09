@@ -71,9 +71,11 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
 
       try {
         let url = `${process.env.REACT_APP_URL_BACK}/api/ceki/game/round`;
-        if (gameMode === "competitive" && currentLoadedGameId) {
+        // La logique est maintenant unifiée, on passe toujours le gameId
+        if (currentLoadedGameId) {
           url += `?gameId=${currentLoadedGameId}`;
-        } else if (gameMode === "endless" && selectedPromos.length > 0) {
+        } else {
+          // Fallback pour l'ancien système, même si ça ne devrait plus arriver
           url += `?groups=${selectedPromos.join(",")}`;
         }
 
@@ -94,8 +96,13 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
             setCompetitiveCurrentRoundNumber(data.currentRound);
           }
         } else {
-          setError(data.error || "Erreur lors du chargement du round");
-          setGameState(gameMode === "competitive" ? "gameover" : "menu");
+          // Gérer la fin du mode sans fin
+          if (gameMode === 'endless' && data.error && data.error.includes("Félicitations")) {
+            setGameState("gameover");
+          } else {
+            setError(data.error || "Erreur lors du chargement du round");
+            setGameState(gameMode === "competitive" ? "gameover" : "menu");
+          }
         }
       } catch (error) {
         console.error("Erreur lors du chargement du round:", error);
@@ -113,39 +120,41 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
       setSelectedPromos(promos);
       setCompetitiveTotalScore(0);
       setCompetitiveCurrentRoundNumber(0);
+      setEndlessScore({ correct: 0, total: 0, points: 0 }); // Reset scores
+      setGameId(null); // Reset gameId
 
-      if (gameMode === "competitive") {
-        setIsLoading(true);
-        setError("");
-        try {
-          const response = await fetch(
-            `${process.env.REACT_APP_URL_BACK}/api/ceki/game/start-competitive`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ selectedGroups: promos }),
-            }
-          );
-          const data = await response.json();
-          if (data.success) {
-            setGameId(data.gameId);
-            setGameState("playing");
-            await loadNextRound(data.gameId, true);
-          } else {
-            setError(data.error || "Erreur lors du démarrage du jeu compétitif.");
-            setGameState("menu");
-          }
-        } catch (err) {
-          console.error("Erreur lors du démarrage du jeu compétitif:", err);
-          setError("Erreur de connexion lors du démarrage du jeu.");
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const isCompetitive = gameMode === "competitive";
+        const url = isCompetitive
+          ? `${process.env.REACT_APP_URL_BACK}/api/ceki/game/start-competitive`
+          : `${process.env.REACT_APP_URL_BACK}/api/ceki/game/start-endless`;
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ selectedGroups: promos }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setGameId(data.gameId);
+          setGameState("playing");
+          await loadNextRound(data.gameId, true);
+        } else {
+          setError(data.error || `Erreur lors du démarrage du jeu ${isCompetitive ? "compétitif" : "sans fin"}.`);
           setGameState("menu");
-        } finally {
-          setIsLoading(false);
         }
-      } else {
-        setGameState("playing");
-        await loadNextRound(null, true);
+      } catch (err) {
+        console.error(`Erreur lors du démarrage du jeu:`, err);
+        setError("Erreur de connexion lors du démarrage du jeu.");
+        setGameState("menu");
+      } finally {
+        setIsLoading(false);
       }
     },
     [gameMode, loadNextRound]
@@ -189,10 +198,14 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
 
       try {
         const body = { roundId: currentRoundData.roundId, choiceId };
-        if (gameMode === "competitive" && gameId) {
+        // On ajoute le gameId s'il existe, peu importe le mode
+        if (gameId) {
           body.gameId = gameId;
-        } else if (gameMode === "endless") {
-          body.timeElapsed = timer;
+        }
+        
+        // Le temps n'est pertinent que pour le mode compétitif maintenant
+        if (gameMode === "competitive") {
+          body.timeElapsed = timer; // Le backend l'ignore mais on le laisse pour l'instant
         }
 
         const response = await fetch(`${process.env.REACT_APP_URL_BACK}/api/ceki/game/answer`, {
@@ -210,11 +223,15 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
             setCompetitiveCurrentRoundNumber(data.currentRound);
             setRoundProgress((prev) => {
               const newProgress = [...prev];
-              const currentIndex = data.currentRound - 2;
-              if (currentIndex >= 0) newProgress[currentIndex] = data.correct ? "correct" : "incorrect";
+              // data.currentRound est le *nouveau* numéro de round.
+              // La réponse concerne donc le round qui vient de se finir, soit `data.currentRound - 1`.
+              // L'index du tableau (0-9) est donc `data.currentRound - 2`.
+              const answeredRoundIndex = data.currentRound - 2;
+              if (answeredRoundIndex >= 0) {
+                newProgress[answeredRoundIndex] = data.correct ? "correct" : "incorrect";
+              }
               return newProgress;
             });
-            // Toujours passer par la phase "answered" pour montrer le résultat
             setGamePhase("answered");
           } else {
             setEndlessScore((prev) => ({
@@ -248,6 +265,7 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
     setGameId(null);
     setCompetitiveTotalScore(0);
     setCompetitiveCurrentRoundNumber(0);
+    setRoundProgress([]);
     setEndlessScore({ correct: 0, total: 0, points: 0 });
     setImageLoaded(false);
     setTimerStarted(false);
@@ -287,6 +305,13 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
       nextRoundTimer = setTimeout(() => {
         // Après avoir montré le résultat, vérifier si le jeu est terminé
         if (roundResult && roundResult.isGameOver) {
+          // Pour le dernier round, la logique ci-dessus ne fonctionne pas car le round suivant n'est pas chargé.
+          // On doit forcer la mise à jour du dernier élément.
+          setRoundProgress(prev => {
+            const newProgress = [...prev];
+            newProgress[MAX_COMPETITIVE_ROUNDS - 1] = roundResult.correct ? "correct" : "incorrect";
+            return newProgress;
+          });
           setGameState("gameover");
         } else {
           loadNextRound();
@@ -361,10 +386,11 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
 
         <main className="max-w-md mx-auto pt-2 pb-safe ">
           {gamePhase === "playing" && currentRoundData ? (
-            <div className="space-y-6 animate-scale-in flex flex-col items-center align-middle">
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 w-3/4">
+            <div className="animate-scale-in md:grid md:grid-cols-5 md:gap-8 md:items-center">
+              {/* Colonne Gauche: Photo (prend 3/5 de la largeur) */}
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 w-full max-w-sm mx-auto md:max-w-none md:col-span-3">
                 <button onClick={() => setIsReportModalOpen(true)} className="absolute top-2 right-2 z-20 p-2 bg-black/40 hover:bg-black/60 rounded-full transition-colors" title="Signaler la photo"><Flag size={16} className="text-white" /></button>
-                <img src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`} alt="Photo mystère" className="w-full h-full object-cover mx-auto" onError={(e) => { e.target.style.backgroundColor = "#f0f0f0"; e.target.style.border = "2px dashed #ccc"; }} onLoad={handleImageLoad} crossOrigin="use-credentials" />
+                <img src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`} alt="Photo mystère" className="w-full h-full object-cover" onError={(e) => { e.target.style.backgroundColor = "#f0f0f0"; e.target.style.border = "2px dashed #ccc"; }} onLoad={handleImageLoad} crossOrigin="use-credentials" />
                 {gameMode === "competitive" && timerStarted && (
                   <div className="absolute w-full h-full mx-auto inset-0 flex items-center justify-center">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -374,36 +400,41 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col space-y-4 items-center w-5/6">
+              {/* Colonne Droite: Choix (prend 2/5 de la largeur) */}
+              <div className="flex flex-col space-y-4 items-center w-full mt-6 md:mt-0 md:col-span-2">
                 {currentRoundData.choices.map((choice) => (
-                  <button key={choice.id} onClick={() => submitAnswer(choice.id)} disabled={selectedChoice !== null || isLoading} className={`p-3 rounded-xl font-medium transition-all duration-200 active:scale-95 border-2 w-3/4 ${selectedChoice === choice.id ? "bg-primary text-white border-primary shadow-lg" : "bg-white hover:bg-gray-50 text-secondary border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg"} ${(selectedChoice !== null || isLoading) && selectedChoice !== choice.id ? "opacity-50" : ""}`}>
+                  <button key={choice.id} onClick={() => submitAnswer(choice.id)} disabled={selectedChoice !== null || isLoading} className={`p-4 rounded-xl font-medium transition-all duration-200 active:scale-95 border-2 w-full max-w-sm ${selectedChoice === choice.id ? "bg-primary text-white border-primary shadow-lg" : "bg-white hover:bg-gray-50 text-secondary border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg"} ${(selectedChoice !== null || isLoading) && selectedChoice !== choice.id ? "opacity-50" : ""}`}>
                     {choice.displayName}
                   </button>
                 ))}
               </div>
             </div>
           ) : gamePhase === "answered" && roundResult ? (
-            <div className="space-y-6 animate-scale-in flex flex-col align-middle items-center">
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border-4 border-game-photo-border w-3/4">
+            <div className="animate-scale-in md:grid md:grid-cols-5 md:gap-8 md:items-center">
+              {/* Colonne Gauche: Photo Résultat (prend 3/5 de la largeur) */}
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border-4 border-game-photo-border w-full max-w-sm mx-auto md:max-w-none md:col-span-3">
                 <button onClick={() => setIsReportModalOpen(true)} className="absolute top-2 right-2 z-20 p-2 bg-black/40 hover:bg-black/60 rounded-full transition-colors" title="Signaler la photo"><Flag size={16} className="text-white" /></button>
-                <img src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`} alt="Photo révélée" className="w-full h-full object-cover mx-auto" crossOrigin="use-credentials" />
-                <div className={`absolute w-full h-full mx-auto inset-0 flex items-center justify-center ${roundResult.correct ? "bg-success/50" : "bg-danger/50"}`}>
+                <img src={`${process.env.REACT_APP_URL_BACK}${currentRoundData.photoUrl}`} alt="Photo révélée" className="w-full h-full object-cover" crossOrigin="use-credentials" />
+                <div className={`absolute w-full h-full inset-0 flex items-center justify-center ${roundResult.correct ? "bg-success/50" : "bg-danger/50"}`}>
                   <div className="text-center space-y-4">
                     <div className="text-white font-bold text-xl">{roundResult.correct ? "Correct 🤗" : "Incorrect 😓"}</div>
                     {gameMode === "competitive" && roundResult.correct && <div className="text-white font-semibold text-lg">+{roundResult.scoreGainedThisRound} pts</div>}
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-lg w-5/6">
-                <div className="text-center space-y-2">
-                  <p className="text-gray-600 text-sm">Réponse :</p>
-                  <p className="text-secondary font-semibold text-lg">{roundResult.correctAnswer.displayName}</p>
+              {/* Colonne Droite: Infos Résultat (prend 2/5 de la largeur) */}
+              <div className="flex flex-col space-y-4 items-center w-full mt-6 md:mt-0 md:col-span-2">
+                <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-sm text-center">
+                  <p className="text-gray-600 text-sm">La bonne réponse était :</p>
+                  <p className="text-secondary font-semibold text-2xl mt-2">{roundResult.correctAnswer.displayName}</p>
+                </div>
+                <div className="w-full max-w-sm pt-4">
+                  <div className="bg-gray-200 rounded-full h-2 overflow-hidden w-full">
+                    <div key={currentRoundData.roundId} className="bg-primary h-full animate-countdown" style={{ animationPlayState: isReportModalOpen ? 'paused' : 'running' }}></div>
+                  </div>
+                  <p className="text-center text-gray-600 text-sm mt-2">Round suivant...</p>
                 </div>
               </div>
-              <div className="bg-gray-200 rounded-full h-2 overflow-hidden w-full">
-                <div key={currentRoundData.roundId} className="bg-primary h-full animate-countdown" style={{ animationPlayState: isReportModalOpen ? 'paused' : 'running' }}></div>
-              </div>
-              <p className="text-center text-gray-600 text-sm">Round suivant...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 animate-scale-in">
@@ -419,6 +450,37 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
   }
 
   if (gameState === "gameover") {
+    if (gameMode === 'endless') {
+      const precision = endlessScore.total > 0 ? Math.round((endlessScore.correct / endlessScore.total) * 100) : 0;
+      return (
+        <div className="text-center space-y-8 animate-scale-in">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-secondary/20 to-gray-700/10 flex items-center justify-center mx-auto"><span className="text-4xl">🎉</span></div>
+          <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-secondary">Partie terminée !</h2>
+              <p className="text-gray-600 leading-relaxed">Félicitations, vous avez vu tout le monde dans les promos sélectionnées !</p>
+              <div className="text-5xl font-bold text-secondary">{endlessScore.correct}<span className="text-2xl text-gray-500">/{endlessScore.total}</span></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-game-correct">{endlessScore.correct}</div>
+                <div className="text-xs text-gray-500">Correctes</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">{precision}%</div>
+                <div className="text-xs text-gray-500">Précision</div>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <button onClick={backToMenu} className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl">
+              <div className="flex items-center justify-center space-x-3"><Home size={20} /><span>Retour au menu</span></div>
+            </button>
+          </div>
+        </div>
+      );
+    }
+    // --- Écran de fin pour le mode compétitif (inchangé) ---
     return (
       <div className="text-center space-y-8 animate-scale-in">
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto"><span className="text-4xl">{competitiveTotalScore >= 500 ? "😄" : competitiveTotalScore >= 300 ? "😊" : "😐"}</span></div>
@@ -444,7 +506,7 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
           </div>
         </div>
         <div className="space-y-4">
-          <button onClick={() => { setGameState("playing"); setGamePhase("ready"); setCompetitiveTotalScore(0); setCompetitiveCurrentRoundNumber(0); setRoundProgress([]); loadNextRound(gameId, true); }} className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl">🔄 Rejouer</button>
+          <button onClick={() => startGameWithPromos(selectedPromos)} className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl">🔄 Rejouer</button>
           <button onClick={onShowLeaderboard} className="w-full bg-gradient-to-r from-secondary to-gray-700 hover:from-gray-700 hover:to-secondary text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl">📊 Consulter le classement</button>
           <button onClick={onBackToMenu} className="w-full flex items-center justify-center space-x-2 text-gray-600 hover:text-secondary py-3 transition-colors duration-300"><Home size={16} /><span>Retourner à l'accueil</span></button>
         </div>

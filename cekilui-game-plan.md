@@ -4,11 +4,19 @@
 
 ### Backend - API Routes ✅
 
-#### 1. Route pour générer une question de jeu ✅
-- **Endpoint**: `GET /api/ceki/game/round?groups=promo1,promo2`
+#### 1. Routes pour démarrer une partie ✅
+- **Endpoint**: `POST /api/ceki/game/start-competitive`
+- **Endpoint**: `POST /api/ceki/game/start-endless`
+- **Authentification**: Requise
+- **Body**: `{ "selectedGroups": ["promo1", "promo2"] }`
+- **Réponse**: `{ "success": true, "gameId": "unique-game-id" }`
+- **Fonction**: Crée une session de jeu (compétitive ou sans fin) et retourne un identifiant de partie.
+
+#### 2. Route pour générer une question de jeu ✅
+- **Endpoint**: `GET /api/ceki/game/round?gameId=unique-game-id`
 - **Authentification**: Requise
 - **Prérequis**: L'utilisateur doit avoir une photo (`hasPhoto: true`)
-- **Paramètres**: `groups` (optionnel) - Liste des promos sélectionnées
+- **Paramètres**: `gameId` (obligatoire) - L'identifiant de la session de jeu.
 - **Réponse**:
 ```json
 {
@@ -24,13 +32,14 @@
 }
 ```
 
-#### 2. Route pour vérifier une réponse ✅
+#### 3. Route pour vérifier une réponse ✅
 - **Endpoint**: `POST /api/ceki/game/answer`
 - **Body**:
 ```json
 {
   "roundId": "unique-round-id",
-  "choiceId": 2
+  "choiceId": 2,
+  "gameId": "unique-game-id"
 }
 ```
 - **Réponse**:
@@ -46,12 +55,12 @@
 }
 ```
 
-#### 3. Route pour servir les photos ✅
+#### 4. Route pour servir les photos ✅
 - **Endpoint**: `GET /api/ceki/photo/:filename`
 - **Authentification**: Requise
 - **Fonction**: Servir les images depuis `backend/src/data/profile-photos/`
 
-#### 4. Route pour les statistiques des promos ✅
+#### 5. Route pour les statistiques des promos ✅
 - **Endpoint**: `GET /api/ceki/promos-stats`
 - **Authentification**: Requise
 - **Réponse**:
@@ -66,14 +75,14 @@
 }
 ```
 
-#### 5. Route pour l'upload de photos ✅
+#### 6. Route pour l'upload de photos ✅
 - **Endpoint**: `POST /api/ceki/upload-photo`
 - **Authentification**: Requise
 - **Body**: FormData avec fichier image
 - **Compression**: 500x500px, qualité JPEG 90%
 - **Stockage**: `backend/src/data/profile-photos/` avec nom aléatoire
 
-#### 6. Route pour vérifier le statut photo ✅
+#### 7. Route pour vérifier le statut photo ✅
 - **Endpoint**: `GET /api/ceki/photo-status`
 - **Authentification**: Requise
 - **Réponse**: `{ hasPhoto: boolean, photoName: string }`
@@ -102,23 +111,29 @@
    - Récupère les utilisateurs avec photos filtrés par promos
    - Supporte le filtrage par groupes sélectionnés
 
-6. **`generateGameRound(selectedGroups)`** ✅
-   - Sélectionne un utilisateur aléatoire avec photo (filtré par promos)
-   - Génère 3 autres `displayName` aléatoires (tous avec photos)
-   - Mélange les 4 choix
-   - Crée un `roundId` unique
-   - Stocke temporairement la bonne réponse avec la promo
+6. **`createCompetitiveGameSession(userId, selectedGroups)`** / **`createEndlessGameSession(userId, selectedGroups)`** ✅
+   - Crée une session de jeu en mémoire avec un `gameId`.
+   - Stocke les promos sélectionnées et un ensemble vide `usedUsernames`.
 
-7. **`verifyAnswer(roundId, choiceId)`** ✅
-   - Vérifie si la réponse est correcte
-   - Retourne la promo de la personne
-   - Nettoie les données temporaires du round
+7. **`generateGameRound({ gameId })`** ✅
+   - Récupère la session de jeu via le `gameId`.
+   - Sélectionne un utilisateur aléatoire parmi les joueurs des promos sélectionnées qui ne sont pas dans `usedUsernames`.
+   - Ajoute l'utilisateur à `usedUsernames`.
+   - Génère 3 autres `displayName` aléatoires.
+   - Retourne les données du round.
+   - Gère la fin de partie si `usedUsernames` a atteint le nombre total de joueurs.
 
-8. **`generateRandomFileName(extension)`** ✅
+8. **`verifyAnswer({ roundId, choiceId, gameId })`** ✅
+   - Vérifie la réponse en utilisant les données de la session.
+   - Calcule le score pour le mode compétitif.
+   - Met à jour l'état de la session (score, round actuel).
+   - Gère la fin de partie (10 rounds en compétitif, tous les joueurs vus en sans fin).
+
+9. **`generateRandomFileName(extension)`** ✅
    - Génère un nom de fichier unique avec timestamp + hash
 
-9. **`deletePhotoFile(photoName)`** ✅
-   - Supprime un fichier photo du système de fichiers
+10. **`deletePhotoFile(photoName)`** ✅
+    - Supprime un fichier photo du système de fichiers
 
 ### Frontend - Composants ✅
 
@@ -140,10 +155,11 @@
 
 #### 3. Composant CekiluiGame ✅
 - **États**:
-  - `gameState`: 'menu', 'promoSelection', 'playing', 'result'
+  - `gameState`: 'menu', 'promoSelection', 'playing', 'result', 'gameover'
   - `selectedPromos`: Promos sélectionnées
+  - `gameId`: ID de la session de jeu en cours
   - `currentRound`: Données du round actuel
-  - `score`: Score actuel
+  - `endlessScore` / `competitiveTotalScore`: Scores pour chaque mode
   - `isLoading`: État de chargement
   - `result`: Résultat de la réponse
 
@@ -161,21 +177,27 @@
 
 ### Logique de génération des questions ✅
 
-1. **Sélection de la photo**:
-   - Récupérer les utilisateurs avec `hasPhoto: true` filtrés par promos
-   - Sélectionner un utilisateur aléatoire
-   - Utiliser sa photo comme question
+1. **Création de la session**:
+   - L'utilisateur choisit un mode et des promos.
+   - Le frontend appelle `start-competitive` ou `start-endless`.
+   - Le backend crée une session avec un `gameId` et la stocke en mémoire.
 
-2. **Génération des choix**:
-   - Prendre le `displayName` de l'utilisateur sélectionné (bonne réponse)
-   - Sélectionner 3 autres `displayName` aléatoires parmi les utilisateurs avec photos
-   - Mélanger les 4 choix dans un ordre aléatoire
+2. **Sélection de la photo**:
+   - Le frontend appelle `game/round` avec le `gameId`.
+   - Le backend récupère la session, filtre les `usedUsernames` et sélectionne un nouvel utilisateur aléatoire.
+   - L'utilisateur est ajouté à `usedUsernames` pour la session.
 
-3. **Stockage temporaire**:
-   - Map en mémoire pour stocker les rounds actifs
-   - Clé: `roundId` (crypto.randomBytes)
-   - Valeur: `{ correctChoiceId, correctDisplayName, correctGroup, photoName, timestamp }`
-   - Nettoyage automatique des rounds expirés (>5 minutes)
+3. **Génération des choix**:
+   - Le `displayName` du joueur sélectionné est la bonne réponse.
+   - 3 autres `displayName` sont choisis aléatoirement.
+   - Les 4 choix sont mélangés.
+
+4. **Stockage temporaire**:
+   - Map en mémoire pour stocker les sessions de jeu (`activeCompetitiveGameSessions`).
+   - Clé: `gameId`.
+   - Valeur: `{ userId, selectedGroups, usedUsernames, roundDataMap, ... }`.
+   - Les données de chaque round sont stockées dans `roundDataMap` avec un `roundId`.
+   - Nettoyage automatique des sessions et rounds expirés.
 
 ### Sécurité ✅
 
@@ -227,10 +249,16 @@ graph TD
     A[Utilisateur arrive sur /cekilui] --> B{A une photo?}
     B -->|Non| C[Afficher upload de photo]
     B -->|Oui| D[Afficher bouton Jouer]
-    D --> E[Clic sur Jouer]
-    E --> F[GET /api/ceki/game/round]
-    F --> G[Afficher photo + 4 choix]
-    G --> H[Utilisateur choisit]
+    D --> E[Clic sur Jouer et sélectionne promos]
+    E --> F[POST /api/ceki/game/start-...]
+    F --> G{Récupère gameId}
+    G --> H[GET /api/ceki/game/round?gameId=...]
+    H --> I[Afficher photo + 4 choix]
+    I --> J[Utilisateur choisit]
+    J --> K[POST /api/ceki/game/answer]
+    K --> L[Afficher résultat]
+    L --> M[Bouton Suivant]
+    M --> H
     H --> I[POST /api/ceki/game/answer]
     I --> J[Afficher résultat]
     J --> K[Bouton Suivant]

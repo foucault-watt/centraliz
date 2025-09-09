@@ -142,7 +142,7 @@ function Cekilui() {
   }
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-md md:max-w-3xl mx-auto transition-all duration-300">
       {/* Message de feedback */}
       {message && (
         <div className="bg-success/10 border border-success/20 rounded-xl p-4 mb-4 animate-scale-in">

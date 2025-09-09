@@ -20,3 +20,4 @@ backend/src/data/leaderboard.json
 
 profile-photos
 books.csv
+backend-*.log

@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const icalService = require("../services/claService");
+const planningService = require("../services/planningService");
 
 router.get("/cla-data", async (req, res) => {
   try {
-    const icalData = await icalService.fetchIcalData();
+    const icalData = await planningService.fetchIcalData();
     if (!icalData) {
       res.status(404).json({ error: "Données calendrier CLA non disponibles" });
       return;
@@ -32,7 +32,7 @@ router.get("/calendars-data", async (req, res) => {
 
     // Course entre la récupération des calendriers et le timeout
     const calendarsData = await Promise.race([
-      icalService.fetchAllCalendarsData(),
+      planningService.fetchAllCalendarsData(),
       timeoutPromise,
     ]);
 

@@ -1,73 +1,110 @@
-const axios = require("axios");
+// backend/src/services/claService.js
+const axios = require('axios');
+const supabase = require('../utils/supabaseClient');
+const tokenService = require('./tokenService');
+const loginService = require('./loginService');
 
-async function fetchClaIcalData() {
-  const targetUrl =
-    "https://centralelilleassos.fr/evenements/export/ical/?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrZXkiOiJjbGFfZXZlbnQ6aW5kZXg6ZXZlbnQ6djIifQ.CQ0j6tLB-ap1St00MS7HYvZV47idY5ZX_L79LPSnDPk";
+// Remplacez par vos variables d'environnement
+const claAuthHost = process.env.CLA_AUTH_HOST;
+const claAuthIdentifier = process.env.CLA_AUTH_IDENTIFIER;
 
-  try {
-    const response = await axios.get(targetUrl, { timeout: 8000 });
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error(
-      "Erreur lors de la récupération du calendrier CLA:",
-      error.message || "Erreur inconnue"
-    );
-    return {
-      success: false,
-      error: "Impossible de récupérer le calendrier CLA",
-    };
-  }
-}
-
-async function fetchFablabIcalData() {
-  const targetUrl =
-    "https://framagenda.org/remote.php/dav/public-calendars/BmoNRjcAKcaST5DN/?export";
-
-  try {
-    const response = await axios.get(targetUrl, { timeout: 8000 });
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error(
-      "Erreur lors de la récupération du calendrier FabLab:",
-      error.message || "Erreur inconnue"
-    );
-    return {
-      success: false,
-      error: "Impossible de récupérer le calendrier FabLab",
-    };
-  }
-}
-
-async function fetchAllCalendarsData() {
-  // Utilisation de Promise.allSettled pour ne pas échouer si une seule promesse échoue
-  const results = await Promise.allSettled([
-    fetchClaIcalData(),
-    fetchFablabIcalData(),
-  ]);
-
-  // Traitement des résultats
-  const claResult =
-    results[0].status === "fulfilled"
-      ? results[0].value
-      : { success: false, error: "Impossible d'accéder au calendrier CLA" };
-  const fablabResult =
-    results[1].status === "fulfilled"
-      ? results[1].value
-      : { success: false, error: "Impossible d'accéder au calendrier FabLab" };
-
-  return {
-    cla: claResult,
-    fablab: fablabResult,
-  };
-}
-
-// Pour maintenir la compatibilité avec le code existant
-async function fetchIcalData() {
-  const result = await fetchClaIcalData();
-  return result.success ? result.data : null;
-}
-
-module.exports = {
-  fetchIcalData,
-  fetchAllCalendarsData,
+exports.login = (req, res) => {
+  const url = `${claAuthHost}/authentification/${claAuthIdentifier}`;
+  res.redirect(url);
 };
+
+exports.callback = async (req, res) => {
+  const { ticket } = req.query;
+  if (!ticket) {
+    return res.status(400).send("Erreur : ticket CLA manquant.");
+  }
+
+  try {
+    // 1. Valider le ticket auprès de la plateforme CLA
+    const validationUrl = `${claAuthHost}/authentification/${claAuthIdentifier}/${encodeURIComponent(ticket)}`;
+    const { data: response } = await axios.get(validationUrl);
+
+    if (!response || !response.success) {
+      console.error("[CLA Service] La réponse du serveur d'authentification est invalide", response);
+      return res.status(401).send("Échec de l'authentification CLA.");
+    }
+
+    const { username: cla_username, firstName, lastName } = response.payload;
+
+    // 2. Chercher si un mapping existe pour cet utilisateur
+    const { data: mapping, error: mappingError } = await supabase
+      .from('user_mapping')
+      .select('cas_username')
+      .eq('cla_username', cla_username)
+      .single();
+
+    let final_username;
+
+    if (mapping) {
+      // L'utilisateur est déjà mappé, on utilise son ancien username (cas_username)
+      final_username = mapping.cas_username;
+      
+      // On en profite pour mettre à jour son profil dans la table 'users'
+      await supabase.from('users').update({ 
+        first_name: firstName, 
+        last_name: lastName 
+      }).eq('username', final_username);
+
+    } else {
+      // Nouvel utilisateur ou utilisateur pas encore mappé.
+      // On suppose que le cla_username peut être utilisé directement,
+      // mais idéalement il faudrait le mapper à un ancien compte si possible.
+      // Pour l'instant, on crée un nouvel utilisateur avec le cla_username.
+      
+      // ATTENTION : Cette partie crée un NOUVEL utilisateur.
+      // Le script de migration manuel est là pour éviter ce cas.
+      final_username = cla_username; 
+      
+      const { data: newUser, error: newUserError } = await supabase
+        .from('users')
+        .upsert({
+          username: final_username,
+          display_name: `${firstName} ${lastName}`,
+          first_name: firstName,
+          last_name: lastName
+        }, { onConflict: 'username' });
+
+      if (newUserError) throw newUserError;
+    }
+
+    // 3. Récupérer l'utilisateur complet et créer la session
+    const { data: user, error: fetchError } = await loginService.getUser(final_username);
+    if (fetchError || !user) {
+      throw new Error("Impossible de récupérer l'utilisateur après l'authentification CLA.");
+    }
+
+    req.session.user = {
+      userName: user.username,
+      displayName: user.display_name,
+      icalLink: user.ical_link,
+      is_admin: user.is_admin,
+      is_bibli_admin: user.is_bibli_admin
+    };
+    
+    // Gérer le "Remember Me"
+    if (req.session.rememberMe) {
+      const token = await tokenService.generateToken(user.username);
+      if (token) {
+        res.cookie('remember_me', token, {
+          httpOnly: true,
+          secure: process.env.SECURE === 'true',
+          sameSite: process.env.COOKIE_SAMESITE || 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+      }
+    }
+
+    await loginService.addLogin(user.username);
+    res.redirect(process.env.URL_FRONT);
+
+  } catch (error) {
+    console.error("[CLA Service] Erreur lors du callback:", error);
+    res.status(500).send("Erreur interne lors de l'authentification.");
+  }
+};
+

@@ -21,6 +21,7 @@ import React, {
   useState,
 } from "react";
 import ReactDOM from "react-dom";
+import { fetchApi } from "../utils/api";
 
 moment.locale("fr");
 
@@ -141,9 +142,7 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
 
   const fetchCalendarData = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/hp-data?userId=${userName}`
-      );
+      const response = await fetchApi(`/api/hp-data?userId=${userName}`);
       if (!response.ok) {
         throw new Error("Erreur lors de la récupération des données");
       }
@@ -629,9 +628,7 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/users`
-        );
+        const response = await fetchApi(`/api/users`);
         if (!response.ok)
           throw new Error("Erreur lors de la récupération des utilisateurs");
         const data = await response.json();
@@ -647,8 +644,8 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
     const fetchProfessorsAndRooms = async () => {
       try {
         const [profResponse, roomResponse] = await Promise.all([
-          fetch(`${process.env.REACT_APP_URL_BACK}/api/professors`),
-          fetch(`${process.env.REACT_APP_URL_BACK}/api/rooms`),
+          fetchApi(`/api/professors`),
+          fetchApi(`/api/rooms`),
         ]);
 
         if (!profResponse.ok || !roomResponse.ok)
@@ -669,9 +666,7 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
 
   const fetchUserCalendar = async (userId) => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/hp-data?userId=${userId}`
-      );
+      const response = await fetchApi(`/api/hp-data?userId=${userId}`);
       if (!response.ok)
         throw new Error("Erreur lors de la récupération du calendrier");
       const data = await response.text();

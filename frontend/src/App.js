@@ -1,4 +1,5 @@
 import { Suspense, createContext, lazy, useEffect, useState } from "react";
+import { fetchApi } from "./utils/api";
 import { motion } from "framer-motion";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage.js";
@@ -38,12 +39,7 @@ const App = () => {
   const refreshAuthStatus = async () => {
     setIsLoading(true); // Afficher l'écran de chargement pendant le rafraîchissement
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/auth/status`,
-        {
-          credentials: "include",
-        }
-      );
+      const response = await fetchApi("/api/auth/status");
       const data = await response.json();
       setIsAuthenticated(data.authenticated);
 

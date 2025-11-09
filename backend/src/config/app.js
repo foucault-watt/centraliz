@@ -21,6 +21,9 @@ const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
 
+// Faire confiance au premier proxy (nécessaire pour ngrok et le déploiement)
+app.set('trust proxy', 1);
+
 // Utiliser Helmet pour sécuriser les en-têtes HTTP
 app.use(helmet());
 
@@ -54,7 +57,7 @@ app.use(
     cookie: {
       secure: process.env.SECURE === "true", // Mettez à true en production avec HTTPS
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.COOKIE_SAMESITE || "lax", // 'lax' par défaut, 'none' pour ngrok
     },
   })
 );

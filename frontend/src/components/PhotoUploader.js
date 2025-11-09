@@ -8,9 +8,7 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
   const [rotate, setRotate] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
-  const [existingPhotoUrl, setExistingPhotoUrl] = useState(null);
-  const [isLoadingPhoto, setIsLoadingPhoto] = useState(true); // New state for loading existing photo
-  const [isEditingExisting, setIsEditingExisting] = useState(false); // Track if we're editing the existing photo
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(true);
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -24,7 +22,8 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
         });
         const result = await response.json();
         if (result.success && result.hasPhoto && result.photoName) {
-          setExistingPhotoUrl(`${process.env.REACT_APP_URL_BACK}/api/ceki/photo/${result.photoName}`);
+          // On charge l'image existante directement dans l'état `image`
+          setImage(`${process.env.REACT_APP_URL_BACK}/api/ceki/photo/${result.photoName}`);
         }
       } catch (err) {
         console.error("Erreur lors de la récupération du statut de la photo:", err);
@@ -56,7 +55,6 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
 
       setError('');
       setImage(file);
-      setExistingPhotoUrl(null); // Clear existing photo when new one is selected
     }
   }, []);
 
@@ -75,7 +73,11 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
   }, []);
 
   const handleUpload = useCallback(async () => {
-    if (!editorRef.current || !image) return;
+    if (!editorRef.current || !image) {
+      // Si on a ni image (nouvelle ou existante), on ne fait rien.
+      // Cela peut arriver si l'utilisateur clique sur "Sauvegarder" sans avoir de photo.
+      return;
+    }
 
     setIsUploading(true);
     setError('');
@@ -85,6 +87,8 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
       const canvas = editorRef.current.getImage();
       
       // Convertir le canvas en blob
+      // On doit gérer le cas où l'image est une URL (string) et non un File (object)
+      // `toBlob` fonctionne directement avec le canvas, peu importe la source de l'image.
       const blob = await new Promise(resolve => {
         canvas.toBlob(resolve, 'image/jpeg', 0.9);
       });
@@ -113,7 +117,7 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
     } finally {
       setIsUploading(false);
     }
-  }, [image, onUploadSuccess]);
+  }, [image, onUploadSuccess, scale, rotate]); // Ajouter scale et rotate aux dépendances
 
   const handleSelectFile = useCallback(() => {
     fileInputRef.current?.click();
@@ -124,10 +128,11 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
     setScale(1.2);
     setRotate(0);
     setError('');
-    setExistingPhotoUrl(null); // Reset existing photo URL as well
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    // Ouvre directement la sélection de fichier pour une meilleure expérience utilisateur
+    fileInputRef.current?.click();
   }, []);
 
   const [isDragOver, setIsDragOver] = useState(false);
@@ -180,7 +185,7 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
         <div className="text-center text-secondary font-medium">Chargement de la photo...</div>
       ) : (
         <>
-          {!image && !existingPhotoUrl ? (
+          {!image ? (
             /* Zone de sélection de fichier / Drag & Drop */
             <div
               className={`border-2 border-dashed rounded-xl p-8 md:p-12 cursor-pointer transition-all duration-300 ${
@@ -215,7 +220,8 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
                 <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg">
                   <AvatarEditor
                     ref={editorRef}
-                    image={image || existingPhotoUrl} // Use existingPhotoUrl if no new image is selected
+                    image={image}
+                    crossOrigin="anonymous" // Important pour charger une image depuis une autre origine (le backend)
                     width={280}
                     height={280}
                     border={15}
@@ -286,7 +292,7 @@ const PhotoUploader = ({ onUploadSuccess, onCancel }) => {
                 <button
                   type="button"
                   onClick={handleUpload}
-                  disabled={isUploading}
+                  disabled={isUploading || !image}
                   className="flex-1 bg-primary hover:bg-primary-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
                 >
                   {isUploading ? (

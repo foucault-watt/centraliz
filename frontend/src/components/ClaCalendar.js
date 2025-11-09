@@ -3,6 +3,7 @@ import ICAL from "ical.js";
 import moment from "moment";
 import "moment/locale/fr";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { fetchApi } from "../utils/api";
 import "../styles/ClaCalendar.scss";
 
 // Configuration de moment.js en français
@@ -26,9 +27,7 @@ const ClaCalendar = () => {
         setLoading({ cla: true, fablab: true });
         setErrors({ cla: null, fablab: null });
 
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/calendars-data`
-        );
+        const response = await fetchApi("/api/calendars-data");
         const data = await response.json();
 
         // Traitement du calendrier CLA

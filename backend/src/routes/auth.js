@@ -1,13 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const casService = require("../services/casService");
+const claService = require("../services/claService");
 const tokenService = require("../services/tokenService");
-const loginService = require("../services/loginService"); // Importez loginService
+const loginService = require("../services/loginService");
 const cookieParser = require('cookie-parser');
 
 // Middleware pour parser les cookies, nécessaire pour lire le cookie remember_me
 router.use(cookieParser());
-
 router.get("/status", async (req, res) => {
   let userFromSession = req.session.user;
   let fullUser = null;
@@ -64,10 +63,10 @@ router.get("/status", async (req, res) => {
 
 router.get("/login", (req, res, next) => {
   req.session.rememberMe = req.query.remember === 'true';
-  casService.login(req, res, next);
+  claService.login(req, res, next); // <- CHANGEMENT ICI
 });
 
-router.get("/callback", casService.callback);
+router.get("/endpoint", claService.callback); // <- CHANGEMENT ICI
 
 router.post("/logout", async (req, res) => {
   const rememberMeToken = req.cookies.remember_me;

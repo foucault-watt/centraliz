@@ -1,4 +1,3 @@
-import React from "react";
 import DOMPurify from "dompurify";
 import Loader from "./Loader";
 
@@ -35,7 +34,9 @@ const MailModal = ({ mail, onClose, isContentLoading }) => {
         <h2 className="mail-modal-title">{mail.title}</h2>
         <div className="mail-modal-meta">
           <span className="mail-modal-author">De : {mail.author}</span>
-          <span className="mail-modal-date">Le : {formatDate(mail.pubDate)}</span>
+          <span className="mail-modal-date">
+            Le : {formatDate(mail.pubDate)}
+          </span>
         </div>
         {isContentLoading ? (
           <Loader />

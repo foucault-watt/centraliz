@@ -1,13 +1,11 @@
 import { Suspense, createContext, lazy, useEffect, useState } from "react";
-import { fetchApi } from "./utils/api";
-import { motion } from "framer-motion";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Header from "./components/Header"; // Import Header
 import LoginPage from "./components/LoginPage.js";
 import Onboarding from "./components/Onboarding.js";
 import PageLayout from "./components/PageLayout";
 import SlideMenu from "./components/SlideMenu"; // Import SlideMenu
-import Header from "./components/Header"; // Import Header
-
+import { fetchApi } from "./utils/api";
 
 // Lazy load page components
 const Notes = lazy(() => import("./components/Notes"));
@@ -44,7 +42,18 @@ const App = () => {
       setIsAuthenticated(data.authenticated);
 
       if (data.authenticated) {
-        setUser(data.user); // On stocke l'objet utilisateur complet
+        // Vérifier si un mot de passe Zimbra est stocké
+        try {
+          const zimbraResponse = await fetch(
+            `${process.env.REACT_APP_URL_BACK}/api/zimbra/check`,
+            { credentials: "include" }
+          );
+          const zimbraData = await zimbraResponse.json();
+          setUser({ ...data.user, hasPassword: zimbraData.hasPassword });
+        } catch (zimbraError) {
+          console.warn("Could not check Zimbra password:", zimbraError);
+          setUser({ ...data.user, hasPassword: false });
+        }
         setNeedsOnboarding(!data.user.icalLink);
       }
     } catch (error) {
@@ -82,17 +91,22 @@ const App = () => {
     <UserContext.Provider value={{ user }}>
       <BrowserRouter>
         {needsOnboarding ? (
-          <Onboarding
-            userName={user.userName}
-            onComplete={refreshAuthStatus}
-          />
+          <Onboarding userName={user.userName} onComplete={refreshAuthStatus} />
         ) : (
           <>
-            <Header onMenuToggle={toggleSlideMenu} /> {/* Pass toggle function to Header */}
-            <SlideMenu isOpen={isSlideMenuOpen} onClose={toggleSlideMenu} /> {/* Pass state and toggle to SlideMenu */}
+            <Header onMenuToggle={toggleSlideMenu} />{" "}
+            {/* Pass toggle function to Header */}
+            <SlideMenu
+              isOpen={isSlideMenuOpen}
+              onClose={toggleSlideMenu}
+            />{" "}
+            {/* Pass state and toggle to SlideMenu */}
             <Suspense fallback={<div></div>}>
               <Routes>
-                <Route path="/" element={<Navigate to="/calendars" replace />} />
+                <Route
+                  path="/"
+                  element={<Navigate to="/calendars" replace />}
+                />
                 <Route
                   path="/notes"
                   element={
@@ -104,7 +118,9 @@ const App = () => {
                 <Route
                   path="/calendars"
                   element={
-                    <PageLayout><Calendars user={user} /></PageLayout>
+                    <PageLayout>
+                      <Calendars user={user} />
+                    </PageLayout>
                   }
                 />
                 <Route

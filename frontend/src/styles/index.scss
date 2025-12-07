@@ -5,6 +5,7 @@
 @import "Links.scss";
 @import "Notes.scss";
 @import "Mail.scss";
+@import "MailModern.scss";
 @import "Onboarding.scss";
 @import "Bdi.scss";
 @import "Bibli.scss";
@@ -47,16 +48,16 @@
 @tailwind utilities;
 
 @layer utilities {
-    .animate-countdown {
-      animation: countdown 3s linear forwards;
+  .animate-countdown {
+    animation: countdown 3s linear forwards;
+  }
+
+  @keyframes countdown {
+    from {
+      width: 100%;
     }
-   
-    @keyframes countdown {
-      from {
-        width: 100%;
-      }
-      to {
-        width: 0%;
-      }
+    to {
+      width: 0%;
     }
   }
+}

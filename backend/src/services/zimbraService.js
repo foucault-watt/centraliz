@@ -5,8 +5,8 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { simpleParser } = require('mailparser'); // Importer le module mailparser
-const supabase = require('../utils/supabaseClient');
+const { simpleParser } = require("mailparser"); // Importer le module mailparser
+const supabase = require("../utils/supabaseClient");
 
 class ZimbraService {
   /**
@@ -95,78 +95,125 @@ class ZimbraService {
   }
 
   static generateKey(email) {
-    return crypto.createHash('sha256').update(email).digest();
+    return crypto.createHash("sha256").update(email).digest();
   }
 
   static encryptPassword(email, password) {
     const key = this.generateKey(email);
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-    let encrypted = cipher.update(password, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return iv.toString('hex') + ':' + encrypted;
+    const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+    let encrypted = cipher.update(password, "utf8", "hex");
+    encrypted += cipher.final("hex");
+    return iv.toString("hex") + ":" + encrypted;
   }
 
   static decryptPassword(email, encryptedPassword) {
     try {
       const key = this.generateKey(email);
-      const [ivHex, encrypted] = encryptedPassword.split(':');
-      const iv = Buffer.from(ivHex, 'hex');
-      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
+      const [ivHex, encrypted] = encryptedPassword.split(":");
+      const iv = Buffer.from(ivHex, "hex");
+      const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+      let decrypted = decipher.update(encrypted, "hex", "utf8");
+      decrypted += decipher.final("utf8");
       return decrypted;
     } catch (error) {
-      console.error("[ZimbraService] Erreur lors du déchiffrement du mot de passe:", error.message);
+      console.error(
+        "[ZimbraService] Erreur lors du déchiffrement du mot de passe:",
+        error.message
+      );
       throw new Error("Erreur lors du déchiffrement du mot de passe");
     }
   }
 
-  static async storeEncryptedPassword(username, password) {
-    const email = username;
-    const encryptedPassword = this.encryptPassword(email, password);
-
-    const { error } = await supabase
-      .from('passwords')
-      .upsert({
-        username: email,
-        encrypted_password: encryptedPassword,
-        creation_date: new Date().toISOString()
-      }, { onConflict: 'username' });
+  static async getEntUsername(username) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("ent_username")
+      .eq("username", username)
+      .single();
 
     if (error) {
-      console.error("[ZimbraService] Erreur lors de la sauvegarde du mot de passe:", error.message);
+      console.error(
+        "[ZimbraService] Erreur lors de la récupération du ent_username:",
+        error.message
+      );
+      return null;
+    }
+    return data?.ent_username;
+  }
+
+  static async linkEntUsername(username, ent_username) {
+    const { error } = await supabase
+      .from("users")
+      .update({ ent_username: ent_username })
+      .eq("username", username);
+
+    if (error) {
+      console.error(
+        "[ZimbraService] Erreur lors de la liaison du ent_username:",
+        error.message
+      );
+      throw new Error("Erreur lors de la liaison du compte ENT");
+    }
+  }
+
+  static async storeEncryptedPassword(ent_username, password) {
+    const encryptedPassword = this.encryptPassword(ent_username, password);
+
+    const { error } = await supabase.from("passwords").upsert(
+      {
+        ent_username: ent_username,
+        encrypted_password: encryptedPassword,
+        creation_date: new Date().toISOString(),
+      },
+      { onConflict: "ent_username" }
+    );
+
+    if (error) {
+      console.error(
+        "[ZimbraService] Erreur lors de la sauvegarde du mot de passe:",
+        error.message
+      );
       throw new Error("Erreur lors de la sauvegarde du mot de passe");
     }
   }
 
   static async hasStoredPassword(username) {
-    const email = username;
+    const ent_username = await this.getEntUsername(username);
+    if (!ent_username) return false;
+
     const { data, error } = await supabase
-      .from('passwords')
-      .select('username')
-      .eq('username', email)
+      .from("passwords")
+      .select("ent_username")
+      .eq("ent_username", ent_username)
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') { // Not found
+      if (error.code === "PGRST116") {
+        // Not found
         return false;
       }
-      console.error("[ZimbraService] Erreur lors de la vérification du mot de passe stocké:", error.message);
+      console.error(
+        "[ZimbraService] Erreur lors de la vérification du mot de passe stocké:",
+        error.message
+      );
       return false;
     }
     return !!data;
   }
 
-  static async getStoredPassword(email) {
+  static async getStoredPassword(ent_username) {
     const { data, error } = await supabase
-      .from('passwords')
-      .select('encrypted_password')
-      .eq('username', email)
+      .from("passwords")
+      .select("encrypted_password")
+      .eq("ent_username", ent_username)
       .single();
 
     if (error) {
-      console.error("[ZimbraService] Erreur lors de la récupération du mot de passe stocké:", error.message);
+      console.error(
+        "[ZimbraService] Erreur lors de la récupération du mot de passe stocké:",
+        error.message
+      );
       throw new Error("Erreur lors de la récupération du mot de passe stocké");
     }
     if (!data) {
@@ -176,17 +223,21 @@ class ZimbraService {
   }
 
   static async authenticateWithStoredPassword(username) {
-    const email = username;
-    const encryptedPassword = await this.getStoredPassword(email);
-    const password = this.decryptPassword(email, encryptedPassword);
-    return await this.authenticate(username, password);
+    const ent_username = await this.getEntUsername(username);
+    if (!ent_username) throw new Error("Aucun compte ENT lié");
+
+    const encryptedPassword = await this.getStoredPassword(ent_username);
+    const password = this.decryptPassword(ent_username, encryptedPassword);
+    return await this.authenticate(ent_username, password);
   }
 
   static async getTokenFromUsername(username) {
-    const email = username;
-    const encryptedPassword = await this.getStoredPassword(email);
-    const password = this.decryptPassword(email, encryptedPassword);
-    return Buffer.from(`${username}:${password}`).toString("base64");
+    const ent_username = await this.getEntUsername(username);
+    if (!ent_username) throw new Error("Aucun compte ENT lié");
+
+    const encryptedPassword = await this.getStoredPassword(ent_username);
+    const password = this.decryptPassword(ent_username, encryptedPassword);
+    return Buffer.from(`${ent_username}:${password}`).toString("base64");
   }
 
   static async getRawMailContent(zimbraToken, mailId) {
@@ -205,19 +256,23 @@ class ZimbraService {
         },
         httpsAgent,
         timeout: 10000,
-        responseType: 'stream', // Récupérer la réponse en tant que flux
+        responseType: "stream", // Récupérer la réponse en tant que flux
       });
 
       if (response.status === 200) {
         // Parser le mail pour extraire le contenu HTML
         const parsedMail = await simpleParser(response.data);
-        const htmlContent = parsedMail.html || parsedMail.textAsHtml || parsedMail.text;
+        const htmlContent =
+          parsedMail.html || parsedMail.textAsHtml || parsedMail.text;
         return htmlContent;
       } else {
         throw new Error("Échec de la récupération du contenu du mail");
       }
     } catch (error) {
-      console.error("[ZimbraService] Erreur lors de la récupération du contenu brut:", error.message);
+      console.error(
+        "[ZimbraService] Erreur lors de la récupération du contenu brut:",
+        error.message
+      );
       throw error;
     }
   }

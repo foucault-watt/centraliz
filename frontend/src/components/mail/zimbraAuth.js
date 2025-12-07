@@ -1,11 +1,12 @@
-import React, { useContext, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useContext, useState } from "react";
 import { UserContext } from "../../App";
-import { motion, AnimatePresence } from "framer-motion";
 import Loader from "../Loader";
 
 const ZimbraAuth = ({ setIsAuthenticated, authStatus }) => {
   const { user } = useContext(UserContext);
   const userName = user?.userName;
+  const [entUsername, setEntUsername] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -23,7 +24,11 @@ const ZimbraAuth = ({ setIsAuthenticated, authStatus }) => {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ password, rememberMe }),
+          body: JSON.stringify({
+            ent_username: entUsername,
+            password,
+            rememberMe,
+          }),
         }
       );
 
@@ -70,9 +75,20 @@ const ZimbraAuth = ({ setIsAuthenticated, authStatus }) => {
             <h2>Accès à vos derniers mails</h2>
             <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
               <input
+                type="text"
+                value={entUsername}
+                placeholder="Identifiant ENT (ex: pnom)"
+                onChange={(e) => setEntUsername(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                autoComplete="username"
+                required
+                style={{ marginBottom: "10px" }}
+              />
+              <input
                 type="password"
                 value={password}
-                placeholder="Entrez votre mot de passe ENT"
+                placeholder="Mot de passe ENT"
                 onChange={handlePasswordChange}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}

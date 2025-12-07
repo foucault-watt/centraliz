@@ -24,7 +24,7 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "set REACT_APP_URL_BACK=https://instructedly-noncomprehensible-otelia.ngrok-free.dev&& react-scripts start",
+    "start": "set DANGEROUSLY_DISABLE_HOST_CHECK=true&& set REACT_APP_URL_BACK=https://instructedly-noncomprehensible-otelia.ngrok-free.dev&& react-scripts start",
     "build": "set REACT_APP_URL_BACK=https://centraliz.it&& react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

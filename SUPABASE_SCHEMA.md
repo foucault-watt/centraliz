@@ -15,16 +15,16 @@ SUPABASE_URL="VOTRE_URL_SUPABASE"
 SUPABASE_KEY="VOTRE_CLE_ANON_SUPABASE_OU_SERVICE_ROLE"
 ```
 
-*   `SUPABASE_URL`: L'URL de votre projet Supabase. Vous la trouverez dans votre tableau de bord Supabase (Settings -> API).
-*   `SUPABASE_KEY`: Votre clé `anon` (publique) ou `service_role` (privée et à utiliser côté serveur uniquement) de Supabase. Pour les opérations côté serveur qui nécessitent des privilèges élevés (comme les migrations de données), il est recommandé d'utiliser la clé `service_role`.
+- `SUPABASE_URL`: L'URL de votre projet Supabase. Vous la trouverez dans votre tableau de bord Supabase (Settings -> API).
+- `SUPABASE_KEY`: Votre clé `anon` (publique) ou `service_role` (privée et à utiliser côté serveur uniquement) de Supabase. Pour les opérations côté serveur qui nécessitent des privilèges élevés (comme les migrations de données), il est recommandé d'utiliser la clé `service_role`.
 
 ### Initialisation du client Supabase
 
 Le client Supabase est généralement initialisé dans un fichier comme `backend/src/utils/supabaseClient.js` :
 
 ```javascript
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
+const { createClient } = require("@supabase/supabase-js");
+require("dotenv").config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -40,17 +40,15 @@ Ce fichier exporte une instance configurée du client Supabase que vous pouvez i
 Pour effectuer des opérations sur la base de données, importez l'instance `supabase` :
 
 ```javascript
-const supabase = require('../utils/supabaseClient');
+const supabase = require("../utils/supabaseClient");
 
 async function fetchData() {
-  const { data, error } = await supabase
-    .from('nom_de_votre_table')
-    .select('*');
+  const { data, error } = await supabase.from("nom_de_votre_table").select("*");
 
   if (error) {
-    console.error('Erreur:', error);
+    console.error("Erreur:", error);
   } else {
-    console.log('Données:', data);
+    console.log("Données:", data);
   }
 }
 
@@ -75,7 +73,12 @@ create table public.users (
   "photoName" text null,
   is_admin boolean null default false,
   is_bibli_admin boolean null default false,
-  constraint users_pkey primary key (username)
+  photo_banned_until timestamp with time zone null,
+  first_name text null,
+  last_name text null,
+  ent_username text null,
+  constraint users_pkey primary key (username),
+  constraint users_ent_username_key unique (ent_username)
 ) TABLESPACE pg_default;
 ```
 
@@ -142,11 +145,11 @@ create table public.remember_me_token (
 
 ```sql
 create table public.passwords (
-  username text not null,
+  ent_username text not null,
   encrypted_password text null,
   creation_date timestamp without time zone null,
-  constraint passwords_pkey primary key (username),
-  constraint passwords_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete set default
+  constraint passwords_pkey primary key (ent_username),
+  constraint passwords_ent_username_fkey foreign KEY (ent_username) references users (ent_username) on update CASCADE on delete set default
 ) TABLESPACE pg_default;
 ```
 

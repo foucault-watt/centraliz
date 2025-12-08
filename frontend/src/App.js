@@ -88,7 +88,7 @@ const App = () => {
   }
 
   return (
-    <UserContext.Provider value={{ user }}>
+    <UserContext.Provider value={{ user, setUser }}>
       <BrowserRouter>
         {needsOnboarding ? (
           <Onboarding userName={user.userName} onComplete={refreshAuthStatus} />

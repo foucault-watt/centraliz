@@ -21,6 +21,23 @@ $fade-duration: 0.3s;
   text-align: center;
 }
 
+.notes-frame {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba($second, 0.1);
+  border-radius: 20px;
+  padding: 30px;
+  margin: 20px auto;
+  max-width: 1850px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+
+  @media (max-width: 768px) {
+    padding: 15px;
+    border-radius: 15px;
+    margin: 10px;
+  }
+}
+
 // Removed: .info-message, .upload-section, .tutorial-steps, .tuto-export-webaurion
 
 .warning-message {
@@ -384,6 +401,53 @@ $fade-duration: 0.3s;
       transform-origin: left;
     }
   }
+}
+
+/* Stored login & big button */
+.stored-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 40px auto 20px auto;
+  max-width: 420px;
+}
+
+.big-button {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, $main, darken($main, 6%));
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.big-button:hover {
+  transform: translateY(-2px);
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: $main;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.remember-me {
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.login-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .error {

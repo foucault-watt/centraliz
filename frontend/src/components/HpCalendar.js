@@ -13,13 +13,7 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import "moment/locale/fr";
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { fetchApi } from "../utils/api";
 
@@ -84,7 +78,8 @@ const monthsOrder = [
   "juillet",
 ];
 
-const HpCalendar = ({ user }) => { // Accepte user comme prop
+const HpCalendar = ({ user }) => {
+  // Accepte user comme prop
   const [icalData, setIcalData] = useState("");
   const [currentDate, setCurrentDate] = useState(() => {
     const today = moment();
@@ -107,12 +102,6 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
   const { userName } = user || {}; // Récupère userName directement de la prop user
   const [showModal, setShowModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
-  const [hasEvaluated, setHasEvaluated] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [evaluationConfig, setEvaluationConfig] = useState(null);
-  const [answers, setAnswers] = useState({});
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [users, setUsers] = useState([]);
@@ -134,10 +123,6 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
   const closeModal = () => {
     setShowModal(false);
     setSelectedEvent(null);
-    setShowEvaluationModal(false);
-    setAnswers({});
-    setErrorMessage("");
-    setSubmitSuccess(false);
   };
 
   const fetchCalendarData = useCallback(async () => {
@@ -182,35 +167,6 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
   }, [userName, fetchCalendarData]);
 
   useEffect(() => {
-    const fetchEvaluationConfig = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/eva/config`,
-          {
-            method: "GET",
-            credentials: "include", // Indispensable pour que le cookie de session soit envoyé
-          }
-        );
-        if (!response.ok) {
-          throw new Error("Configuration non disponible");
-        }
-        const data = await response.json();
-        setEvaluationConfig(data);
-      } catch (error) {
-        console.error(
-          "Erreur lors de la récupération de la configuration:",
-          error
-        );
-        setErrorMessage("Configuration d'évaluation non disponible");
-      }
-    };
-
-    if (userName) {
-      fetchEvaluationConfig();
-    }
-  }, [userName]);
-
-  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -236,160 +192,14 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
     };
   }, [showMonthPicker, showUsersList]);
 
-  // Ajouter un effet pour scroller au bouton quand l'évaluation est ouverte
-  useEffect(() => {
-    if (showEvaluationModal) {
-      setTimeout(() => {
-        document
-          .getElementById("submitButton")
-          ?.scrollIntoView({ behavior: "smooth" });
-      }, 100); // Petit délai pour laisser le modal s'afficher
-    }
-  }, [showEvaluationModal]);
-
   // Utiliser useMemo pour le parsing des événements
   const events = useMemo(() => {
     return parseICalData(icalData);
   }, [icalData]);
 
-  const handleSelectEvent = async (event) => {
-    setAnswers({});
-    setErrorMessage("");
-    setSubmitSuccess(false);
-
+  const handleSelectEvent = (event) => {
     setSelectedEvent(event);
-
-    // Si c'est un événement partagé, ne pas permettre l'évaluation
-    if (event.className?.includes("shared")) {
-      setHasEvaluated(true); // Utiliser hasEvaluated pour masquer le bouton d'évaluation
-      setShowModal(true);
-      return;
-    }
-
-    try {
-      const cleanTitle = event.title.split("\n")[0];
-      const response = await fetch(
-        `${
-          process.env.REACT_APP_URL_BACK
-        }/api/eva/check?eventTitle=${encodeURIComponent(cleanTitle)}`,
-        {
-          method: "GET",
-          credentials: "include", // Indispensable pour que le cookie de session soit envoyé
-        }
-      );
-      const data = await response.json();
-      setHasEvaluated(data.hasEvaluated);
-    } catch (error) {
-      console.error("Erreur lors de la vérification:", error);
-    }
     setShowModal(true);
-  };
-
-  const handleEvaluate = () => {
-    if (!hasEvaluated) {
-      // Vérifier si l'événement est passé
-      const eventEndTime = moment(selectedEvent.end);
-      const now = moment();
-
-      if (eventEndTime.isAfter(now)) {
-        setErrorMessage(
-          "Vous ne pouvez évaluer que les enseignements terminés"
-        );
-        return;
-      }
-
-      // Vérifier d'abord si une configuration existe pour le groupe
-      fetch(`${process.env.REACT_APP_URL_BACK}/api/eva/config`, {
-        method: "GET",
-        credentials: "include", // Indispensable pour que le cookie de session soit envoyé
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(
-              "Pas de configuration disponible pour votre groupe"
-            );
-          }
-          return response.json();
-        })
-        .then((config) => {
-          if (config && config.questions && config.questions.length > 0) {
-            setAnswers({});
-            setErrorMessage("");
-            setSubmitSuccess(false);
-            setShowEvaluationModal(true);
-            setShowModal(false);
-          } else {
-            setErrorMessage(
-              "L'évaluation n'est pas disponible pour votre groupe"
-            );
-          }
-        })
-        .catch((error) => {
-          setErrorMessage(error.message);
-        });
-    }
-  };
-
-  const handleAnswerChange = (questionId, value, maxLength) => {
-    if (typeof value === "string" && maxLength) {
-      value = value.substring(0, maxLength);
-    }
-
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
-  };
-
-  const submitEvaluation = async () => {
-    const missingRequired = evaluationConfig.questions
-      .filter((q) => q.required)
-      .some((q) => !answers[q.id]);
-
-    if (missingRequired) {
-      setErrorMessage("Les questions marquées d'un * sont obligatoires");
-      // Scroll jusqu'au message d'erreur
-      document
-        .querySelector(".error-message")
-        ?.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
-
-    const cleanTitle = selectedEvent.title.split("\n")[0];
-
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/eva`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            eventTitle: cleanTitle,
-            answers,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erreur lors de l'envoi");
-      }
-
-      setSubmitSuccess(true);
-      setTimeout(() => {
-        setShowEvaluationModal(false);
-        setErrorMessage("");
-        setAnswers({});
-        setSubmitSuccess(false);
-      }, 1500);
-    } catch (error) {
-      setErrorMessage(
-        error.message || "Une erreur est survenue. Veuillez réessayer."
-      );
-    }
   };
 
   // Mémoisation des heures et jours
@@ -771,144 +581,67 @@ const HpCalendar = ({ user }) => { // Accepte user comme prop
     return r.salle && matchesSearch(r.salle, searchQuery);
   });
 
-  // Ajouter cette fonction juste avant le return du composant HpCalendar
+  // Rendu du modal des détails d'événement
   const renderModals = () => {
-    if (!showModal && !showEvaluationModal) return null;
+    if (!showModal) return null;
 
     return ReactDOM.createPortal(
-      <>
-        {showModal && selectedEvent && (
-          <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>Détails de l'événement</h2>
-              <div className="event-details">
-                <div className="event-main-title">{selectedEvent.title}</div>
-
-                <div className="detail-row type-detail">
-                  <div className="icon-container">
-                    <BookOpen />
-                  </div>
-                  <div className="detail-content">
-                    <div className="label">Type de cours</div>
-                    <div className="value">{selectedEvent.courseType}</div>
-                  </div>
+      showModal && selectedEvent && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Détails de l'événement</h2>
+            <div className="event-details">
+              <div className="flex items-center">
+                <div className="event-main-title flex-1 min-w-0 truncate">
+                  {selectedEvent.title}
                 </div>
-
-                {selectedEvent.professor && (
-                  <div className="detail-row professor-detail">
-                    <div className="icon-container">
-                      <GraduationCap />
-                    </div>
-                    <div className="detail-content">
-                      <div className="label">Professeur</div>
-                      <div className="value">{selectedEvent.professor}</div>
-                    </div>
-                  </div>
-                )}
-
-                {selectedEvent.location && (
-                  <div className="detail-row location-detail">
-                    <div className="icon-container">
-                      <MapPin />
-                    </div>
-                    <div className="detail-content">
-                      <div className="label">Salle</div>
-                      <div className="value">{selectedEvent.location}</div>
-                    </div>
+                {selectedEvent.start && selectedEvent.end && (
+                  <div className="event-time flex-none text-xs text-gray-500 ml-2 whitespace-nowrap">
+                    {moment(selectedEvent.start).format("HH[h]mm")} -{" "}
+                    {moment(selectedEvent.end).format("HH[h]mm")}
                   </div>
                 )}
               </div>
 
-              {/* ... reste du code du modal ... */}
-              {selectedEvent.className?.includes("shared") ? (
-                <div className="evaluation-notice">
-                  Vous ne pouvez pas évaluer les cours de quelqu'un d'autre
+              <div className="detail-row type-detail">
+                <div className="icon-container">
+                  <BookOpen />
                 </div>
-              ) : (
-                <>
-                  {errorMessage ? (
-                    <div className="error-message">{errorMessage}</div>
-                  ) : hasEvaluated ? (
-                    <div className="evaluation-notice">
-                      Vous avez déjà évalué cet enseignement
-                    </div>
-                  ) : (
-                    <button onClick={handleEvaluate}>Évaluer</button>
-                  )}
-                </>
+                <div className="detail-content">
+                  <div className="label">Type de cours</div>
+                  <div className="value">{selectedEvent.courseType}</div>
+                </div>
+              </div>
+
+              {selectedEvent.professor && (
+                <div className="detail-row professor-detail">
+                  <div className="icon-container">
+                    <GraduationCap />
+                  </div>
+                  <div className="detail-content">
+                    <div className="label">Professeur</div>
+                    <div className="value">{selectedEvent.professor}</div>
+                  </div>
+                </div>
               )}
-              <button onClick={closeModal}>Fermer</button>
+
+              {selectedEvent.location && (
+                <div className="detail-row location-detail">
+                  <div className="icon-container">
+                    <MapPin />
+                  </div>
+                  <div className="detail-content">
+                    <div className="label">Salle</div>
+                    <div className="value">{selectedEvent.location}</div>
+                  </div>
+                </div>
+              )}
             </div>
+
+            <button onClick={closeModal}>Fermer</button>
           </div>
-        )}
-        {showEvaluationModal && evaluationConfig && (
-          <div className="modal-overlay" onClick={closeModal}>
-            <div
-              className="modal-content evaluation"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2>Évaluation de l'enseignement</h2>
-              <div className="required-notice">* Questions obligatoires</div>
-              {evaluationConfig.questions.map((question) => (
-                <div key={question.id} className="question">
-                  <label className={question.required ? "required" : ""}>
-                    {question.text}
-                    {question.required && " *"}
-                  </label>
-                  {question.type === "likert" ? (
-                    <div className="likert-scale horizontal">
-                      {question.options.map((option, index) => (
-                        <label key={index}>
-                          <input
-                            type="radio"
-                            name={`question_${question.id}`}
-                            value={index}
-                            onChange={() =>
-                              handleAnswerChange(question.id, index)
-                            }
-                            checked={answers[question.id] === index}
-                          />
-                          {option}
-                        </label>
-                      ))}
-                    </div>
-                  ) : (
-                    <textarea
-                      maxLength={question.maxLength}
-                      value={answers[question.id] || ""}
-                      onChange={(e) =>
-                        handleAnswerChange(
-                          question.id,
-                          e.target.value,
-                          question.maxLength
-                        )
-                      }
-                      placeholder={`Votre réponse... ${
-                        question.required ? "(obligatoire)" : "(optionnel)"
-                      } (${question.maxLength} caractères max)`}
-                    />
-                  )}
-                </div>
-              ))}
-              {errorMessage && (
-                <div className="error-message">{errorMessage}</div>
-              )}
-              {submitSuccess && (
-                <div className="success-message">
-                  ✓ Évaluation enregistrée avec succès !
-                </div>
-              )}
-              <button
-                id="submitButton"
-                onClick={submitEvaluation}
-                className={submitSuccess ? "success" : ""}
-              >
-                {submitSuccess ? "✓ Envoyé" : "Envoyer"}
-              </button>
-            </div>
-          </div>
-        )}
-      </>,
+        </div>
+      ),
       document.body
     );
   };

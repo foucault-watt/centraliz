@@ -77,6 +77,8 @@ create table public.users (
   first_name text null,
   last_name text null,
   ent_username text null,
+  support_bds text null,
+  email_school text null,
   constraint users_pkey primary key (username),
   constraint users_ent_username_key unique (ent_username)
 ) TABLESPACE pg_default;

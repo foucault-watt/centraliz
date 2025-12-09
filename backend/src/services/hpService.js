@@ -105,13 +105,8 @@ function extractUserInfoFromIcal(icalData) {
       ? birthDateMatch[0].split("/").reverse().join("-")
       : null;
 
-    // Extrait le groupe principal (premier groupe entre parenthèses)
-    const groupMatch = calNameLine.match(/\((.*?)(?:\s*-|,)/);
-    const group = groupMatch ? groupMatch[1].trim() : null;
-
     return {
       birthDate,
-      group,
     };
   } catch (error) {
     console.error("Erreur lors de l'extraction des informations:", error);
@@ -147,7 +142,6 @@ async function saveUser(userId, icalLink) {
       username: userId,
       ical_link: icalLink,
       birth_date: userInfo?.birthDate,
-      group: userInfo?.group,
     };
 
     if (existingUser) {

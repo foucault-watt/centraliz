@@ -52,11 +52,11 @@ $fade-duration: 0.3s;
   .feedback-link {
     display: inline-block;
     margin-top: 10px;
-    color: $main;
+    color: var(--color-primary);
     text-decoration: underline;
 
     &:hover {
-      color: darken($main, 10%);
+      color: color-mix(in srgb, var(--color-primary), black 10%);
     }
   }
 
@@ -118,7 +118,7 @@ $fade-duration: 0.3s;
     }
 
     &:hover {
-      background-color: darken($day, 5%);
+      background-color: color-mix(in srgb, var(--color-day-bg), black 5%);
     }
 
     h2 {
@@ -196,15 +196,15 @@ $fade-duration: 0.3s;
   margin-left: 8px;
 
   &.vert {
-    background-color: $green;
+    background-color: var(--color-green);
   }
 
   &.orange {
-    background-color: $orange;
+    background-color: var(--color-orange);
   }
 
   &.rouge {
-    background-color: $red;
+    background-color: var(--color-red);
   }
 }
 
@@ -223,7 +223,7 @@ $fade-duration: 0.3s;
 
   h3 {
     margin-top: 0;
-    color: $main;
+    color: var(--color-primary);
     font-size: 1.1em;
   }
 
@@ -266,7 +266,7 @@ $fade-duration: 0.3s;
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: $main;
+      background: var(--color-primary);
       cursor: pointer;
       border: 2px solid white;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -285,7 +285,7 @@ $fade-duration: 0.3s;
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: $main;
+      background: var(--color-primary);
       cursor: pointer;
       border: 2px solid white;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -313,7 +313,7 @@ $fade-duration: 0.3s;
 
     &:focus {
       outline: none;
-      border-color: $main;
+      border-color: var(--color-primary);
       background: rgba($day, 0.8);
     }
   }
@@ -327,7 +327,7 @@ $fade-duration: 0.3s;
   margin: 20px auto;
   margin-top: 20px !important;
   padding: 20px;
-  background-color: lighten($day, 10%);
+  background-color: color-mix(in srgb, var(--color-day-bg), white 10%);
   border-radius: 5px;
   border: 1px solid $day-border;
   @include box-shadow();
@@ -341,7 +341,7 @@ $fade-duration: 0.3s;
     @include transition(border-color);
 
     &:focus {
-      border-color: $main;
+      border-color: var(--color-primary);
       outline: none;
     }
   }
@@ -349,7 +349,7 @@ $fade-duration: 0.3s;
   button {
     padding: 10px 15px;
     font-size: 1em;
-    background-color: $main;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     border-radius: 5px;
@@ -357,7 +357,7 @@ $fade-duration: 0.3s;
     @include transition(background-color);
 
     &:hover {
-      background-color: darken($main, 10%);
+      background-color: color-mix(in srgb, var(--color-primary), black 10%);
     }
   }
 
@@ -376,12 +376,12 @@ $fade-duration: 0.3s;
       transition: all 0.3s ease;
 
       &:focus {
-        border-color: $main;
+        border-color: var(--color-primary);
         outline: none;
 
         & + label {
           transform: translateY(-28px) scale(0.8);
-          color: $main;
+          color: var(--color-primary);
         }
       }
 
@@ -419,7 +419,11 @@ $fade-duration: 0.3s;
   font-size: 18px;
   font-weight: 700;
   color: white;
-  background: linear-gradient(135deg, $main, darken($main, 6%));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary), black 6%)
+  );
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -434,7 +438,7 @@ $fade-duration: 0.3s;
 .link-button {
   background: none;
   border: none;
-  color: $main;
+  color: var(--color-primary);
   cursor: pointer;
   text-decoration: underline;
 }
@@ -451,7 +455,7 @@ $fade-duration: 0.3s;
 }
 
 .error {
-  color: $red;
+  color: var(--color-red);
   font-weight: bold;
   text-align: center;
 }
@@ -529,7 +533,7 @@ $fade-duration: 0.3s;
   .mail-content {
     display: none;
     padding: 10px;
-    background-color: lighten($day, 5%);
+    background-color: color-mix(in srgb, var(--color-day), white 5%);
   }
   &.expanded {
     .mail-content {
@@ -601,7 +605,7 @@ $fade-duration: 0.3s;
   }
 
   h4 {
-    color: $main;
+    color: var(--color-primary);
     font-size: 1.1em;
     margin-bottom: 15px;
     display: flex;
@@ -638,7 +642,7 @@ $fade-duration: 0.3s;
         left: 50%;
         transform: translateX(-50%);
         font-size: 0.9em;
-        color: $main;
+        color: var(--color-primary);
         font-weight: bold;
       }
     }
@@ -660,7 +664,7 @@ $fade-duration: 0.3s;
 
         &:focus {
           outline: none;
-          border-color: $main;
+          border-color: var(--color-primary);
           background: rgba($day, 0.8);
         }
       }
@@ -669,7 +673,7 @@ $fade-duration: 0.3s;
         flex: 1;
         padding: 8px 20px;
         font-size: 1em;
-        background-color: $main;
+        background-color: var(--color-primary);
         border: none;
         border-radius: 6px;
         cursor: pointer;
@@ -730,7 +734,7 @@ $fade-duration: 0.3s;
         left: 50%;
         transform: translateX(-50%);
         font-size: 0.9em;
-        color: $main;
+        color: var(--color-primary);
         font-weight: bold;
       }
     }
@@ -759,7 +763,7 @@ $fade-duration: 0.3s;
         transition: all 0.2s;
 
         &:hover {
-          background-color: $red;
+          background-color: var(--color-red);
           transform: translateY(-1px);
         }
       }
@@ -801,7 +805,7 @@ $fade-duration: 0.3s;
 
     .edit-icon {
       opacity: 0;
-      color: $main;
+      color: var(--color-primary);
       font-size: 0.8em;
       transition: opacity 0.2s;
     }
@@ -839,13 +843,13 @@ $fade-duration: 0.3s;
       }
 
       .arrow {
-        color: $main;
+        color: var(--color-primary);
         font-size: 0.8em;
         opacity: 0.6;
       }
 
       .modified-grade {
-        color: $main;
+        color: var(--color-primary);
         font-weight: bold;
       }
 
@@ -862,7 +866,7 @@ $fade-duration: 0.3s;
 
         &:hover {
           background: rgba($main, 0.1);
-          color: $main;
+          color: var(--color-primary);
         }
       }
     }
@@ -877,7 +881,7 @@ $fade-duration: 0.3s;
 
 .page-title {
   font-size: 2.5rem;
-  color: $main;
+  color: var(--color-primary);
   margin-bottom: 0.5rem;
   font-weight: 700;
   text-align: center;
@@ -925,12 +929,12 @@ $fade-duration: 0.3s;
       transition: all 0.3s ease;
 
       &:focus {
-        border-color: $main;
+        border-color: var(--color-primary);
         outline: none;
 
         & + label {
           transform: translateY(-28px) scale(0.8);
-          color: $main;
+          color: var(--color-primary);
         }
       }
 
@@ -954,7 +958,7 @@ $fade-duration: 0.3s;
   .submit-button {
     width: 100%;
     padding: 12px;
-    background: $main;
+    background: var(--color-primary);
     color: white;
     border: none;
     border-radius: 8px;
@@ -1005,7 +1009,7 @@ $fade-duration: 0.3s;
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, $main, lighten($main, 20%));
+  background: linear-gradient(90deg, var(--color-primary), lighten($main, 20%));
   border-radius: 4px;
   width: 0%;
   position: relative;
@@ -1022,7 +1026,7 @@ $fade-duration: 0.3s;
 .loading-status-dot {
   width: 14px;
   height: 14px;
-  background-color: $main;
+  background-color: var(--color-primary);
   border-radius: 50%;
   margin-right: 10px;
   animation: pulse-dot 1.5s infinite;
@@ -1115,7 +1119,7 @@ $fade-duration: 0.3s;
     width: 4px;
     height: 24px;
     background: rgba(
-      $main,
+      var(--color-primary),
       0.8
     ); // Changement ici pour utiliser la couleur principale avec transparence
     border-radius: 2px;

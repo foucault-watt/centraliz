@@ -2,8 +2,8 @@ const supabase = require("../utils/supabaseClient");
 const path = require("path");
 const fs = require("fs").promises;
 const crypto = require("crypto");
-const axios = require('axios');
-const FormData = require('form-data');
+const axios = require("axios");
+const FormData = require("form-data");
 
 /**
  * Vérifie si un utilisateur a une photo de profil
@@ -20,10 +20,17 @@ async function checkUserPhoto(username) {
 
     if (error) {
       console.error("Erreur lors de la vérification de la photo:", error);
-      return { hasPhoto: false, photoName: null, isBanned: false, isAdmin: false };
+      return {
+        hasPhoto: false,
+        photoName: null,
+        isBanned: false,
+        isAdmin: false,
+      };
     }
 
-    const isBanned = data.photo_banned_until ? new Date(data.photo_banned_until) > new Date() : false;
+    const isBanned = data.photo_banned_until
+      ? new Date(data.photo_banned_until) > new Date()
+      : false;
 
     return {
       hasPhoto: data.hasPhoto || false,
@@ -33,7 +40,12 @@ async function checkUserPhoto(username) {
     };
   } catch (error) {
     console.error("Erreur lors de la vérification de la photo:", error);
-    return { hasPhoto: false, photoName: null, isBanned: false, isAdmin: false };
+    return {
+      hasPhoto: false,
+      photoName: null,
+      isBanned: false,
+      isAdmin: false,
+    };
   }
 }
 
@@ -125,7 +137,7 @@ async function deletePhotoFile(photoName) {
  * @returns {Promise<boolean>} True si un visage est détecté, false sinon.
  */
 async function verifyFaceInImage(imageBuffer) {
-  const VISAGE_VERIFICATION = process.env.VISAGE_VERIFICATION === 'true';
+  const VISAGE_VERIFICATION = process.env.VISAGE_VERIFICATION === "true";
   const API_USER = process.env.SIGHTENGINE_API_USER;
   const API_SECRET = process.env.SIGHTENGINE_API_SECRET;
 
@@ -140,21 +152,28 @@ async function verifyFaceInImage(imageBuffer) {
 
   try {
     const data = new FormData();
-    data.append('media', imageBuffer, { filename: 'image.jpg', contentType: 'image/jpeg' });
-    data.append('models', 'faces');
-    data.append('api_user', API_USER);
-    data.append('api_secret', API_SECRET);
+    data.append("media", imageBuffer, {
+      filename: "image.jpg",
+      contentType: "image/jpeg",
+    });
+    data.append("models", "faces");
+    data.append("api_user", API_USER);
+    data.append("api_secret", API_SECRET);
 
     const response = await axios({
-      method: 'post',
-      url: 'https://api.sightengine.com/1.0/check.json',
+      method: "post",
+      url: "https://api.sightengine.com/1.0/check.json",
       data: data,
       headers: data.getHeaders(),
-      timeout: 10000 // Timeout de 10 secondes
+      timeout: 10000, // Timeout de 10 secondes
     });
 
     // Vérifier si le statut est succès et s'il y a EXACTEMENT UN visage détecté
-    if (response.data.status === 'success' && response.data.faces && response.data.faces.length === 1) {
+    if (
+      response.data.status === "success" &&
+      response.data.faces &&
+      response.data.faces.length === 1
+    ) {
       return true;
     } else {
       return false;
@@ -164,7 +183,6 @@ async function verifyFaceInImage(imageBuffer) {
     return false;
   }
 }
-
 
 // Stockage temporaire des rounds de jeu (pour les parties en cours)
 const activeRounds = new Map();
@@ -294,7 +312,7 @@ async function getUsersWithPhotosByGroups(selectedGroups = []) {
   try {
     let query = supabase
       .from("users")
-      .select("username, display_name, photoName, group")
+      .select("username, display_name, photoName, group, support_bds")
       .eq("hasPhoto", true)
       .not("photoName", "is", null);
 
@@ -434,10 +452,14 @@ async function generateGameRound({ gameId, selectedGroups }) {
     session = activeCompetitiveGameSessions.get(gameId);
     if (!session) {
       console.error("Session de jeu non trouvée ou expirée:", gameId);
-      return { error: "La session de jeu a expiré, veuillez relancer une partie." };
+      return {
+        error: "La session de jeu a expiré, veuillez relancer une partie.",
+      };
     }
-    const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(session.selectedGroups);
-    
+    const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(
+      session.selectedGroups
+    );
+
     // Filtrer les utilisateurs déjà utilisés dans cette session
     usersToPickFrom = allUsersInSelectedGroups.filter(
       (user) => !session.usedUsernames.has(user.username)
@@ -454,39 +476,55 @@ async function generateGameRound({ gameId, selectedGroups }) {
     // Ancien mode sans fin (sans session), déprécié mais gardé pour compatibilité
     usersToPickFrom = await getUsersWithPhotosByGroups(selectedGroups);
   } else {
-    console.error("Paramètres invalides pour generateGameRound. gameId ou selectedGroups sont requis.");
+    console.error(
+      "Paramètres invalides pour generateGameRound. gameId ou selectedGroups sont requis."
+    );
     return null;
   }
 
   // Pour le premier round d'un mode compétitif, on vérifie qu'il y a assez de joueurs pour toute la partie
-  if (session && !session.isEndless && currentRound === 1 && usersToPickFrom.length < MAX_ROUNDS_COMPETITIVE) {
+  if (
+    session &&
+    !session.isEndless &&
+    currentRound === 1 &&
+    usersToPickFrom.length < MAX_ROUNDS_COMPETITIVE
+  ) {
     console.error(
       `Pas assez d'utilisateurs uniques pour une partie compétitive. Requis: ${MAX_ROUNDS_COMPETITIVE}, Disponible: ${usersToPickFrom.length}`
     );
-    return { error: `Il faut au moins ${MAX_ROUNDS_COMPETITIVE} personnes différentes dans les promos sélectionnées pour lancer une partie.` };
+    return {
+      error: `Il faut au moins ${MAX_ROUNDS_COMPETITIVE} personnes différentes dans les promos sélectionnées pour lancer une partie.`,
+    };
   }
 
   // Pour chaque round, on vérifie qu'il y a au moins 4 choix possibles (ou moins si c'est la fin)
   if (usersToPickFrom.length < 4 && usersToPickFrom.length > 0) {
-     // S'il reste moins de 4 joueurs, on complète avec des joueurs déjà vus pour avoir 4 choix
-     const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(session.selectedGroups);
-     const additionalChoices = allUsersInSelectedGroups.filter(
-         (user) => !usersToPickFrom.some(u => u.username === user.username)
-     );
-     usersToPickFrom = [...usersToPickFrom, ...shuffleArray(additionalChoices)].slice(0, 4);
+    // S'il reste moins de 4 joueurs, on complète avec des joueurs déjà vus pour avoir 4 choix
+    const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(
+      session.selectedGroups
+    );
+    const additionalChoices = allUsersInSelectedGroups.filter(
+      (user) => !usersToPickFrom.some((u) => u.username === user.username)
+    );
+    usersToPickFrom = [
+      ...usersToPickFrom,
+      ...shuffleArray(additionalChoices),
+    ].slice(0, 4);
   }
 
   if (usersToPickFrom.length < 1) {
     return { error: "Plus aucun joueur à afficher." };
   }
 
-
   try {
     // Le joueur à deviner est toujours pris parmi ceux pas encore vus
-    const notSeenUsers = session ? (await getUsersWithPhotosByGroups(session.selectedGroups)).filter(user => !session.usedUsernames.has(user.username)) : usersToPickFrom;
+    const notSeenUsers = session
+      ? (await getUsersWithPhotosByGroups(session.selectedGroups)).filter(
+          (user) => !session.usedUsernames.has(user.username)
+        )
+      : usersToPickFrom;
     const randomIndex = Math.floor(Math.random() * notSeenUsers.length);
     const selectedUser = notSeenUsers[randomIndex];
-
 
     const correctChoice = {
       id: 1,
@@ -508,7 +546,10 @@ async function generateGameRound({ gameId, selectedGroups }) {
 
     // S'il n'y a pas assez de mauvais choix, on remplit avec la bonne réponse pour éviter un crash
     while (wrongChoices.length < 3) {
-      wrongChoices.push({ id: wrongChoices.length + 2, displayName: correctChoice.displayName });
+      wrongChoices.push({
+        id: wrongChoices.length + 2,
+        displayName: correctChoice.displayName,
+      });
     }
 
     const allChoices = shuffleArray([correctChoice, ...wrongChoices]);
@@ -529,6 +570,7 @@ async function generateGameRound({ gameId, selectedGroups }) {
       correctDisplayName: selectedUser.display_name,
       correctGroup: selectedUser.group,
       photoName: selectedUser.photoName,
+      supportBds: selectedUser.support_bds || null,
       timestamp: Date.now(),
     };
 
@@ -547,12 +589,10 @@ async function generateGameRound({ gameId, selectedGroups }) {
       choices: choices,
       currentRound: currentRound,
       totalScore: totalScore,
+      supportBds: selectedUser.support_bds || null,
     };
   } catch (error) {
-    console.error(
-      "Erreur lors de la génération du round:",
-      error
-    );
+    console.error("Erreur lors de la génération du round:", error);
     return null;
   }
 }
@@ -576,13 +616,16 @@ async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
   if (gameId) {
     session = activeCompetitiveGameSessions.get(gameId);
     if (!session) {
-      console.error("Session de jeu non trouvée ou expirée pour gameId:", gameId);
+      console.error(
+        "Session de jeu non trouvée ou expirée pour gameId:",
+        gameId
+      );
       return null;
     }
-        
+
     // On détermine le mode en fonction de la session et non plus de la simple présence du gameId
     isCompetitiveMode = !session.isEndless;
-    
+
     roundData = session.roundDataMap.get(roundId);
   } else {
     // Mode sans fin (ancien)
@@ -634,20 +677,23 @@ async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
     isGameOver = session.currentRound >= MAX_ROUNDS_COMPETITIVE;
 
     if (isGameOver && !session.isEndless) {
-      const gameType = session.selectedGroups.length > 1 || session.selectedGroups.length === 0
-        ? 'all_promos'
-        : session.selectedGroups[0];
+      const gameType =
+        session.selectedGroups.length > 1 || session.selectedGroups.length === 0
+          ? "all_promos"
+          : session.selectedGroups[0];
       await submitScore(session.userId, session.totalScore, gameType);
       activeCompetitiveGameSessions.delete(gameId);
     }
-    
+
     // Pour le mode sans fin, on vérifie si tous les joueurs ont été vus
     if (session.isEndless) {
-        const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(session.selectedGroups);
-        if (session.usedUsernames.size >= allUsersInSelectedGroups.length) {
-            isGameOver = true;
-            activeCompetitiveGameSessions.delete(gameId); // Nettoyer la session
-        }
+      const allUsersInSelectedGroups = await getUsersWithPhotosByGroups(
+        session.selectedGroups
+      );
+      if (session.usedUsernames.size >= allUsersInSelectedGroups.length) {
+        isGameOver = true;
+        activeCompetitiveGameSessions.delete(gameId); // Nettoyer la session
+      }
     }
 
     currentRound = session.currentRound;
@@ -686,7 +732,7 @@ async function verifyAnswer({ roundId, choiceId, gameId, timeElapsed = null }) {
  */
 async function submitScore(username, score, gameType) {
   try {
-    const { error } = await supabase.rpc('upsert_best_score', {
+    const { error } = await supabase.rpc("upsert_best_score", {
       username_in: username,
       score_in: score,
       game_type_in: gameType,
@@ -708,15 +754,17 @@ async function submitScore(username, score, gameType) {
 async function getLeaderboard(gameType) {
   try {
     const { data, error } = await supabase
-      .from('ceki_best_scores')
-      .select(`
+      .from("ceki_best_scores")
+      .select(
+        `
         score,
         users (
           display_name
         )
-      `)
-      .eq('game_type', gameType)
-      .order('score', { ascending: false })
+      `
+      )
+      .eq("game_type", gameType)
+      .order("score", { ascending: false })
       .limit(100);
 
     if (error) {
@@ -725,17 +773,18 @@ async function getLeaderboard(gameType) {
     }
 
     // Transformer les données pour un format plus simple
-    return data.map(entry => ({
+    return data.map((entry) => ({
       displayName: entry.users.display_name,
       score: entry.score,
     }));
-
   } catch (error) {
-    console.error("Erreur inattendue lors de la récupération du classement:", error);
+    console.error(
+      "Erreur inattendue lors de la récupération du classement:",
+      error
+    );
     return null;
   }
 }
-
 
 /**
  * Crée un signalement pour une photo.
@@ -746,9 +795,14 @@ async function getLeaderboard(gameType) {
  * @param {string} [reportData.details] - Détails supplémentaires.
  * @returns {Promise<boolean>}
  */
-async function createPhotoReport({ photoName, reportedByUsername, reason, details }) {
+async function createPhotoReport({
+  photoName,
+  reportedByUsername,
+  reason,
+  details,
+}) {
   try {
-    const { error } = await supabase.from('ceki_photo_reports').insert([
+    const { error } = await supabase.from("ceki_photo_reports").insert([
       {
         photo_name: photoName,
         reported_by_username: reportedByUsername,
@@ -758,13 +812,16 @@ async function createPhotoReport({ photoName, reportedByUsername, reason, detail
     ]);
 
     if (error) {
-      console.error('Erreur lors de la création du signalement:', error);
+      console.error("Erreur lors de la création du signalement:", error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Erreur inattendue lors de la création du signalement:', error);
+    console.error(
+      "Erreur inattendue lors de la création du signalement:",
+      error
+    );
     return false;
   }
 }
@@ -778,8 +835,9 @@ async function getReportedPhotos() {
     // Cette requête est complexe. On utilise rpc pour appeler une fonction SQL ou on le fait en plusieurs étapes.
     // Étape 1: Récupérer tous les signalements non résolus.
     const { data: reports, error: reportsError } = await supabase
-      .from('ceki_photo_reports')
-      .select(`
+      .from("ceki_photo_reports")
+      .select(
+        `
         photo_name,
         reason,
         details,
@@ -788,11 +846,15 @@ async function getReportedPhotos() {
         users (
           display_name
         )
-      `)
-      .eq('status', 'pending');
+      `
+      )
+      .eq("status", "pending");
 
     if (reportsError) {
-      console.error("Erreur lors de la récupération des signalements:", reportsError);
+      console.error(
+        "Erreur lors de la récupération des signalements:",
+        reportsError
+      );
       return null;
     }
 
@@ -817,18 +879,18 @@ async function getReportedPhotos() {
       acc[photo_name].reportCount = acc[photo_name].reporters.size;
       return acc;
     }, {});
-    
+
     // Convertir l'objet en tableau et trier par nombre de signalements
-    const sortedReports = Object.values(groupedReports).sort((a, b) => b.reportCount - a.reportCount);
+    const sortedReports = Object.values(groupedReports).sort(
+      (a, b) => b.reportCount - a.reportCount
+    );
 
     return sortedReports;
-
   } catch (error) {
     console.error("Erreur lors du groupement des photos signalées:", error);
     return null;
   }
 }
-
 
 /**
  * Bannit un utilisateur de l'upload de photos pour une durée déterminée.
@@ -842,9 +904,9 @@ async function banUserPhotoUpload(username, days) {
     banUntil.setDate(banUntil.getDate() + days);
 
     const { error } = await supabase
-      .from('users')
+      .from("users")
       .update({ photo_banned_until: banUntil.toISOString() })
-      .eq('username', username);
+      .eq("username", username);
 
     if (error) {
       console.error("Erreur lors du bannissement de l'utilisateur:", error);
@@ -864,21 +926,24 @@ async function banUserPhotoUpload(username, days) {
  * @returns {Promise<boolean>}
  */
 async function resolveReportsForPhoto(photoName, newStatus) {
-    try {
-        const { error } = await supabase
-            .from('ceki_photo_reports')
-            .update({ status: newStatus })
-            .eq('photo_name', photoName);
+  try {
+    const { error } = await supabase
+      .from("ceki_photo_reports")
+      .update({ status: newStatus })
+      .eq("photo_name", photoName);
 
-        if (error) {
-            console.error("Erreur lors de la résolution des signalements:", error);
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error("Erreur inattendue lors de la résolution des signalements:", error);
-        return false;
+    if (error) {
+      console.error("Erreur lors de la résolution des signalements:", error);
+      return false;
     }
+    return true;
+  } catch (error) {
+    console.error(
+      "Erreur inattendue lors de la résolution des signalements:",
+      error
+    );
+    return false;
+  }
 }
 
 /**
@@ -895,17 +960,22 @@ async function getUserByPhotoName(photoName) {
       .single();
 
     if (error) {
-      console.error("Erreur lors de la récupération de l'utilisateur par nom de photo:", error);
+      console.error(
+        "Erreur lors de la récupération de l'utilisateur par nom de photo:",
+        error
+      );
       return { data: null, error };
     }
 
     return { data, error: null };
   } catch (error) {
-    console.error("Erreur inattendue lors de la récupération de l'utilisateur par nom de photo:", error);
+    console.error(
+      "Erreur inattendue lors de la récupération de l'utilisateur par nom de photo:",
+      error
+    );
     return { data: null, error };
   }
 }
-
 
 module.exports = {
   checkUserPhoto,

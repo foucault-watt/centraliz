@@ -4,6 +4,8 @@ const claService = require("../services/claService");
 const tokenService = require("../services/tokenService");
 const loginService = require("../services/loginService");
 const cookieParser = require("cookie-parser");
+const supabase = require("../utils/supabaseClient");
+const bdsWhitelist = require("../config/bdsWhitelist");
 
 // Middleware pour parser les cookies, nécessaire pour lire le cookie remember_me
 router.use(cookieParser());
@@ -54,6 +56,19 @@ router.get("/status", async (req, res) => {
   }
 
   if (fullUser) {
+    // Check for BDS referral cookie
+    const bdsReferral = req.cookies.bds_referral;
+    if (bdsReferral && bdsWhitelist.includes(bdsReferral)) {
+      await supabase
+        .from("users")
+        .update({ support_bds: bdsReferral })
+        .eq("username", fullUser.username);
+
+      res.clearCookie("bds_referral");
+      // Optionally update fullUser object if we were using it for response,
+      // but currently we construct session user manually below.
+    }
+
     // Créer/Mettre à jour la session avec les données complètes et correctes
     req.session.user = {
       userName: fullUser.username,
@@ -62,6 +77,7 @@ router.get("/status", async (req, res) => {
       is_admin: fullUser.is_admin,
       is_bibli_admin: fullUser.is_bibli_admin,
       ent_username: fullUser.ent_username,
+      support_bds: fullUser.support_bds,
     };
     return res.json({ authenticated: true, user: req.session.user });
   }

@@ -50,7 +50,7 @@ $spacing-lg: 20px;
 
       &:focus {
         outline: none;
-        border-color: $main;
+        border-color: var(--color-primary);
         @include box-shadow(0, 0, 0, rgba($main, 0.2));
       }
     }
@@ -58,7 +58,7 @@ $spacing-lg: 20px;
     button {
       margin-top: $spacing-sm;
       padding: 12px;
-      background-color: $main;
+      background-color: var(--color-primary);
       color: white;
       border: none;
       border-radius: 6px;
@@ -89,10 +89,10 @@ $spacing-lg: 20px;
     color: $second;
 
     &.error {
-      color: $red;
+      color: var(--color-red);
     }
     &.success {
-      color: $green;
+      color: var(--color-green);
     }
   }
 }
@@ -100,7 +100,9 @@ $spacing-lg: 20px;
 // Conteneur de la liste de mails
 .mail-container {
   position: relative;
-  height: calc(100vh - 100px); // Ajustez 100px en fonction de la hauteur de l'en-tête
+  height: calc(
+    100vh - 100px
+  ); // Ajustez 100px en fonction de la hauteur de l'en-tête
   display: flex;
   flex-direction: column;
 }
@@ -124,7 +126,7 @@ $spacing-lg: 20px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $main;
+    background: var(--color-primary);
     border-radius: 4px;
 
     &:hover {
@@ -189,7 +191,7 @@ $spacing-lg: 20px;
     }
 
     a {
-      color: $main;
+      color: var(--color-primary);
       text-decoration: underline;
     }
   }
@@ -198,7 +200,7 @@ $spacing-lg: 20px;
     text-decoration: none !important;
     margin-top: 12px;
     padding: 8px 15px;
-    background-color: $main;
+    background-color: var(--color-primary);
     color: white !important;
     border: none;
     border-radius: 6px;
@@ -287,7 +289,7 @@ $spacing-lg: 20px;
   }
 
   a {
-    color: $main;
+    color: var(--color-primary);
     text-decoration: underline;
   }
 }
@@ -296,7 +298,7 @@ $spacing-lg: 20px;
   text-decoration: none !important;
   margin-top: 12px;
   padding: 8px 15px;
-  background-color: $main;
+  background-color: var(--color-primary);
   color: white !important;
   border: none;
   border-radius: 6px;
@@ -385,7 +387,7 @@ $spacing-lg: 20px;
     }
 
     a {
-      color: $main;
+      color: var(--color-primary);
       text-decoration: underline;
     }
   }
@@ -394,7 +396,7 @@ $spacing-lg: 20px;
     text-decoration: none !important;
     margin-top: 12px;
     padding: 8px 15px;
-    background-color: $main;
+    background-color: var(--color-primary);
     color: white !important;
     border: none;
     border-radius: 6px;
@@ -419,7 +421,7 @@ $spacing-lg: 20px;
       content: "";
       width: 20px;
       height: 20px;
-      border: 2px solid $main;
+      border: 2px solid var(--color-primary);
       border-radius: 50%;
       border-top-color: transparent;
       animation: spin 0.6s linear infinite;
@@ -427,7 +429,7 @@ $spacing-lg: 20px;
   }
 
   &__error {
-    color: $red;
+    color: var(--color-red);
     font-style: italic;
   }
 }

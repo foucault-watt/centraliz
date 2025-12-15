@@ -4,8 +4,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#597ee5",
-        "primary-dark": "#4267ce",
+        primary: "var(--color-primary, #597ee5)",
+        "primary-dark": "var(--color-primary-dark, #4267ce)",
         secondary: "#2c3e50",
         day: "#f7f7f7", // Correspond à $day
         "background-light": "#f7f7f7", // Correspond à $day

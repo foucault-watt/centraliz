@@ -1,21 +1,21 @@
 export const steps = [
     {
       title: "Bienvenue sur Centraliz !",
-      content: `Laisse moi te présenter Centraliz, l'app qui centralise la vie à Centrale.`,
+      content: `Voici Centraliz, l'app qui centralise la vie à Centrale.`,
       icon: "✨",
     },
     {
       title: "Tous les emplois du temps",
-      content: "Lache hyperplanning ! On centralise l'emploi du temps de tes potes, de tes profs et même des salles !",
+      content: "Lâche Hyperplanning ! Retrouve-ici l'emploi du temps de tes potes, de tes profs et même des salles !",
       icon: "📅",
     },
     {
-      title: "La vie associative en direct",
+      title: "Pas de soirée ratée",
       content: "Le calendrier du CLA est intégré directement dans Centraliz ! Plus d'excuses pour rater les soirées !",
       icon: "🎉",
     },
     {
-      title: "Tes mails, simplement",
+      title: "Tes mails zimbra",
       content: "Reçois tes mails de l'école directement sur Centraliz ! Plus besoin d'ouvrir Zimbra toutes les 10 minutes.",
       icon: "✉️",
     },
@@ -25,7 +25,7 @@ export const steps = [
       icon: "📱",
     },
     {
-      title: "Une histoire d'étudiant",
+      title: "Qui suis-je ?",
       content: "Je suis Foucault de l'ITEEM ! J'ai créé Centraliz pour nous faciliter la vie à centrale.",
       icon: "🚀",
     },

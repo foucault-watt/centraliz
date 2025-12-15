@@ -17,12 +17,13 @@ const rankRoutes = require("../routes/ranking");
 const coefRoutes = require("../routes/coef");
 const cekiRoutes = require("../routes/ceki");
 const bibliRoutes = require("../routes/bibli");
+const bdsRoutes = require("../routes/bds");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
 
 // Faire confiance au premier proxy (nécessaire pour ngrok et le déploiement)
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // Utiliser Helmet pour sécuriser les en-têtes HTTP
 app.use(helmet());
@@ -78,6 +79,7 @@ app.use("/api", rankRoutes);
 app.use("/api/coef", coefRoutes);
 app.use("/api/ceki", cekiRoutes);
 app.use("/api/bibli", bibliRoutes);
+app.use("/api/bds", bdsRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {

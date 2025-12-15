@@ -147,7 +147,7 @@
 
         &:focus {
           outline: none;
-          border-color: $main;
+          border-color: var(--color-primary);
           background: white;
         }
       }
@@ -218,7 +218,7 @@
             }
 
             &.active {
-              background: $main;
+              background: var(--color-primary);
               color: white;
             }
           }
@@ -280,7 +280,7 @@
               padding: 0.25rem 0.5rem;
               border-radius: 12px;
               font-size: 0.8rem;
-              color: $main;
+              color: var(--color-primary);
             }
           }
         }
@@ -297,7 +297,7 @@
         &:hover {
           background-color: rgba($main, 0.1);
           transform: scale(1.1);
-          color: $main;
+          color: var(--color-primary);
         }
       }
     }
@@ -394,7 +394,7 @@
     margin: 0;
     padding: 4px;
     border-radius: 12px;
-    background-color: $main;
+    background-color: var(--color-primary);
     color: white;
     cursor: pointer;
     overflow: hidden;
@@ -484,21 +484,29 @@
     }
 
     &.tne-event {
-      background: linear-gradient(135deg, $green, darken($green, 10%));
+      background: linear-gradient(
+        135deg,
+        var(--color-green),
+        darken($green, 10%)
+      );
       &:hover {
         box-shadow: 0 4px 12px rgba($green, 0.3);
       }
     }
 
     &.cb-event {
-      background: linear-gradient(135deg, $red, darken($red, 10%));
+      background: linear-gradient(135deg, var(--color-red), darken($red, 10%));
       &:hover {
         box-shadow: 0 4px 12px rgba($red, 0.3);
       }
     }
 
     &.shared {
-      background: linear-gradient(135deg, $orange, darken($orange, 10%));
+      background: linear-gradient(
+        135deg,
+        var(--color-orange),
+        darken($orange, 10%)
+      );
       border: 2px solid rgba(white, 0.3);
       opacity: 0.6;
 
@@ -578,7 +586,7 @@
         height: 40px;
         background: rgba($main, 0.1);
         border-radius: 8px;
-        color: $main;
+        color: var(--color-primary);
         flex-shrink: 0;
 
         svg {
@@ -617,18 +625,18 @@
         }
 
         .value {
-          color: $main;
+          color: var(--color-primary);
         }
       }
 
       &.professor-detail .icon-container {
         background: rgba($green, 0.1);
-        color: $green;
+        color: var(--color-green);
       }
 
       &.location-detail .icon-container {
         background: rgba($orange, 0.1);
-        color: $orange;
+        color: var(--color-orange);
       }
     }
   }
@@ -685,7 +693,11 @@
   button {
     margin-top: 1rem;
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, $main, darken($main, 15%));
+    background: linear-gradient(
+      135deg,
+      var(--color-primary),
+      darken($main, 15%)
+    );
     color: white;
     border: none;
     border-radius: 8px;
@@ -708,15 +720,15 @@
     margin-top: 1rem;
     padding: 0.75rem;
     background-color: rgba($green, 0.1);
-    border-left: 4px solid $green;
+    border-left: 4px solid var(--color-green);
     border-radius: 0 8px 8px 0;
     color: darken($green, 10%);
   }
 
   .error-message {
-    color: $red;
+    color: var(--color-red);
     background-color: rgba($red, 0.1);
-    border-left: 4px solid $red;
+    border-left: 4px solid var(--color-red);
     padding: 0.75rem;
     border-radius: 0 4px 4px 0;
     margin-top: 1rem;
@@ -795,7 +807,7 @@
         height: 40px;
         background: rgba($main, 0.1);
         border-radius: 8px;
-        color: $main;
+        color: var(--color-primary);
         flex-shrink: 0;
 
         svg {
@@ -827,17 +839,17 @@
       }
 
       .value {
-        color: $main;
+        color: var(--color-primary);
       }
 
       &.professor-detail .icon-container {
         background: rgba($green, 0.1);
-        color: $green;
+        color: var(--color-green);
       }
 
       &.location-detail .icon-container {
         background: rgba($orange, 0.1);
-        color: $orange;
+        color: var(--color-orange);
       }
     }
   }
@@ -854,7 +866,7 @@
     padding: 0.75rem;
     background: rgba($main, 0.05);
     border-radius: 8px;
-    border-left: 3px solid $main;
+    border-left: 3px solid var(--color-primary);
   }
 
   .question {
@@ -883,7 +895,7 @@
 
       &.required::after {
         content: " *";
-        color: $main;
+        color: var(--color-primary);
         font-weight: bold;
       }
     }
@@ -900,7 +912,7 @@
       transition: all 0.3s ease;
 
       &:focus {
-        border-color: $main;
+        border-color: var(--color-primary);
         box-shadow: 0 0 0 3px rgba($main, 0.1);
         outline: none;
       }
@@ -947,7 +959,7 @@
         }
 
         &:has(input:checked) {
-          background: $main;
+          background: var(--color-primary);
           color: white;
           transform: scale(1.02);
           box-shadow: 0 2px 8px rgba($main, 0.2);
@@ -971,7 +983,11 @@
     width: 100%;
     padding: 1rem;
     font-size: 1.1rem;
-    background: linear-gradient(135deg, $main, darken($main, 10%));
+    background: linear-gradient(
+      135deg,
+      var(--color-primary),
+      darken($main, 10%)
+    );
     color: white;
     border: none;
     border-radius: 8px;
@@ -989,7 +1005,11 @@
     }
 
     &.success {
-      background: linear-gradient(135deg, $green, darken($green, 10%));
+      background: linear-gradient(
+        135deg,
+        var(--color-green),
+        darken($green, 10%)
+      );
       pointer-events: none;
     }
 
@@ -1014,7 +1034,7 @@
     margin-top: 1rem;
     padding: 1rem;
     background: rgba($red, 0.1);
-    color: $red;
+    color: var(--color-red);
     border-radius: 8px;
     animation: shake 0.4s ease-in-out;
   }
@@ -1163,7 +1183,7 @@
     transform: scale(1);
   }
   to {
-    background: $main;
+    background: var(--color-primary);
     transform: scale(1.02);
   }
 }

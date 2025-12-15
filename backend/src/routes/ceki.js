@@ -84,11 +84,11 @@ router.post(
       // Vérifier si l'utilisateur a déjà une photo et la supprimer
       const currentPhotoStatus = await cekiService.checkUserPhoto(userName);
       if (currentPhotoStatus.isBanned) {
-       return res.status(403).json({
-         success: false,
-         error: "Vous êtes temporairement banni de l'upload de photos.",
-       });
-     }
+        return res.status(403).json({
+          success: false,
+          error: "Vous êtes temporairement banni de l'upload de photos.",
+        });
+      }
       if (currentPhotoStatus.hasPhoto && currentPhotoStatus.photoName) {
         await cekiService.deletePhotoFile(currentPhotoStatus.photoName);
       }
@@ -108,14 +108,17 @@ router.post(
         .toBuffer(); // Utiliser toBuffer() au lieu de toFile()
 
       // Vérifier la présence de visage si la fonctionnalité est activée
-      const isFaceDetected = await cekiService.verifyFaceInImage(processedImageBuffer);
+      const isFaceDetected = await cekiService.verifyFaceInImage(
+        processedImageBuffer
+      );
       if (!isFaceDetected) {
         return res.status(400).json({
           success: false,
-          error: "Aucun visage détecté sur la photo. Veuillez en choisir une autre.",
+          error:
+            "Aucun visage détecté sur la photo. Veuillez en choisir une autre.",
         });
       }
-      
+
       // Si la vérification de visage est réussie, écrire le fichier et mettre à jour la BDD
       await fs.writeFile(filePath, processedImageBuffer); // Écrire le fichier seulement si la vérification réussit
 
@@ -286,7 +289,8 @@ router.post("/game/start-endless", authMiddleware, async (req, res) => {
     const { selectedGroups } = req.body;
 
     // La sélection de groupe est optionnelle pour le mode sans fin, mais si elle est vide, on prend tout.
-    const groups = selectedGroups && selectedGroups.length > 0 ? selectedGroups : [];
+    const groups =
+      selectedGroups && selectedGroups.length > 0 ? selectedGroups : [];
 
     const userPhotoStatus = await cekiService.checkUserPhoto(userName);
     if (!userPhotoStatus.hasPhoto) {
@@ -345,14 +349,18 @@ router.get("/game/round", authMiddleware, async (req, res) => {
       // Mode sans fin (comportement existant) - DÉPRÉCIÉ, passe maintenant par gameId
       // On garde ce bloc pour une potentielle compatibilité descendante, mais la logique
       // frontend devrait être mise à jour pour toujours créer une session et passer un gameId.
-      const selectedGroups = req.query.groups ? req.query.groups.split(",") : [];
+      const selectedGroups = req.query.groups
+        ? req.query.groups.split(",")
+        : [];
       gameRound = await cekiService.generateGameRound({ selectedGroups });
     }
 
     if (!gameRound || gameRound.error) {
       return res.status(400).json({
         success: false,
-        error: gameRound.error || "Impossible de générer un round de jeu. Pas assez d'utilisateurs avec des photos dans les promos sélectionnées.",
+        error:
+          gameRound.error ||
+          "Impossible de générer un round de jeu. Pas assez d'utilisateurs avec des photos dans les promos sélectionnées.",
       });
     }
 
@@ -363,6 +371,7 @@ router.get("/game/round", authMiddleware, async (req, res) => {
       choices: gameRound.choices,
       currentRound: gameRound.currentRound, // Sera 0 pour le mode sans fin, ou le numéro de round pour compétitif
       totalScore: gameRound.totalScore, // Sera 0 pour le mode sans fin, ou le score cumulé pour compétitif
+      supportBds: gameRound.supportBds || null,
     });
   } catch (error) {
     console.error("Erreur lors de la génération du round:", error);
@@ -544,133 +553,181 @@ router.get("/photo/:filename", authMiddleware, async (req, res) => {
 });
 
 /**
-* POST /api/ceki/report-photo
-* Permet à un utilisateur de signaler une photo.
-*/
+ * POST /api/ceki/report-photo
+ * Permet à un utilisateur de signaler une photo.
+ */
 router.post("/report-photo", authMiddleware, async (req, res) => {
- try {
-   const { photoName, reason, details } = req.body;
-   const reportedByUsername = req.session.user.userName;
+  try {
+    const { photoName, reason, details } = req.body;
+    const reportedByUsername = req.session.user.userName;
 
-   if (!photoName || !reason) {
-     return res.status(400).json({
-       success: false,
-       error: "Le nom de la photo et la raison sont requis.",
-     });
-   }
+    if (!photoName || !reason) {
+      return res.status(400).json({
+        success: false,
+        error: "Le nom de la photo et la raison sont requis.",
+      });
+    }
 
-   const success = await cekiService.createPhotoReport({
-     photoName,
-     reportedByUsername,
-     reason,
-     details,
-   });
+    const success = await cekiService.createPhotoReport({
+      photoName,
+      reportedByUsername,
+      reason,
+      details,
+    });
 
-   if (!success) {
-     return res.status(500).json({
-       success: false,
-       error: "Erreur lors de la création du signalement.",
-     });
-   }
+    if (!success) {
+      return res.status(500).json({
+        success: false,
+        error: "Erreur lors de la création du signalement.",
+      });
+    }
 
-   res.json({
-     success: true,
-     message: "La photo a été signalée avec succès.",
-   });
- } catch (error) {
-   console.error("Erreur lors du signalement de la photo:", error);
-   res.status(500).json({
-     success: false,
-     error: "Erreur serveur lors du signalement de la photo.",
-   });
- }
+    res.json({
+      success: true,
+      message: "La photo a été signalée avec succès.",
+    });
+  } catch (error) {
+    console.error("Erreur lors du signalement de la photo:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur serveur lors du signalement de la photo.",
+    });
+  }
 });
 
 /**
-* GET /api/ceki/admin/reported-photos
-* Récupère toutes les photos signalées. Accès admin uniquement.
-*/
-router.get("/admin/reported-photos", authMiddleware, adminMiddleware, async (req, res) => {
- try {
-   const reportedPhotos = await cekiService.getReportedPhotos();
+ * GET /api/ceki/admin/reported-photos
+ * Récupère toutes les photos signalées. Accès admin uniquement.
+ */
+router.get(
+  "/admin/reported-photos",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    try {
+      const reportedPhotos = await cekiService.getReportedPhotos();
 
-   if (reportedPhotos === null) {
-     return res.status(500).json({
-       success: false,
-       error: "Erreur lors de la récupération des photos signalées.",
-     });
-   }
+      if (reportedPhotos === null) {
+        return res.status(500).json({
+          success: false,
+          error: "Erreur lors de la récupération des photos signalées.",
+        });
+      }
 
-   res.json({
-     success: true,
-     reportedPhotos: reportedPhotos,
-   });
- } catch (error) {
-   console.error("Erreur dans la route getReportedPhotos:", error);
-   res.status(500).json({
-     success: false,
-     error: "Erreur serveur lors de la récupération des photos signalées.",
-   });
- }
-});
+      res.json({
+        success: true,
+        reportedPhotos: reportedPhotos,
+      });
+    } catch (error) {
+      console.error("Erreur dans la route getReportedPhotos:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erreur serveur lors de la récupération des photos signalées.",
+      });
+    }
+  }
+);
 
 /**
-* POST /api/ceki/admin/resolve-report
-* Permet à un admin de résoudre un signalement.
-*/
-router.post("/admin/resolve-report", authMiddleware, adminMiddleware, async (req, res) => {
- const { action, photoName, username, banDuration } = req.body;
+ * POST /api/ceki/admin/resolve-report
+ * Permet à un admin de résoudre un signalement.
+ */
+router.post(
+  "/admin/resolve-report",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const { action, photoName, username, banDuration } = req.body;
 
- try {
-   if (!action || !photoName) {
-     return res.status(400).json({ success: false, error: "Action et nom de photo requis." });
-   }
+    try {
+      if (!action || !photoName) {
+        return res
+          .status(400)
+          .json({ success: false, error: "Action et nom de photo requis." });
+      }
 
-   let resolutionStatus;
+      let resolutionStatus;
 
-   switch (action) {
-     case 'delete_photo':
-       // On doit récupérer le nom de l'utilisateur qui a posté la photo
-       const {data: user, error} = await cekiService.getUserByPhotoName(photoName);
-       if(error || !user) {
-           return res.status(404).json({ success: false, error: "Utilisateur de la photo non trouvé." });
-       }
-       await cekiService.deletePhotoFile(photoName);
-       await cekiService.removeUserPhoto(user.username);
-       resolutionStatus = await cekiService.resolveReportsForPhoto(photoName, 'resolved_photo_deleted');
-       break;
+      switch (action) {
+        case "delete_photo":
+          // On doit récupérer le nom de l'utilisateur qui a posté la photo
+          const { data: user, error } = await cekiService.getUserByPhotoName(
+            photoName
+          );
+          if (error || !user) {
+            return res
+              .status(404)
+              .json({
+                success: false,
+                error: "Utilisateur de la photo non trouvé.",
+              });
+          }
+          await cekiService.deletePhotoFile(photoName);
+          await cekiService.removeUserPhoto(user.username);
+          resolutionStatus = await cekiService.resolveReportsForPhoto(
+            photoName,
+            "resolved_photo_deleted"
+          );
+          break;
 
-     case 'ban_user':
-       if (!banDuration) {
-         return res.status(400).json({ success: false, error: "La durée de bannissement est requise." });
-       }
-       const { data: userToBan, error: banError } = await cekiService.getUserByPhotoName(photoName);
-       if (banError || !userToBan) {
-           return res.status(404).json({ success: false, error: "Utilisateur de la photo non trouvé." });
-       }
-       await cekiService.banUserPhotoUpload(userToBan.username, banDuration);
-       resolutionStatus = await cekiService.resolveReportsForPhoto(photoName, `resolved_user_banned_${banDuration}d`);
-       break;
-       
-     case 'dismiss':
-       resolutionStatus = await cekiService.resolveReportsForPhoto(photoName, 'resolved_dismissed');
-       break;
+        case "ban_user":
+          if (!banDuration) {
+            return res
+              .status(400)
+              .json({
+                success: false,
+                error: "La durée de bannissement est requise.",
+              });
+          }
+          const { data: userToBan, error: banError } =
+            await cekiService.getUserByPhotoName(photoName);
+          if (banError || !userToBan) {
+            return res
+              .status(404)
+              .json({
+                success: false,
+                error: "Utilisateur de la photo non trouvé.",
+              });
+          }
+          await cekiService.banUserPhotoUpload(userToBan.username, banDuration);
+          resolutionStatus = await cekiService.resolveReportsForPhoto(
+            photoName,
+            `resolved_user_banned_${banDuration}d`
+          );
+          break;
 
-     default:
-       return res.status(400).json({ success: false, error: "Action non valide." });
-   }
+        case "dismiss":
+          resolutionStatus = await cekiService.resolveReportsForPhoto(
+            photoName,
+            "resolved_dismissed"
+          );
+          break;
 
-   if (!resolutionStatus) {
-       return res.status(500).json({ success: false, error: "Erreur lors de la résolution du signalement." });
-   }
+        default:
+          return res
+            .status(400)
+            .json({ success: false, error: "Action non valide." });
+      }
 
-   res.json({ success: true, message: `Signalement pour ${photoName} traité avec succès.` });
+      if (!resolutionStatus) {
+        return res
+          .status(500)
+          .json({
+            success: false,
+            error: "Erreur lors de la résolution du signalement.",
+          });
+      }
 
- } catch (error) {
-   console.error("Erreur lors de la résolution du signalement:", error);
-   res.status(500).json({ success: false, error: "Erreur serveur." });
- }
-});
+      res.json({
+        success: true,
+        message: `Signalement pour ${photoName} traité avec succès.`,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la résolution du signalement:", error);
+      res.status(500).json({ success: false, error: "Erreur serveur." });
+    }
+  }
+);
 
 /**
  * GET /api/ceki/leaderboard

@@ -3,6 +3,7 @@ const axios = require("axios");
 const supabase = require("../utils/supabaseClient");
 const tokenService = require("./tokenService");
 const loginService = require("./loginService");
+const bdsWhitelist = require("../config/bdsWhitelist");
 
 // Remplacez par vos variables d'environnement
 const claAuthHost = process.env.CLA_AUTH_HOST;
@@ -108,12 +109,26 @@ exports.callback = async (req, res) => {
       );
     }
 
+    // Gérer le parrainage BDS (Referral)
+    const bdsReferral = req.cookies.bds_referral;
+    if (bdsReferral && bdsWhitelist.includes(bdsReferral)) {
+      await supabase
+        .from("users")
+        .update({ support_bds: bdsReferral })
+        .eq("username", user.username);
+
+      res.clearCookie("bds_referral");
+      // Mettre à jour l'objet user en mémoire pour la session
+      user.support_bds = bdsReferral;
+    }
+
     req.session.user = {
       userName: user.username,
       displayName: user.display_name,
       icalLink: user.ical_link,
       is_admin: user.is_admin,
       is_bibli_admin: user.is_bibli_admin,
+      support_bds: user.support_bds,
     };
 
     // Gérer le "Remember Me"

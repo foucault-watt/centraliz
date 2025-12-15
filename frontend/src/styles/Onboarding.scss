@@ -37,7 +37,7 @@
   }
   
   &::-webkit-scrollbar-thumb {
-    background: $main;
+    background: var(--color-primary);
     border-radius: 4px;
     
     &:hover {
@@ -65,7 +65,7 @@
 
   h1 {
     font-size: 1.5rem;
-    color: $main;
+    color: var(--color-primary);
     margin-bottom: 1rem;
     
     @media (min-width: 768px) {
@@ -104,7 +104,7 @@
     padding: 0.75rem;
     margin-top: 0.5rem;
     background: rgba($main, 0.1);
-    color: $main;
+    color: var(--color-primary);
     text-decoration: none;
     border-radius: 8px;
     font-weight: 500;
@@ -150,7 +150,7 @@
 
     &:focus {
       outline: none;
-      border-color: $main;
+      border-color: var(--color-primary);
       box-shadow: 0 0 0 4px rgba($main, 0.1);
     }
 
@@ -161,7 +161,7 @@
 }
 
 .error-message {
-  color: $red;
+  color: var(--color-red);
   margin-top: 0.5rem;
   padding: 0.75rem;
   background: rgba($red, 0.1);
@@ -175,7 +175,7 @@
   padding: 1rem;
   border: none;
   border-radius: 12px;
-  background: $main;
+  background: var(--color-primary);
   color: white;
   font-size: 1.1rem;
   font-weight: 600;
@@ -205,7 +205,7 @@
     transition: all 0.3s ease;
 
     &.active {
-      background: $main;
+      background: var(--color-primary);
       transform: scale(1.2);
     }
   }
@@ -233,7 +233,7 @@
 
   .progress-fill {
     height: 100%;
-    background: $main;
+    background: var(--color-primary);
     border-radius: 3px;
     transition: width 0.4s ease-out;
     position: relative;

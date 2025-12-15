@@ -1,14 +1,61 @@
-$main: #597ee5;
-$main-dark: #4267ce;
-$first: #000;
-$second: #2c3e50;
-$day: #f7f7f7;
-$day-border: #ddd;
-$green: #49c16b;
-$orange: #ff9800;
-$red: #e65656;
-$background: #efece6;
-$background-module: #fafafa;
+:root {
+  --color-primary: #597ee5;
+  --color-primary-dark: #4267ce;
+  --color-first: #000;
+  --color-second: #2c3e50;
+  --color-day: #f7f7f7;
+  --color-day-border: #ddd;
+  --color-green: #49c16b;
+  --color-orange: #ff9800;
+  --color-red: #e65656;
+  --color-background: #efece6;
+  --color-background-module: #fafafa;
+}
+
+// Variables SCSS avec les valeurs réelles (pour les fonctions SCSS comme darken/lighten)
+$main-hex: #597ee5;
+$main-dark-hex: #4267ce;
+$first-hex: #000;
+$second-hex: #2c3e50;
+$day-hex: #f7f7f7;
+$day-border-hex: #ddd;
+$green-hex: #49c16b;
+$orange-hex: #ff9800;
+$red-hex: #e65656;
+$background-hex: #efece6;
+$background-module-hex: #fafafa;
+
+// Variables SCSS pour utilisation directe dans les fonctions darken/lighten
+// Ces variables utilisent les valeurs hex pour que SCSS puisse les traiter
+$main: $main-hex;
+$main-dark: $main-dark-hex;
+$first: $first-hex;
+$second: $second-hex;
+$day: $day-hex;
+$day-border: $day-border-hex;
+$green: $green-hex;
+$orange: $orange-hex;
+$red: $red-hex;
+$background: $background-hex;
+$background-module: $background-module-hex;
+
+// Variables CSS dynamiques pour utilisation directe (pas dans les fonctions SCSS)
+$main-dynamic: var(--color-primary);
+$main-dark-dynamic: var(--color-primary-dark);
+$green-dynamic: var(--color-green);
+$orange-dynamic: var(--color-orange);
+$red-dynamic: var(--color-red);
+
+// Mixin pour utiliser les CSS variables comme fallback
+@mixin use-dynamic-color($property, $css-var, $hex-var) {
+  #{$property}: $hex-var; // Fallback pour les anciens navigateurs
+  #{$property}: var(#{$css-var});
+}
+
+// Fonction pour obtenir une couleur dynamique avec fallback
+@function dynamic-color($css-var, $fallback) {
+  @return var(#{$css-var}, #{$fallback});
+}
 
 // Variables communes pour les composants
 $border-radius: 25px;
@@ -26,7 +73,7 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
 body {
-  background: $day;
+  @include use-dynamic-color(background, --color-day, $day);
   font-family: sans-serif;
 }
 

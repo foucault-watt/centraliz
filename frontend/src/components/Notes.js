@@ -1,6 +1,6 @@
 import axios from "axios";
 import Papa from "papaparse";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { UserContext } from "../App";
 import ModuleDisplay from "./notes/ModuleDisplay";
 
@@ -208,6 +208,7 @@ const Notes = () => {
             complete: (results) => {
               processGrades(results.data);
               setIsLoading(false);
+              hasLoadedDataRef.current = true;
             },
           });
           return true;
@@ -226,18 +227,28 @@ const Notes = () => {
     [password, entUsername, rememberMe, processGrades]
   );
 
+  const hasLoadedDataRef = useRef(false);
+
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && !hasLoadedDataRef.current) {
       fetchCSVData();
     }
   }, [isLoggedIn, fetchCSVData]);
 
+  // Reset loaded ref when logged out to allow re-fetching if needed
+  useEffect(() => {
+    if (!isLoggedIn) {
+      hasLoadedDataRef.current = false;
+    }
+  }, [isLoggedIn]);
+
   const handleFetchWithStoredPassword = async () => {
     setError(null);
     const ok = await fetchCSVData({});
-    if (ok) setIsLoggedIn(true);
-    if (ok && setUser) {
-      setUser((prev) => ({ ...(prev || {}), hasPassword: true }));
+    if (ok) {
+      hasLoadedDataRef.current = true;
+      setIsLoggedIn(true);
+      if (setUser) setUser((prev) => ({ ...(prev || {}), hasPassword: true }));
     }
   };
 
@@ -245,39 +256,17 @@ const Notes = () => {
     e.preventDefault();
     setError(null);
     const ok = await fetchCSVData({ entUsername: entUsername, rememberMe });
-    if (ok) setIsLoggedIn(true);
-    if (ok && setUser) {
-      setUser((prev) => ({
-        ...(prev || {}),
-        hasPassword: true,
-        ent_username: entUsername,
-      }));
+    if (ok) {
+      hasLoadedDataRef.current = true;
+      setIsLoggedIn(true);
+      if (setUser)
+        setUser((prev) => ({
+          ...(prev || {}),
+          hasPassword: true,
+          ent_username: entUsername,
+        }));
     }
   };
-
-  useEffect(() => {
-    const fetchCoefficients = async () => {
-      try {
-        const response = await fetch(`/api/coef/`, {
-          credentials: "include",
-        });
-        const data = await response.json();
-        setCoefficients(data);
-        // Récupérer le groupe depuis la réponse
-        const userGroupFromResponse = Object.keys(data.groups)[0];
-        setUserGroup(userGroupFromResponse);
-      } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des coefficients:",
-          error
-        );
-      }
-    };
-
-    if (userName) {
-      fetchCoefficients();
-    }
-  }, [userName]);
 
   const recalculateAllUEAverages = useCallback(() => {
     if (!coefficients || !userGroup) {

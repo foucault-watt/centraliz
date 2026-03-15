@@ -15,6 +15,7 @@ const evaRoutes = require("../routes/eva");
 const statsRoutes = require("../routes/stats");
 const rankRoutes = require("../routes/ranking");
 const coefRoutes = require("../routes/coef");
+const gradesRoutes = require("../routes/grades");
 const cekiRoutes = require("../routes/ceki");
 const bibliRoutes = require("../routes/bibli");
 const bdsRoutes = require("../routes/bds");
@@ -40,14 +41,14 @@ app.use(
         logService.log(`HTTP: ${message.trim()}`);
       },
     },
-  })
+  }),
 );
 
 app.use(
   cors({
     origin: `${process.env.URL_FRONT}`, // Remplacez par l'URL de votre frontend
     credentials: true,
-  })
+  }),
 );
 
 app.use(
@@ -60,7 +61,7 @@ app.use(
       httpOnly: true,
       sameSite: process.env.COOKIE_SAMESITE || "lax", // 'lax' par défaut, 'none' pour ngrok
     },
-  })
+  }),
 );
 
 app.use(express.json());
@@ -77,6 +78,7 @@ app.use("/api/eva", evaRoutes);
 app.use("/api", statsRoutes);
 app.use("/api", rankRoutes);
 app.use("/api/coef", coefRoutes);
+app.use("/api/grades", gradesRoutes);
 app.use("/api/ceki", cekiRoutes);
 app.use("/api/bibli", bibliRoutes);
 app.use("/api/bds", bdsRoutes);

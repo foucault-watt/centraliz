@@ -1,8 +1,9 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
-exports.downloadCSV = async (username, password) => {
+exports.downloadCSV = async (username, password, options = {}) => {
   console.log("Launching soon...");
   const browser = await puppeteer.launch({
     headless: true,
@@ -12,15 +13,15 @@ exports.downloadCSV = async (username, password) => {
   console.log("Launching browser...");
 
   const page = await browser.newPage();
+  const requestId = options.requestId || Date.now().toString(36);
+  const downloadPath = fs.mkdtempSync(
+    path.join(os.tmpdir(), "centraliz-notes-"),
+  );
 
   console.log("Launching new page...");
 
   try {
     // Set up download behavior
-    const downloadPath = path.resolve(__dirname, "downloads");
-    if (!fs.existsSync(downloadPath)) {
-      fs.mkdirSync(downloadPath);
-    }
     await page._client().send("Page.setDownloadBehavior", {
       behavior: "allow",
       downloadPath: downloadPath,
@@ -44,10 +45,22 @@ exports.downloadCSV = async (username, password) => {
     console.log("Logged in successfully");
 
     // Wait for sidebar and click through to export the CSV
-    await page.waitForSelector("#form\\:sidebar", {
-      visible: true,
-      timeout: 10000,
-    });
+    try {
+      await page.waitForSelector("#form\\:sidebar", {
+        visible: true,
+        timeout: 10000,
+      });
+    } catch (error) {
+      const authError = new Error(
+        "Impossible de se connecter a WebAurion avec ces identifiants",
+      );
+      authError.code = "ENT_AUTH_FAILED";
+      authError.details = {
+        step: "wait_sidebar_after_login",
+        originalMessage: error.message,
+      };
+      throw authError;
+    }
     console.log("Sidebar loaded");
 
     const resultSelector =
@@ -91,17 +104,17 @@ exports.downloadCSV = async (username, password) => {
     console.log("Clicked on the csv element");
 
     // Wait for the file to be downloaded
-    const waitForFileDownload = async (downloadPath, fileName) => {
+    const waitForFileDownload = async (downloadPath) => {
       return new Promise((resolve, reject) => {
-        const checkInterval = 1000; // Check every 1 second
+        const checkInterval = 500;
         const timeout = 30000; // Timeout after 30 seconds
         let timeElapsed = 0;
 
         const intervalId = setInterval(() => {
-          const files = fs.readdirSync(downloadPath);
-          const foundFile = files.find(
-            (file) => file.startsWith(fileName) && file.endsWith(".csv")
-          );
+          const files = fs
+            .readdirSync(downloadPath)
+            .filter((file) => file.endsWith(".csv"));
+          const foundFile = files[0];
 
           if (foundFile) {
             clearInterval(intervalId);
@@ -117,15 +130,15 @@ exports.downloadCSV = async (username, password) => {
       });
     };
 
-    const csvFile = await waitForFileDownload(
-      downloadPath,
-      "Mes Notes aux épreuves"
-    );
+    const csvFile = await waitForFileDownload(downloadPath);
 
     if (csvFile) {
       console.log("CSV downloaded:", csvFile);
       const oldPath = csvFile;
-      const newFileName = `${username}_notes.csv`;
+      const safeUsername = String(username || "unknown")
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]+/g, "_");
+      const newFileName = `${safeUsername}_notes_${requestId}.csv`;
       const newPath = path.resolve(downloadPath, newFileName);
 
       // Remove existing file if it exists

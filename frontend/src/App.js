@@ -11,7 +11,7 @@ import { fetchApi } from "./utils/api";
 import { applyBDSTheme } from "./utils/bdsTheme";
 
 // Lazy load page components
-const Notes = lazy(() => import("./components/Notes"));
+const Notes = lazy(() => import("./components/NotesV2"));
 const Calendars = lazy(() => import("./components/Calendars"));
 const Communication = lazy(() => import("./components/Communication"));
 const Bdi = lazy(() => import("./components/Bdi"));
@@ -59,7 +59,7 @@ const App = () => {
         try {
           const zimbraResponse = await fetch(
             `${process.env.REACT_APP_URL_BACK}/api/zimbra/check`,
-            { credentials: "include" }
+            { credentials: "include" },
           );
           const zimbraData = await zimbraResponse.json();
           setUser({ ...data.user, hasPassword: zimbraData.hasPassword });
@@ -149,7 +149,7 @@ const App = () => {
                 <Route
                   path="/notes"
                   element={
-                    <PageLayout>
+                    <PageLayout fullWidth>
                       <Notes />
                     </PageLayout>
                   }

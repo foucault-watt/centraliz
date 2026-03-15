@@ -280,6 +280,148 @@
           ]
         }
       ]
+    },
+    "IE3": {
+      "UE": [
+        {
+          "Mathématiques": [
+            {
+              "coef": 5,
+              "enseignements": [
+                {
+                  "Mathématiques 5": 2,
+                  "Mathématiques 6": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Automatique et informatique": [
+            {
+              "coef": 9,
+              "enseignements": [
+                {
+                  "Automatique 5": 3,
+                  "Développement Web Avancé": 2,
+                  "Réseaux avancés et cloud computing": 2,
+                  "QSE - Modélisation et Optimisation des processus": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Mécanique et Matériau": [
+            {
+              "coef": 7,
+              "enseignements": [
+                {
+                  "Mécanique des fluides": 1,
+                  "Choix des matériaux et des procédés": 2,
+                  "Mécanique des milieux continus": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Electricité, électronique, Ondes et Télécom": [
+            {
+              "coef": 6,
+              "enseignements": [
+                {
+                  "Capteurs": 1,
+                  "Télécommunications": 3,
+                  "Equipement électrique 3": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Culture générale, professionnelle et SHS": [
+            {
+              "coef": 3,
+              "enseignements": [
+                {
+                  "Sociologie du numérique": 1,
+                  "Journée de la recherche": 1,
+                  "Economie et Science politique": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Génie des Affaires": [
+            {
+              "coef": 9,
+              "enseignements": [
+                {
+                  "Finances et gestion 5": 1,
+                  "Marketing 5": 1,
+                  "Communication 5": 1,
+                  "Droit 6": 2,
+                  "Finances et gestion 6": 2,
+                  "Marketing 6": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Génie du Management": [
+            {
+              "coef": 7,
+              "enseignements": [
+                {
+                  "Entrepreneuriat": 2,
+                  "Engineering Project Management": 1,
+                  "Management de l'innovation": 2,
+                  "Business Project Management": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Développement et expériences": [
+            {
+              "coef": 4,
+              "enseignements": [
+                {
+                  "Stage scientifique et technique ITEEM": 4,
+                  "Langue française": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Langues et International": [
+            {
+              "coef": 10,
+              "enseignements": [
+                {
+                  "Anglais 5": 2,
+                  "Préparation au TOEIC": 0,
+                  "Langue vivante 2 S5": 2,
+                  "Anglais 6": 2,
+                  "TOEIC": 2,
+                  "Langue vivante 2 S6": 2,
+                  "Allemand 5": 2,
+                  "Allemand 6": 2,
+                  "Espagnol 5": 2,
+                  "Espagnol 6": 2,
+                  "Chinois 5": 2,
+                  "Chinois 6": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   }
 }

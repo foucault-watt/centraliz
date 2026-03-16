@@ -1,19 +1,211 @@
 {
   "groups": {
+    "IE1": {
+      "UE": [
+        {
+          "Mathématiques": [
+            {
+              "coef": 9,
+              "enseignements": [
+                {
+                  "Activités Préparatoires Mathématiques Ingénierie": 2,
+                  "Mathématiques 1": 4,
+                  "Mathématiques 2": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Automatique et Informatique": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Applications d'entreprise": 1,
+                  "Initiation à la Programmation et l'Algorithmique S1": 1,
+                  "Initiation et Culture du numérique": 1,
+                  "SED": 1,
+                  "Création de sites web statiques": 2,
+                  "Initiation à la Programmation et l'Algorithmique S2": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Mécanique et Matériau": [
+            {
+              "coef": 6,
+              "enseignements": [
+                {
+                  "Conception et Production de Systèmes 1": 2,
+                  "Statique et cinématique des solides": 2,
+                  "Science des matériaux": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Electricité, Electronique, Ondes et Telecom": [
+            {
+              "coef": 5,
+              "enseignements": [
+                {
+                  "Equipement électrique 1": 2,
+                  "Electronique 1": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Culture générale, professionnelle et SHS": [
+            {
+              "coef": 3,
+              "enseignements": [
+                {
+                  "Théorie des organisations": 1,
+                  "Macroéconomie": 1,
+                  "Développement durable et Responsabilité sociétale": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Affaires": [
+            {
+              "coef": 6,
+              "enseignements": [
+                {
+                  "Introduction au marché": 1,
+                  "Structure financière de l'entreprise": 1,
+                  "Communication personnelle professionnelle": 1,
+                  "Comptabilité d'entreprise": 1,
+                  "L'offre et le consommateur": 1,
+                  "Appréhender les enjeux de l'entrepreneuriat": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Management et Entrepreneuriat": [
+            {
+              "coef": 4,
+              "enseignements": [
+                {
+                  "Comprendre les enjeux de l'innovation": 1,
+                  "Projet de nouveau produit": 1,
+                  "La performance d'un projet": 1,
+                  "Cycle de conférences": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Développement et expériences": [
+            {
+              "coef": 10,
+              "enseignements": [
+                {
+                  "Analyse de produit": 1,
+                  "Projet - De l'analyse d'un produit vers l'innovation 1": 4,
+                  "Fresque du climat": 1,
+                  "Projet - De l'analyse d'un produit vers l'innovation 2": 4,
+                  "Formation aux compétences informationnelles": 0,
+                  "Accompagnement": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Langues et International": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Anglais 1": 2,
+                  "Anglais 2": 2,
+                  "Espagnol 1": 2,
+                  "Espagnol 2": 2,
+                  "Allemand 1": 2,
+                  "Allemand 2": 2,
+                  "Chinois 1": 2,
+                  "Chinois 2": 2,
+                  "Langue française": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "IE2": {
       "UE": [
         {
-          "Automatique et informatique": [
+          "Mathématiques": [
             {
               "coef": 7,
               "enseignements": [
                 {
-                  "Applications d'entreprise": 3,
-                  "Commande des systèmes": 3,
-                  "Conception de Système d'information": 4,
-                  "Développement Web": 5,
-                  "Intelligence ambiante": 4,
-                  "Introduction aux réseaux": 0
+                  "Mathématiques 3": 3,
+                  "Mathématiques 4": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Automatique et Informatique": [
+            {
+              "coef": 7,
+              "enseignements": [
+                {
+                  "Applications d'entreprise": 1,
+                  "Conception de Système d'information": 1,
+                  "Introduction aux réseaux": 1,
+                  "Commande des systèmes": 1,
+                  "Développement Web": 1,
+                  "Intelligence ambiante": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Electricité, Electronique, Ondes et Telecom": [
+            {
+              "coef": 9,
+              "enseignements": [
+                {
+                  "Electronique 2": 1,
+                  "Modélisation, simulation et commande des processus électriques": 1,
+                  "Traitement du signal": 1,
+                  "Equipement électrique 2": 2,
+                  "Ondes": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Mécanique et Matériau": [
+            {
+              "coef": 8,
+              "enseignements": [
+                {
+                  "Conception et Production de Systèmes 2": 2,
+                  "Mécanique des fluides": 1,
+                  "Thermodynamique": 1,
+                  "Résistance des matériaux": 1,
+                  "Bureau d'étude": 1,
+                  "Dynamique des solides": 1,
+                  "Du Minerai à la pièce fonctionnelle": 1
                 }
               ]
             }
@@ -25,39 +217,8 @@
               "coef": 2,
               "enseignements": [
                 {
-                  "Economie et Science politique": 1,
-                  "Changement organisationnel": 1
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Développement et expériences": [
-            {
-              "coef": 4,
-              "enseignements": [
-                {
-                  "Projet - Conception et réalisation d'un produit ou d'un service": 5,
-                  "Stage découverte entreprise - vente ITEEM": 0,
-                  "Retour de Stage IE1": 0,
-                  "Cycle de conférences": 0
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Electricité, Electronique, Onde et Télecom": [
-            {
-              "coef": 8,
-              "enseignements": [
-                {
-                  "Electronique 2": 2,
-                  "Equipement électrique 2": 2,
-                  "Modélisation, simulation et commande des processus électriques": 2,
-                  "Ondes": 4,
-                  "Traitement du signal": 3
+                  "Changement organisationnel": 1,
+                  "Economie et Science politique": 1
                 }
               ]
             }
@@ -66,14 +227,14 @@
         {
           "Affaires": [
             {
-              "coef": 5,
+              "coef": 6,
               "enseignements": [
                 {
-                  "Communication 3": 2,
-                  "Développement durable et Responsabilité sociétale 2": 2,
+                  "Communication 3": 1,
                   "Finances et gestion 3": 1,
-                  "Finances et gestion 4": 1,
                   "Marketing 3": 1,
+                  "Développement durable et Responsabilité sociétale 2": 1,
+                  "Finances et gestion 4": 1,
                   "Marketing 4": 1
                 }
               ]
@@ -81,22 +242,38 @@
           ]
         },
         {
-          "Management et entrepreneuriat": [
+          "Management et Entrepreneuriat": [
             {
-              "coef": 5,
+              "coef": 4,
               "enseignements": [
                 {
-                  "Entrepreneuriat": 2,
-                  "Management de l'innovation": 2,
-                  "Management de projet 3": 1,
-                  "Management de projet 4": 1
+                  "Management de l'innovation": 1,
+                  "Project Planning": 1,
+                  "Entrepreneuriat": 1,
+                  "Project Organizing": 1
                 }
               ]
             }
           ]
         },
         {
-          "Langues et international": [
+          "Développement et expériences": [
+            {
+              "coef": 9,
+              "enseignements": [
+                {
+                  "Projet-Conception et réalisation d'un produit ou d'un service S3": 4,
+                  "Projet-Conception et réalisation d'un produit ou d'un service S4": 3,
+                  "Stage découverte entreprise - vente ITEEM": 2,
+                  "Retour de Stage IE1": 0,
+                  "Cycle de conférences": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Langues et International": [
             {
               "coef": 8,
               "enseignements": [
@@ -110,170 +287,6 @@
                   "Chinois 3": 2,
                   "Chinois 4": 2,
                   "Langue française": 0
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Mathématiques": [
-            {
-              "coef": 8,
-              "enseignements": [
-                {
-                  "Mathématiques 3": 1,
-                  "Mathématiques 4": 1
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Mécanique et matériau": [
-            {
-              "coef": 8,
-              "enseignements": [
-                {
-                  "Bureau d'étude": 2,
-                  "Conception et Production de Systèmes 2": 2,
-                  "Du Minerai à la pièce fonctionnelle": 1,
-                  "Dynamique des solides": 2,
-                  "Mécanique des fluides": 1,
-                  "Résistance des matériaux": 2,
-                  "Thermodynamique": 1
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "IE1": {
-      "UE": [
-        {
-          "Automatique et informatique": [
-            {
-              "coef": 9,
-              "enseignements": [
-                {
-                  "Application d'entreprise": 1,
-                  "SED": 2,
-                  "Création de sites web statiques": 2,
-                  "Algorithmie": 2,
-                  "Initiation à la programmation": 2
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Culture générale, professionnelle et SHS": [
-            {
-              "coef": 3,
-              "enseignements": [
-                {
-                  "Théorie des organisations": 1,
-                  "Macroéconomie": 1
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Développement et expériences": [
-            {
-              "coef": 7,
-              "enseignements": [
-                {
-                  "Cycles de conférences": 1,
-                  "Projet : De l'annalyse d'un produit vers l'innovation": 1
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Electricité, Electronique, Onde et Télecom": [
-            {
-              "coef": 5,
-              "enseignements": [
-                {
-                  "Electronique": 1,
-                  "Equipement électrique": 1
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Affaires": [
-            {
-              "coef": 6,
-              "enseignements": [
-                {
-                  "communication personnelle": 2,
-                  "intro au marché": 1,
-                  "structure financière de l'entreprise": 1,
-                  "comptabilité d'entreprise": 1,
-                  "droit des sociétés": 2,
-                  "l'offre et le conso": 1
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Management et entrepreneuriat": [
-            {
-              "coef": 6,
-              "enseignements": [
-                {
-                  "comprendre enjeux inno": 2,
-                  "projet nv produit": 1,
-                  "enjeux entrepreneuriat": 2,
-                  "La performande d'un projet": 2
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Langues et international": [
-            {
-              "coef": 8,
-              "enseignements": [
-                {
-                  "Anglais": 4,
-                  "Espagnol": 4,
-                  "Français": 1
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Mathématiques": [
-            {
-              "coef": 10,
-              "enseignements": [
-                {
-                  "AMI": 1,
-                  "Mathématiques 1": 5,
-                  "Mathématiques 2": 3
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "Mécanique et matériaux": [
-            {
-              "coef": 6,
-              "enseignements": [
-                {
-                  "Science des matériaux": 1,
-                  "Conception et Production de systèmes": 1,
-                  "Statique et cinématique des solides": 1
                 }
               ]
             }
@@ -297,7 +310,7 @@
           ]
         },
         {
-          "Automatique et informatique": [
+          "Automatique et Informatique": [
             {
               "coef": 9,
               "enseignements": [
@@ -305,7 +318,7 @@
                   "Automatique 5": 3,
                   "Développement Web Avancé": 2,
                   "Réseaux avancés et cloud computing": 2,
-                  "QSE - Modélisation et Optimisation des processus": 2
+                  "QSE Modélisation et Optimisation des processus": 2
                 }
               ]
             }
@@ -342,11 +355,12 @@
         {
           "Culture générale, professionnelle et SHS": [
             {
-              "coef": 3,
+              "coef": 4,
               "enseignements": [
                 {
                   "Sociologie du numérique": 1,
                   "Journée de la recherche": 1,
+                  "Finances et gestion 5": 1,
                   "Economie et Science politique": 1
                 }
               ]
@@ -359,7 +373,6 @@
               "coef": 9,
               "enseignements": [
                 {
-                  "Finances et gestion 5": 1,
                   "Marketing 5": 1,
                   "Communication 5": 1,
                   "Droit 6": 2,
@@ -405,17 +418,205 @@
               "enseignements": [
                 {
                   "Anglais 5": 2,
-                  "Préparation au TOEIC": 0,
-                  "Langue vivante 2 S5": 2,
                   "Anglais 6": 2,
                   "TOEIC": 2,
-                  "Langue vivante 2 S6": 2,
-                  "Allemand 5": 2,
-                  "Allemand 6": 2,
                   "Espagnol 5": 2,
                   "Espagnol 6": 2,
+                  "Allemand 5": 2,
+                  "Allemand 6": 2,
                   "Chinois 5": 2,
-                  "Chinois 6": 2
+                  "Chinois 6": 2,
+                  "Préparation au TOEIC": 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "IE4": {
+      "UE": [
+        {
+          "Stage à l'international": [
+            {
+              "coef": 1,
+              "enseignements": [
+                {
+                  "Stage à l'international": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Analyse de données et aide à la décision": [
+            {
+              "coef": 1,
+              "enseignements": [
+                {
+                  "Business Decision Statistiques industrielles": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Développement durable et Eco conception": [
+            {
+              "coef": 2,
+              "enseignements": [
+                {
+                  "RecoRes: De l'analyse de produit à la reconception responsable": 1,
+                  "Responsabilité Sociétale des entreprises": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Maîtrise des processus d'entreprise": [
+            {
+              "coef": 1,
+              "enseignements": [
+                {
+                  "Modélisation des systèmes d'information": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Optimisation de Flux": [
+            {
+              "coef": 2,
+              "enseignements": [
+                {
+                  "Processus Stochastique, Application en Finance": 1,
+                  "Recherche opérationnelle": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Organisation et gestion de production": [
+            {
+              "coef": 1,
+              "enseignements": [
+                {
+                  "Gestion de flux et intégration dans un ERP": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Management de projet": [
+            {
+              "coef": 4,
+              "enseignements": [
+                {
+                  "Analyse des risques en qualité": 1,
+                  "Complex Project Management": 1,
+                  "Challenge innovateur": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Projets": [
+            {
+              "coef": 4,
+              "enseignements": [
+                {
+                  "Challenge Major Projects": 2,
+                  "Challenge Startup": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Droit": [
+            {
+              "coef": 3,
+              "enseignements": [
+                {
+                  "Droit des affaires et des contrats": 2,
+                  "Droit du travail": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Finance et Stratégie": [
+            {
+              "coef": 3,
+              "enseignements": [
+                {
+                  "Politique financière d'entreprise": 1,
+                  "Stratégie commerciale": 1,
+                  "Stratégie d'entreprise": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Formation Humaine et Langues": [
+            {
+              "coef": 6,
+              "enseignements": [
+                {
+                  "Développement personnel": 1,
+                  "RSE-Ethique": 3,
+                  "Espagnol 8": 2,
+                  "Allemand 8": 2,
+                  "Chinois 8": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "IE5": {
+      "UE": [
+        {
+          "Parcours Spécialisation": [
+            {
+              "coef": 1,
+              "enseignements": [
+                {
+                  "Modules de parcours (au choix)": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Langues et International": [
+            {
+              "coef": 1,
+              "enseignements": [
+                {
+                  "Espagnol 9": 1,
+                  "Allemand 9": 1,
+                  "Chinois 9": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Stage de fin d'études": [
+            {
+              "coef": 1,
+              "enseignements": [
+                {
+                  "Stage de fin d'études ITEEM / Création entreprise": 1
                 }
               ]
             }

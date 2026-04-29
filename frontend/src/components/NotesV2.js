@@ -1,5 +1,6 @@
 import {
   ChevronRight,
+  Clock3,
   Eye,
   EyeOff,
   Loader2,
@@ -10,11 +11,33 @@ import {
   SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "../App";
 import { fetchApi } from "../utils/api";
 
 const FAKE_REFRESH_DURATION_MS = 16000;
+
+const pageVariants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.32, ease: "easeOut", staggerChildren: 0.045 },
+  },
+};
+
+const softItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.26, ease: "easeOut" } },
+};
+
+const panelMotion = {
+  initial: { opacity: 0, y: -8, scale: 0.99 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -6, scale: 0.99 },
+  transition: { duration: 0.22, ease: "easeOut" },
+};
 
 const avg = (value) => (typeof value === "number" ? value.toFixed(2) : "—");
 
@@ -120,6 +143,29 @@ const formatRetryAfter = (retryAfterMs) => {
   }
 
   return `${minutes} min ${seconds}s`;
+};
+
+const formatTimeSince = (value, now = Date.now()) => {
+  if (!value) return "Jamais mis a jour";
+
+  const parsed = new Date(value).getTime();
+  if (Number.isNaN(parsed)) return "Derniere mise a jour inconnue";
+
+  const elapsedSeconds = Math.max(0, Math.floor((now - parsed) / 1000));
+  if (elapsedSeconds < 60) return "Mis a jour a l'instant";
+
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  if (elapsedMinutes < 60) {
+    return `Mis a jour il y a ${elapsedMinutes} min`;
+  }
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) {
+    return `Mis a jour il y a ${elapsedHours} h`;
+  }
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  return `Mis a jour il y a ${elapsedDays} jour${elapsedDays > 1 ? "s" : ""}`;
 };
 
 const isCredentialFailure = (response, payload) => {
@@ -396,7 +442,13 @@ const ModuleCard = ({
   const effectiveAverage = isSimulated ? simAverage : moduleItem.average;
 
   return (
-    <article className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <motion.article
+      layout
+      variants={softItemVariants}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+    >
       <button
         type="button"
         onClick={() => setIsOpen((previous) => !previous)}
@@ -448,68 +500,79 @@ const ModuleCard = ({
         </span>
       </button>
 
-      {isOpen && (
-        <div className="border-t border-gray-100 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                <th className="py-2 px-3 text-left">Epreuve</th>
-                <th className="py-2 px-3 text-left hidden md:table-cell">
-                  Type
-                </th>
-                <th className="py-2 px-3 text-left hidden lg:table-cell">
-                  Date
-                </th>
-                <th className="py-2 px-3 text-left">Coef</th>
-                <th className="py-2 px-3 text-left">Note /20</th>
-                <th className="py-2 px-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {moduleItem.entries.map((entry) => (
-                <EntryRow
-                  key={entry.fingerprint}
-                  entry={entry}
-                  override={simOverrides[entry.fingerprint]}
-                  onOverrideChange={onOverrideChange}
-                  onHide={onHideEntry}
-                  isSaving={isSaving}
-                />
-              ))}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="module-details"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.24, ease: "easeOut" }}
+            className="border-t border-gray-100 overflow-hidden"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                    <th className="py-2 px-3 text-left">Epreuve</th>
+                    <th className="py-2 px-3 text-left hidden md:table-cell">
+                      Type
+                    </th>
+                    <th className="py-2 px-3 text-left hidden lg:table-cell">
+                      Date
+                    </th>
+                    <th className="py-2 px-3 text-left">Coef</th>
+                    <th className="py-2 px-3 text-left">Note /20</th>
+                    <th className="py-2 px-3 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {moduleItem.entries.map((entry) => (
+                    <EntryRow
+                      key={entry.fingerprint}
+                      entry={entry}
+                      override={simOverrides[entry.fingerprint]}
+                      onOverrideChange={onOverrideChange}
+                      onHide={onHideEntry}
+                      isSaving={isSaving}
+                    />
+                  ))}
 
-              {simNewEntries.map((entry) => (
-                <SimulatedEntryRow
-                  key={entry.id}
-                  entry={entry}
-                  onUpdate={onUpdateSimEntry}
-                  onRemove={() => onRemoveSimEntry(entry.id)}
-                />
-              ))}
+                  {simNewEntries.map((entry) => (
+                    <SimulatedEntryRow
+                      key={entry.id}
+                      entry={entry}
+                      onUpdate={onUpdateSimEntry}
+                      onRemove={() => onRemoveSimEntry(entry.id)}
+                    />
+                  ))}
 
-              {hiddenRules.map((rule) => (
-                <MaskedEntryRow
-                  key={rule.id}
-                  rule={rule}
-                  onUnhide={onUnhideRule}
-                  isSaving={isSaving}
-                />
-              ))}
-            </tbody>
-          </table>
+                  {hiddenRules.map((rule) => (
+                    <MaskedEntryRow
+                      key={rule.id}
+                      rule={rule}
+                      onUnhide={onUnhideRule}
+                      isSaving={isSaving}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={() => onAddSimEntry(moduleItem.moduleName)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-primary/20 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Ajouter une note simulee
-            </button>
-          </div>
-        </div>
-      )}
-    </article>
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => onAddSimEntry(moduleItem.moduleName)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-primary/20 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Ajouter une note simulee
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.article>
   );
 };
 
@@ -517,7 +580,13 @@ const UnmappedModuleCard = ({ moduleItem }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <article className="rounded-xl border border-yellow-200 bg-white overflow-hidden">
+    <motion.article
+      layout
+      variants={softItemVariants}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className="rounded-xl border border-yellow-200 bg-white overflow-hidden"
+    >
       <button
         type="button"
         onClick={() => setIsOpen((previous) => !previous)}
@@ -552,57 +621,68 @@ const UnmappedModuleCard = ({ moduleItem }) => {
         </div>
       </button>
 
-      {isOpen && (
-        <div className="border-t border-yellow-100 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-yellow-50/70">
-              <tr className="text-xs font-medium uppercase tracking-wide text-yellow-800">
-                <th className="py-2 px-3 text-left">Epreuve</th>
-                <th className="py-2 px-3 text-left hidden md:table-cell">
-                  Type
-                </th>
-                <th className="py-2 px-3 text-left hidden lg:table-cell">
-                  Date
-                </th>
-                <th className="py-2 px-3 text-left">Coef</th>
-                <th className="py-2 px-3 text-left">Note /20</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(moduleItem.entries || []).map((entry) => (
-                <tr
-                  key={entry.id || entry.fingerprint}
-                  className="border-b border-yellow-50 text-sm"
-                >
-                  <td className="py-2.5 px-3">
-                    <p className="font-medium text-gray-800">
-                      {entry.assessmentName}
-                    </p>
-                    {entry.assessmentDetail && (
-                      <p className="text-xs text-gray-400">
-                        {entry.assessmentDetail}
-                      </p>
-                    )}
-                  </td>
-                  <td className="py-2.5 px-3 hidden md:table-cell text-gray-500">
-                    {entry.assessmentType || "—"}
-                  </td>
-                  <td className="py-2.5 px-3 hidden lg:table-cell text-gray-500">
-                    {formatDate(entry.assessmentDate)}
-                  </td>
-                  <td className="py-2.5 px-3 text-gray-700">
-                    {entry.coefficient}
-                  </td>
-                  <td className="py-2.5 px-3 font-semibold text-gray-800">
-                    {formatGrade(entry)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </article>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="unmapped-details"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.24, ease: "easeOut" }}
+            className="border-t border-yellow-100 overflow-hidden"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-yellow-50/70">
+                  <tr className="text-xs font-medium uppercase tracking-wide text-yellow-800">
+                    <th className="py-2 px-3 text-left">Epreuve</th>
+                    <th className="py-2 px-3 text-left hidden md:table-cell">
+                      Type
+                    </th>
+                    <th className="py-2 px-3 text-left hidden lg:table-cell">
+                      Date
+                    </th>
+                    <th className="py-2 px-3 text-left">Coef</th>
+                    <th className="py-2 px-3 text-left">Note /20</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(moduleItem.entries || []).map((entry) => (
+                    <tr
+                      key={entry.id || entry.fingerprint}
+                      className="border-b border-yellow-50 text-sm"
+                    >
+                      <td className="py-2.5 px-3">
+                        <p className="font-medium text-gray-800">
+                          {entry.assessmentName}
+                        </p>
+                        {entry.assessmentDetail && (
+                          <p className="text-xs text-gray-400">
+                            {entry.assessmentDetail}
+                          </p>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 hidden md:table-cell text-gray-500">
+                        {entry.assessmentType || "—"}
+                      </td>
+                      <td className="py-2.5 px-3 hidden lg:table-cell text-gray-500">
+                        {formatDate(entry.assessmentDate)}
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-700">
+                        {entry.coefficient}
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold text-gray-800">
+                        {formatGrade(entry)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.article>
   );
 };
 
@@ -633,6 +713,8 @@ const NotesV2 = () => {
   const [simulatedEntries, setSimulatedEntries] = useState([]);
   const [refreshProgress, setRefreshProgress] = useState(0);
   const [cooldownRetryAfterMs, setCooldownRetryAfterMs] = useState(null);
+  const [lastRefreshReport, setLastRefreshReport] = useState(null);
+  const [now, setNow] = useState(Date.now());
 
   const hasSimulation =
     Object.keys(simOverrides).length > 0 || simulatedEntries.length > 0;
@@ -659,6 +741,11 @@ const NotesV2 = () => {
 
     return () => clearInterval(timer);
   }, [isRefreshing]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const updateFromResponse = useCallback(
     (payload) => {
@@ -722,6 +809,7 @@ const NotesV2 = () => {
   const handleRefresh = async (body = {}) => {
     setError(null);
     setCooldownRetryAfterMs(null);
+    setLastRefreshReport(null);
     setIsRefreshing(true);
     const minDelay = new Promise((resolve) => {
       setTimeout(resolve, FAKE_REFRESH_DURATION_MS);
@@ -761,7 +849,7 @@ const NotesV2 = () => {
           setPassword("");
           setShowRefreshForm(true);
           throw new Error(
-            "Le mot de passe ENT stocke n'est plus valide. Merci de le ressaisir.",
+            "Tes identifiants ENT ne sont plus valides. Merci de les ressaisir.",
           );
         }
 
@@ -772,6 +860,7 @@ const NotesV2 = () => {
 
       setRefreshProgress(100);
       updateFromResponse(payload);
+      setLastRefreshReport(payload.refreshReport || null);
       setPassword("");
       setShowRefreshForm(false);
     } catch (refreshError) {
@@ -1040,9 +1129,20 @@ const NotesV2 = () => {
   const refreshLabel = getRefreshText(refreshProgress);
 
   return (
-    <div className="w-full max-w-[1680px] mx-auto px-2 lg:px-4">
-      <div className="rounded-2xl border border-gray-200 bg-white/90 shadow-sm p-4 md:p-6 lg:p-7 space-y-5">
-        <header className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
+    <motion.div
+      variants={pageVariants}
+      initial="hidden"
+      animate="visible"
+      className="w-full max-w-[1680px] mx-auto px-2 lg:px-4"
+    >
+      <motion.div
+        variants={softItemVariants}
+        className="rounded-2xl border border-gray-200 bg-white/90 shadow-sm p-4 md:p-6 lg:p-7 space-y-5"
+      >
+        <motion.header
+          variants={softItemVariants}
+          className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4"
+        >
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Mes notes</h1>
             <p className="text-sm text-gray-500 mt-1">
@@ -1060,6 +1160,11 @@ const NotesV2 = () => {
               </span>
             )}
 
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-500">
+              <Clock3 className="w-3.5 h-3.5" />
+              {formatTimeSince(snapshot?.createdAt, now)}
+            </span>
+
             <button
               type="button"
               onClick={handleRefreshClick}
@@ -1074,10 +1179,28 @@ const NotesV2 = () => {
               Mettre a jour
             </button>
           </div>
-        </header>
+        </motion.header>
 
-        {isRefreshing && (
-          <section className="rounded-xl border border-primary/15 bg-primary/5 p-4">
+        <motion.div
+          variants={softItemVariants}
+          whileHover={{ y: -1 }}
+          className="inline-flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50/80 px-4 py-3 text-sm text-blue-900"
+        >
+          <EyeOff className="w-4 h-4 mt-0.5 shrink-0" />
+          <p>
+            Vous pouvez masquer la note remplacee apres une reparation ou un
+            rattrapage, car l'ecole ajoute souvent la nouvelle note sans
+            retirer l'ancienne.
+          </p>
+        </motion.div>
+
+        <AnimatePresence initial={false}>
+          {isRefreshing && (
+            <motion.section
+              key="refreshing"
+              {...panelMotion}
+              className="rounded-xl border border-primary/15 bg-primary/5 p-4"
+            >
             <div className="flex items-center gap-2 text-primary text-sm font-semibold">
               <Loader2 className="w-4 h-4 animate-spin" />
               {refreshLabel}
@@ -1091,11 +1214,17 @@ const NotesV2 = () => {
                 style={{ width: `${refreshProgress}%` }}
               />
             </div>
-          </section>
-        )}
+            </motion.section>
+          )}
+        </AnimatePresence>
 
-        {showRefreshForm && (
-          <section className="max-w-md rounded-xl border border-gray-200 p-4 bg-white">
+        <AnimatePresence initial={false}>
+          {showRefreshForm && (
+            <motion.section
+              key="refresh-form"
+              {...panelMotion}
+              className="max-w-md rounded-xl border border-gray-200 p-4 bg-white"
+            >
             <h3 className="text-sm font-semibold text-gray-800 mb-3">
               Connexion ENT
             </h3>
@@ -1148,11 +1277,17 @@ const NotesV2 = () => {
                 </button>
               </div>
             </form>
-          </section>
-        )}
+            </motion.section>
+          )}
+        </AnimatePresence>
 
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
+        <AnimatePresence initial={false}>
+          {error && (
+            <motion.div
+              key="error"
+              {...panelMotion}
+              className="rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3"
+            >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span>{error}</span>
               {cooldownRetryAfterMs !== null && (
@@ -1166,41 +1301,123 @@ const NotesV2 = () => {
                 </button>
               )}
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence initial={false}>
+          {lastRefreshReport && (
+            <motion.section
+              key="last-refresh-report"
+              {...panelMotion}
+              className="rounded-xl border border-green-200 bg-green-50/80 p-4"
+            >
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-green-900">
+                  Dernieres notes recuperees
+                </h3>
+                <p className="text-xs text-green-800/80 mt-0.5">
+                  {lastRefreshReport.hasPreviousSnapshot
+                    ? lastRefreshReport.newEntryCount > 0
+                      ? `${lastRefreshReport.newEntryCount} nouvelle(s) note(s) depuis la derniere mise a jour`
+                      : "Aucune nouvelle note depuis la derniere mise a jour"
+                    : "Premier snapshot enregistre pour tes notes"}
+                </p>
+              </div>
+            </div>
+
+            {lastRefreshReport.newEntries?.length > 0 && (
+              <motion.div
+                variants={pageVariants}
+                initial="hidden"
+                animate="visible"
+                className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3"
+              >
+                {lastRefreshReport.newEntries.map((entry) => (
+                  <motion.div
+                    key={entry.fingerprint}
+                    variants={softItemVariants}
+                    whileHover={{ y: -2 }}
+                    className="rounded-lg border border-green-200 bg-white px-3 py-2"
+                  >
+                    <p className="text-xs font-semibold text-green-900 truncate">
+                      {entry.moduleName || "Module inconnu"}
+                    </p>
+                    <p className="text-sm font-medium text-gray-800 truncate mt-0.5">
+                      {entry.assessmentName || "Epreuve sans nom"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {entry.assessmentType || "Type inconnu"} ·{" "}
+                      {formatDate(entry.assessmentDate)} · coef{" "}
+                      {entry.coefficient ?? "—"}
+                    </p>
+                    <p className="text-sm font-bold text-green-700 mt-1">
+                      {entry.gradeKind === "numeric" &&
+                      typeof entry.numericGrade === "number"
+                        ? entry.numericGrade.toFixed(2)
+                        : entry.gradeRaw || "—"}
+                    </p>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+
+            {lastRefreshReport.newEntryCount >
+              (lastRefreshReport.newEntries?.length || 0) && (
+              <p className="text-xs text-green-800/80 mt-3">
+                +{" "}
+                {lastRefreshReport.newEntryCount -
+                  (lastRefreshReport.newEntries?.length || 0)}{" "}
+                autre(s) note(s)
+              </p>
+            )}
+            </motion.section>
+          )}
+        </AnimatePresence>
 
         {snapshot && (
-          <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <motion.section
+            variants={pageVariants}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+          >
             {[
               ["Notes visibles", snapshot?.counts?.visibleEntryCount ?? 0],
               ["Notes masquees", snapshot?.counts?.hiddenEntryCount ?? 0],
               [
-                "Modules non mappes",
+                "Notes hors plaquette",
                 snapshot?.counts?.unmappedModuleCount ?? 0,
               ],
-              [
-                "Mot de passe",
-                credentials.hasStoredPassword ? "Stocke" : "Non stocke",
-              ],
             ].map(([label, value]) => (
-              <div
+              <motion.div
                 key={label}
+                variants={softItemVariants}
+                whileHover={{ y: -2 }}
                 className="rounded-xl border border-gray-200 bg-white px-4 py-3"
               >
                 <p className="text-xs text-gray-400">{label}</p>
                 <p className="text-lg font-bold text-gray-800 mt-0.5">
                   {value}
                 </p>
-              </div>
+              </motion.div>
             ))}
-          </section>
+          </motion.section>
         )}
 
         {gradesData ? (
-          <div className="flex gap-5 items-start">
-            <div className="flex-1 min-w-0 space-y-8">
+          <motion.div
+            variants={softItemVariants}
+            className="flex gap-5 items-start"
+          >
+            <motion.div
+              variants={pageVariants}
+              className="flex-1 min-w-0 space-y-8"
+            >
               {sections.map((section, index) => (
-                <section key={`${section.ueName || "modules"}-${index}`}>
+                <motion.section
+                  key={`${section.ueName || "modules"}-${index}`}
+                  variants={softItemVariants}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
@@ -1244,7 +1461,7 @@ const NotesV2 = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  <motion.div variants={pageVariants} className="space-y-2">
                     {section.modules.map((moduleItem) => (
                       <ModuleCard
                         key={moduleItem.moduleName}
@@ -1267,13 +1484,19 @@ const NotesV2 = () => {
                         isSaving={isSavingRule}
                       />
                     ))}
-                  </div>
-                </section>
+                  </motion.div>
+                </motion.section>
               ))}
-            </div>
+            </motion.div>
 
-            <aside className="w-72 shrink-0 hidden lg:block space-y-4 sticky top-4">
-              <section className="rounded-xl border border-gray-200 bg-white p-4">
+            <motion.aside
+              variants={softItemVariants}
+              className="w-72 shrink-0 hidden lg:block space-y-4 sticky top-4"
+            >
+              <motion.section
+                whileHover={{ y: -2 }}
+                className="rounded-xl border border-gray-200 bg-white p-4"
+              >
                 <h4 className="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-3">
                   Snapshot
                 </h4>
@@ -1298,9 +1521,12 @@ const NotesV2 = () => {
                     </div>
                   ))}
                 </dl>
-              </section>
+              </motion.section>
 
-              <section className="rounded-xl border border-gray-200 bg-white p-4">
+              <motion.section
+                whileHover={{ y: -2 }}
+                className="rounded-xl border border-gray-200 bg-white p-4"
+              >
                 <h4 className="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-3 flex items-center justify-between">
                   <span>Notes masquees</span>
                   {hiddenRules.length > 0 && (
@@ -1339,50 +1565,67 @@ const NotesV2 = () => {
                     ))}
                   </ul>
                 )}
-              </section>
-            </aside>
-          </div>
+              </motion.section>
+            </motion.aside>
+          </motion.div>
         ) : (
-          <div className="rounded-xl border border-dashed border-gray-200 py-16 text-center text-gray-400">
+          <motion.div
+            {...panelMotion}
+            className="rounded-xl border border-dashed border-gray-200 py-16 text-center text-gray-400"
+          >
             Aucune note disponible
-          </div>
+          </motion.div>
         )}
 
         {gradesData?.unmappedModules?.length > 0 && (
-          <section className="mt-2 border-t border-gray-100 pt-5">
-            <div className="rounded-xl border border-yellow-200 bg-yellow-50/70 p-4">
+          <motion.section
+            variants={softItemVariants}
+            className="mt-2 border-t border-gray-100 pt-5"
+          >
+            <motion.div
+              whileHover={{ y: -1 }}
+              className="rounded-xl border border-yellow-200 bg-yellow-50/70 p-4"
+            >
               <h4 className="text-sm font-semibold text-yellow-900 mb-1">
-                Modules non mappes (hors calcul)
+                Notes hors plaquette pedagogique
               </h4>
               <p className="text-xs text-yellow-800 mb-2">
-                Details complets affiches: moyenne, statut et notes datees. Ces
-                modules restent exclus des calculs UE et des actions de
-                simulation/masquage.
+                Ces notes correspondent a des modules absents de la plaquette
+                pedagogique de l'ecole. Elles sont affichees ici avec leurs
+                details, mais restent exclues des calculs UE.
               </p>
-              <div className="space-y-2">
+              <motion.div variants={pageVariants} className="space-y-2">
                 {gradesData.unmappedModules.map((moduleItem) => (
                   <UnmappedModuleCard
                     key={moduleItem.moduleName}
                     moduleItem={moduleItem}
                   />
                 ))}
-              </div>
-            </div>
-          </section>
+              </motion.div>
+            </motion.div>
+          </motion.section>
         )}
-      </div>
+      </motion.div>
 
-      {hasSimulation && (
-        <button
-          type="button"
-          onClick={handleResetSimulation}
-          className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full bg-amber-500 text-white px-4 py-2.5 text-sm font-semibold shadow-lg hover:bg-amber-600 transition-colors"
-        >
-          <RotateCcw className="w-4 h-4" />
-          Reinitialiser la simulation
-        </button>
-      )}
-    </div>
+      <AnimatePresence>
+        {hasSimulation && (
+          <motion.button
+            type="button"
+            onClick={handleResetSimulation}
+            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.96 }}
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full bg-amber-500 text-white px-4 py-2.5 text-sm font-semibold shadow-lg hover:bg-amber-600 transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Reinitialiser la simulation
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

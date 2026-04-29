@@ -354,6 +354,47 @@ const buildResponseFromSnapshot = async (username, snapshotRow) => {
   };
 };
 
+const buildRefreshReport = (previousSnapshotRow, nextEntries) => {
+  if (!previousSnapshotRow) {
+    return {
+      hasPreviousSnapshot: false,
+      newEntryCount: 0,
+      newEntries: [],
+    };
+  }
+
+  const previousPayload = previousSnapshotRow.parsed_payload || {};
+  const previousEntries = Array.isArray(previousPayload.entries)
+    ? previousPayload.entries
+    : [];
+  const previousFingerprints = new Set(
+    previousEntries.map((entry) => entry.fingerprint).filter(Boolean),
+  );
+
+  const newEntries = nextEntries
+    .filter(
+      (entry) =>
+        entry.fingerprint && !previousFingerprints.has(entry.fingerprint),
+    )
+    .map((entry) => ({
+      fingerprint: entry.fingerprint,
+      moduleName: entry.moduleName,
+      assessmentName: entry.assessmentName,
+      assessmentType: entry.assessmentType,
+      assessmentDate: entry.assessmentDate,
+      gradeRaw: entry.gradeRaw,
+      gradeKind: entry.gradeKind,
+      numericGrade: entry.numericGrade,
+      coefficient: entry.coefficient,
+    }));
+
+  return {
+    hasPreviousSnapshot: true,
+    newEntryCount: newEntries.length,
+    newEntries: newEntries.slice(0, 12),
+  };
+};
+
 const getGrades = async (username) => {
   const latestSnapshot = await getLatestSnapshotRow(username);
   return buildResponseFromSnapshot(username, latestSnapshot);
@@ -414,6 +455,8 @@ const refreshGrades = async (username, options = {}) => {
     }
 
     await enforceRefreshCooldown(username, Boolean(options.force));
+    const previousSnapshot = await getLatestSnapshotRow(username);
+
     await insertRefreshLog({
       username,
       step: "auth",
@@ -442,6 +485,10 @@ const refreshGrades = async (username, options = {}) => {
     const parsedPayload = parseCsvToEntries(rawCsv, {
       parserVersion: PARSER_VERSION,
     });
+    const refreshReport = buildRefreshReport(
+      previousSnapshot,
+      parsedPayload.entries,
+    );
 
     const userGroup = userRecord.group
       ? String(userRecord.group).toUpperCase()
@@ -554,7 +601,11 @@ const refreshGrades = async (username, options = {}) => {
       },
     });
 
-    return buildResponseFromSnapshot(username, snapshot);
+    const response = await buildResponseFromSnapshot(username, snapshot);
+    return {
+      ...response,
+      refreshReport,
+    };
   } catch (error) {
     await insertRefreshLog({
       username,

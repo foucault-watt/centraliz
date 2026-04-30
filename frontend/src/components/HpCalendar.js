@@ -78,6 +78,28 @@ const monthsOrder = [
   "juillet",
 ];
 
+const TYPE_EMOJI_MAP = {
+  Soirée: "🎉",
+  Bar: "🍻",
+  BBQ: "🍖",
+  JT: "📣",
+  Dej: "🍽️",
+  "Petit dej": "🥐",
+  Sport: "🏅",
+  Art: "🎨",
+  Formation: "📚",
+  Autre: "✨",
+};
+
+const getDefaultEventEmoji = (eventType) => TYPE_EMOJI_MAP[eventType] || "✨";
+
+const getDefaultShortTitle = (event) => {
+  if (event.short_title) return event.short_title;
+  return String(event.title || "")
+    .trim()
+    .slice(0, 15);
+};
+
 const HpCalendar = ({ user }) => {
   // Accepte user comme prop
   const [icalData, setIcalData] = useState("");
@@ -110,15 +132,12 @@ const HpCalendar = ({ user }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUsersList, setShowUsersList] = useState(false);
-  const [selectedType, setSelectedType] = useState("students"); // 'students', 'professors', 'rooms'
   const [sharedEvents, setSharedEvents] = useState([]);
   const [showCategoryMenu, setShowCategoryMenu] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [slideDirection, setSlideDirection] = useState(""); // 'left' ou 'right'
   const [isSelectorFocused, setIsSelectorFocused] = useState(false);
-  const [externalCalendarUrl, setExternalCalendarUrl] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [associationEvents, setAssociationEvents] = useState([]);
 
   const closeModal = () => {
     setShowModal(false);
@@ -146,7 +165,7 @@ const HpCalendar = ({ user }) => {
           {
             method: "GET",
             credentials: "include", // Indispensable pour que le cookie de session soit envoyé
-          }
+          },
         );
         const data = await response.json();
 
@@ -156,7 +175,7 @@ const HpCalendar = ({ user }) => {
       } catch (error) {
         console.error(
           "Erreur lors de la vérification de l'utilisateur:",
-          error
+          error,
         );
       }
     };
@@ -173,6 +192,25 @@ const HpCalendar = ({ user }) => {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const fetchAssociationEvents = async () => {
+      try {
+        const response = await fetchApi("/api/events?limit=120");
+        const data = await response.json();
+        if (!data.success) {
+          setAssociationEvents([]);
+          return;
+        }
+        setAssociationEvents(Array.isArray(data.events) ? data.events : []);
+      } catch (error) {
+        console.error("Erreur chargement events assos du jour:", error);
+        setAssociationEvents([]);
+      }
+    };
+
+    fetchAssociationEvents();
   }, []);
 
   // Ajouter un useEffect pour gérer le clic en dehors du sélecteur
@@ -207,9 +245,24 @@ const HpCalendar = ({ user }) => {
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 5 }, (_, i) =>
-      moment(currentDate).startOf("week").add(i, "days")
+      moment(currentDate).startOf("week").add(i, "days"),
     );
   }, [currentDate]);
+
+  const getAssociationEventsForDay = useCallback(
+    (day) => {
+      const dayIso = moment(day).format("YYYY-MM-DD");
+
+      return associationEvents
+        .filter((event) => event.event_date === dayIso)
+        .sort((a, b) => {
+          const aTime = a.event_time || "23:59";
+          const bTime = b.event_time || "23:59";
+          return aTime.localeCompare(bTime);
+        });
+    },
+    [associationEvents],
+  );
 
   // Optimisation du calcul des événements par cellule
   const getEventsForCell = useCallback(
@@ -269,12 +322,21 @@ const HpCalendar = ({ user }) => {
         return event;
       });
     },
-    [events, sharedEvents]
+    [events, sharedEvents],
   );
 
   // Mémoisation des colonnes du calendrier
   const DayColumn = React.memo(
-    ({ day, hours, getEventsForCell, handleSelectEvent, isMobile }) => {
+    ({
+      day,
+      hours,
+      getEventsForCell,
+      handleSelectEvent,
+      isMobile,
+      getAssociationEventsForDay,
+    }) => {
+      const dayAssociationEvents = getAssociationEventsForDay(day);
+
       return (
         <div className="day-column">
           <div className="day-header">
@@ -289,9 +351,72 @@ const HpCalendar = ({ user }) => {
               handleSelectEvent={handleSelectEvent}
             />
           ))}
+
+          {dayAssociationEvents.length > 0 && (
+            <div className="day-association-preview">
+              <div className="day-association-preview-list">
+                {dayAssociationEvents.slice(0, 3).map((event) => (
+                  <button
+                    key={event.id}
+                    type="button"
+                    className="day-association-preview-chip"
+                    onClick={() =>
+                      handleSelectEvent({
+                        title: event.title,
+                        description: event.description || "",
+                        event_type: event.event_type || "Autre",
+                        event_date: event.event_date,
+                        event_time: event.event_time,
+                        event_link: event.event_link || "",
+                        photo_url: event.photo_url || "",
+                        courseType: event.event_type || "Event associatif",
+                        location: event.location || "",
+                        professor: event.association_name || "",
+                        event_emoji:
+                          event.event_emoji ||
+                          getDefaultEventEmoji(event.event_type),
+                        short_title: getDefaultShortTitle(event),
+                        start: event.event_time
+                          ? moment(
+                              `${event.event_date} ${event.event_time}`,
+                              "YYYY-MM-DD HH:mm",
+                            ).toDate()
+                          : null,
+                        end: event.event_time
+                          ? moment(
+                              `${event.event_date} ${event.event_time}`,
+                              "YYYY-MM-DD HH:mm",
+                            )
+                              .add(1, "hour")
+                              .toDate()
+                          : null,
+                        associationEvent: event,
+                      })
+                    }
+                    title={event.title}
+                  >
+                    {isMobile && (
+                      <span className="chip-emoji">
+                        {event.event_emoji ||
+                          getDefaultEventEmoji(event.event_type)}
+                      </span>
+                    )}
+                    <span className="chip-title">
+                      {getDefaultShortTitle(event) || "Event"}
+                    </span>
+                  </button>
+                ))}
+                {dayAssociationEvents.length > 3 && (
+                  <div className="day-association-preview-more">
+                    +{dayAssociationEvents.length - 3}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       );
-    }
+    },
   );
 
   // Composant optimisé pour les cellules de temps
@@ -309,11 +434,11 @@ const HpCalendar = ({ user }) => {
                   event={event}
                   handleSelectEvent={handleSelectEvent}
                 />
-              )
+              ),
           )}
         </div>
       );
-    }
+    },
   );
 
   // Modifier le composant Event
@@ -377,17 +502,9 @@ const HpCalendar = ({ user }) => {
       setCurrentDate((prev) =>
         direction === "next"
           ? moment(prev).add(1, "week")
-          : moment(prev).subtract(1, "week")
+          : moment(prev).subtract(1, "week"),
       );
     }
-  };
-
-  const getCurrentAcademicYear = (date) => {
-    const month = date.month();
-    const year = date.year();
-    // Si on est entre août et décembre, on est dans l'année académique qui commence
-    // Si on est entre janvier et juillet, on est dans l'année académique qui a commencé l'année précédente
-    return month >= 7 ? year : year - 1;
   };
 
   const getMonthsList = () => {
@@ -411,11 +528,6 @@ const HpCalendar = ({ user }) => {
         monthIndex: monthIndex >= 5 ? monthIndex - 5 : monthIndex + 7, // Convertir l'index pour moment.js
       };
     });
-  };
-
-  const handleMonthSelect = (monthOffset) => {
-    setCurrentDate((prev) => moment(prev).add(monthOffset, "months"));
-    setShowMonthPicker(false);
   };
 
   const goToToday = () => {
@@ -491,33 +603,12 @@ const HpCalendar = ({ user }) => {
     }
   };
 
-  const fetchExternalCalendar = async (icalLink, displayName) => {
-    try {
-      const response = await fetch(
-        `${
-          process.env.REACT_APP_URL_BACK
-        }/api/external-calendar?icalLink=${encodeURIComponent(icalLink)}`
-      );
-      if (!response.ok)
-        throw new Error("Erreur lors de la récupération du calendrier");
-      const data = await response.text();
-      const parsedEvents = parseICalData(data).map((event) => ({
-        ...event,
-        className: `${event.className} shared`,
-        sharedBy: displayName,
-      }));
-      setSharedEvents(parsedEvents);
-    } catch (error) {
-      console.error("Erreur:", error);
-    }
-  };
-
   const fetchCalendarByName = async (name, type) => {
     try {
       const response = await fetch(
         `${
           process.env.REACT_APP_URL_BACK
-        }/api/calendar/${type}/${encodeURIComponent(name)}`
+        }/api/calendar/${type}/${encodeURIComponent(name)}`,
       );
       if (!response.ok)
         throw new Error("Erreur lors de la récupération du calendrier");
@@ -568,11 +659,11 @@ const HpCalendar = ({ user }) => {
   const filteredUsers = users.filter(
     (u) =>
       matchesSearch(u.displayName ?? "", searchQuery) ||
-      matchesSearch(u.group ?? "", searchQuery)
+      matchesSearch(u.group ?? "", searchQuery),
   );
 
   const filteredProfessors = professors.filter((p) =>
-    matchesSearch(p.prof, searchQuery)
+    matchesSearch(p.prof, searchQuery),
   );
 
   const filteredRooms = rooms.filter((r) => {
@@ -584,6 +675,116 @@ const HpCalendar = ({ user }) => {
   // Rendu du modal des détails d'événement
   const renderModals = () => {
     if (!showModal) return null;
+
+    if (selectedEvent?.associationEvent) {
+      return ReactDOM.createPortal(
+        <div
+          className="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-3 md:p-5"
+          onClick={closeModal}
+        >
+          <div
+            className="relative w-full max-w-4xl max-h-[86vh] overflow-hidden rounded-3xl bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="p-4 md:p-5 border-b border-gray-200 flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h3 className="text-lg md:text-xl font-bold text-secondary leading-tight">
+                  Détails de l'événement
+                </h3>
+                <p className="text-xs md:text-sm text-gray-500 mt-1 truncate">
+                  {selectedEvent.event_type}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="shrink-0 rounded-full p-3 text-gray-600 hover:bg-gray-100 hover:text-secondary transition-colors"
+                aria-label="Fermer"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="max-h-[calc(86vh-152px)] overflow-auto p-4 md:p-5 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,360px)_minmax(0,1fr)] gap-5 items-start">
+                {selectedEvent.photo_url ? (
+                  <img
+                    src={selectedEvent.photo_url}
+                    alt={selectedEvent.title}
+                    className="w-full rounded-2xl border border-gray-100 shadow-sm object-contain bg-transparent"
+                  />
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-500">
+                    Aucune photo
+                  </div>
+                )}
+
+                <div className="space-y-4 min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <h4 className="text-xl md:text-2xl font-bold text-secondary leading-snug min-w-0 flex-1">
+                      {selectedEvent.title}
+                    </h4>
+                    <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-full whitespace-nowrap">
+                      {selectedEvent.event_type}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 text-sm text-gray-700">
+                    {selectedEvent.event_date && (
+                      <div className="flex items-center gap-2">
+                        <BookOpen size={16} className="text-primary" />
+                        <span>
+                          {moment(selectedEvent.event_date).format(
+                            "ddd DD MMMM",
+                          )}{" "}
+                          {selectedEvent.event_time
+                            ? `- ${selectedEvent.event_time}`
+                            : ""}
+                        </span>
+                      </div>
+                    )}
+                    {selectedEvent.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin size={16} className="text-primary" />
+                        <span>{selectedEvent.location}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-100">
+                    <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                      {selectedEvent.description || "Pas de description."}
+                    </p>
+                    {selectedEvent.event_link && (
+                      <a
+                        href={selectedEvent.event_link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-block max-w-full truncate text-sm text-primary underline underline-offset-2"
+                        title={selectedEvent.event_link}
+                      >
+                        {selectedEvent.event_link}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="inline-flex items-center justify-center rounded-full bg-secondary px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-secondary/90 transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      );
+    }
 
     return ReactDOM.createPortal(
       showModal && selectedEvent && (
@@ -642,40 +843,8 @@ const HpCalendar = ({ user }) => {
           </div>
         </div>
       ),
-      document.body
+      document.body,
     );
-  };
-
-  // Add search debouncing
-  useEffect(() => {
-    if (!searchQuery) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setIsSearching(true);
-      const results = filterSearchResults();
-      setSearchResults(results);
-      setIsSearching(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Add helper function for search
-  const filterSearchResults = () => {
-    switch (selectedCategory) {
-      case "students":
-        return filteredUsers;
-      case "professors":
-        return filteredProfessors;
-      case "rooms":
-        return filteredRooms;
-      default:
-        return [];
-    }
   };
 
   return (
@@ -739,24 +908,24 @@ const HpCalendar = ({ user }) => {
           >
             <input
               type="text"
-              className="search-input"
+              className={`search-input ${isSelectorFocused ? "is-focused" : ""}`}
               placeholder={
                 selectedUser
                   ? selectedCategory === "students"
                     ? users.find((u) => u.userName === selectedUser)
                         ?.displayName
                     : selectedCategory === "professors"
-                    ? professors.find((p) => p.prof === selectedUser)?.prof
-                    : rooms.find((r) => r.salle === selectedUser)?.salle
+                      ? professors.find((p) => p.prof === selectedUser)?.prof
+                      : rooms.find((r) => r.salle === selectedUser)?.salle
                   : selectedCategory
-                  ? `Rechercher un${selectedCategory === "rooms" ? "e" : ""} ${
-                      selectedCategory === "students"
-                        ? "étudiant"
-                        : selectedCategory === "professors"
-                        ? "prof"
-                        : "salle"
-                    }...`
-                  : "Choisir une catégorie..."
+                    ? `Rechercher un${selectedCategory === "rooms" ? "e" : ""} ${
+                        selectedCategory === "students"
+                          ? "étudiant"
+                          : selectedCategory === "professors"
+                            ? "prof"
+                            : "salle"
+                      }...`
+                    : "Choisir une catégorie..."
               }
               value={searchQuery}
               onChange={(e) => {
@@ -964,6 +1133,7 @@ const HpCalendar = ({ user }) => {
             getEventsForCell={getEventsForCell}
             handleSelectEvent={handleSelectEvent}
             isMobile={isMobile}
+            getAssociationEventsForDay={getAssociationEventsForDay}
           />
         ) : (
           weekDays.map((day) => (
@@ -974,6 +1144,7 @@ const HpCalendar = ({ user }) => {
               getEventsForCell={getEventsForCell}
               handleSelectEvent={handleSelectEvent}
               isMobile={isMobile}
+              getAssociationEventsForDay={getAssociationEventsForDay}
             />
           ))
         )}

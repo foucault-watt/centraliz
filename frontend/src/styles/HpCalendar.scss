@@ -1,6 +1,62 @@
 .hp-calendar {
   animation: slideInFromBottom 0.6s ease-out;
 
+  .day-association-preview {
+    margin: 0.35rem 0.4rem 0.45rem;
+    padding: 0.35rem 0.4rem;
+    border-top: 1px dashed rgba($main, 0.18);
+
+    .day-association-preview-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+
+    .day-association-preview-chip {
+      width: 100%;
+      border: 1px solid rgba($main, 0.08);
+      border-radius: 7px;
+      background: rgba($main, 0.03);
+      padding: 0.28rem 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      text-align: left;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+
+      &:hover {
+        background: rgba($main, 0.06);
+        border-color: rgba($main, 0.22);
+      }
+
+      .chip-emoji {
+        font-size: 0.95rem;
+        line-height: 1;
+        flex: none;
+      }
+
+      .chip-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: $second;
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+      }
+    }
+
+    .day-association-preview-more {
+      font-size: 0.68rem;
+      color: rgba($second, 0.65);
+      padding-left: 0.1rem;
+    }
+  }
+
   // En-tête du calendrier
   .calendar-header {
     display: flex;
@@ -88,7 +144,9 @@
         max-height: 300px;
         overflow-y: auto;
         opacity: 1;
-        transition: opacity 0.2s, transform 0.2s;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
 
         &.hiding {
           opacity: 0;

@@ -13,6 +13,12 @@ import { applyBDSTheme } from "./utils/bdsTheme";
 // Lazy load page components
 const Notes = lazy(() => import("./components/NotesV2"));
 const Calendars = lazy(() => import("./components/Calendars"));
+const EventCreatePage = lazy(() => import("./components/EventCreatePage"));
+const EventsHubPage = lazy(() => import("./components/EventsHubPage"));
+const AssociationEventsPage = lazy(
+  () => import("./components/AssociationEventsPage"),
+);
+const AdminEventsPage = lazy(() => import("./components/AdminEventsPage"));
 const Communication = lazy(() => import("./components/Communication"));
 const Bdi = lazy(() => import("./components/Bdi"));
 const Links = lazy(() => import("./components/Links"));
@@ -159,6 +165,38 @@ const App = () => {
                   element={
                     <PageLayout>
                       <Calendars user={user} />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/events"
+                  element={
+                    <PageLayout>
+                      <EventsHubPage user={user} />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/events/association/:associationSlug"
+                  element={
+                    <PageLayout>
+                      <AssociationEventsPage user={user} />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/events/admin"
+                  element={
+                    <PageLayout>
+                      <AdminEventsPage user={user} />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/events/create"
+                  element={
+                    <PageLayout>
+                      <EventCreatePage user={user} />
                     </PageLayout>
                   }
                 />

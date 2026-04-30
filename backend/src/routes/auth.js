@@ -7,6 +7,28 @@ const cookieParser = require("cookie-parser");
 const supabase = require("../utils/supabaseClient");
 const bdsWhitelist = require("../config/bdsWhitelist");
 
+const getUserAssociations = async (username) => {
+  const { data, error } = await supabase
+    .from("user_associations")
+    .select("association_slug, association_name, role")
+    .eq("username", username)
+    .order("association_name", { ascending: true });
+
+  if (error) {
+    console.error(
+      "[Auth Status] Impossible de récupérer les associations:",
+      error,
+    );
+    return [];
+  }
+
+  return (data || []).map((entry) => ({
+    association_slug: entry.association_slug,
+    association_name: entry.association_name,
+    role: entry.role,
+  }));
+};
+
 // Middleware pour parser les cookies, nécessaire pour lire le cookie remember_me
 router.use(cookieParser());
 router.get("/status", async (req, res) => {
@@ -16,12 +38,12 @@ router.get("/status", async (req, res) => {
   if (userFromSession) {
     // Si une session existe, on tente de récupérer les infos complètes de l'utilisateur depuis la BDD
     const { data, error } = await loginService.getUser(
-      userFromSession.userName
+      userFromSession.userName,
     );
     if (error || !data) {
       console.error(
         "[Auth Status] Erreur: impossible de récupérer l'utilisateur complet pour la session existante",
-        error
+        error,
       );
       // Si on ne peut pas récupérer l'utilisateur, on invalide la session
       req.session.destroy();
@@ -47,7 +69,7 @@ router.get("/status", async (req, res) => {
     if (error || !data) {
       console.error(
         "[Auth Status] Erreur: impossible de récupérer l'utilisateur complet pour la session remember_me",
-        error
+        error,
       );
       res.clearCookie("remember_me");
       return res.json({ authenticated: false, user: null });
@@ -56,6 +78,8 @@ router.get("/status", async (req, res) => {
   }
 
   if (fullUser) {
+    const associationRoles = await getUserAssociations(fullUser.username);
+
     // Check for BDS referral cookie
     const bdsReferral = req.cookies.bds_referral;
     if (bdsReferral && bdsWhitelist.includes(bdsReferral)) {
@@ -78,6 +102,8 @@ router.get("/status", async (req, res) => {
       is_bibli_admin: fullUser.is_bibli_admin,
       ent_username: fullUser.ent_username,
       support_bds: fullUser.support_bds,
+      has_association_role: Boolean(fullUser.has_association_role),
+      association_roles: associationRoles,
     };
     return res.json({ authenticated: true, user: req.session.user });
   }

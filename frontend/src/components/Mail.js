@@ -227,9 +227,14 @@ function Mail() {
   return (
     <div className="mail-module-modern">
       <div className="mail-header-modern">
-        <h2 className="mail-title-modern">📬 Boîte de réception</h2>
-        {isAuthenticated && allMails.length > 0 && (
-          <span className="mail-count-badge">{allMails.length} messages</span>
+        <div>
+          <span className="mail-eyebrow-modern">Zimbra</span>
+          <h2 className="mail-title-modern">Boîte de réception</h2>
+        </div>
+        {isAuthenticated && (
+          <span className="mail-count-badge">
+            {allMails.length} message{allMails.length > 1 ? "s" : ""}
+          </span>
         )}
       </div>
 
@@ -261,7 +266,7 @@ function Mail() {
               animate={{ opacity: 1, scale: 1 }}
               className="mail-empty-modern"
             >
-              <div className="mail-empty-icon">📭</div>
+              <div className="mail-empty-icon" aria-hidden="true" />
               <p>Aucun mail trouvé</p>
             </motion.div>
           ) : (
@@ -281,25 +286,24 @@ function Mail() {
                   }}
                 >
                   {allMails.slice(0, visibleMails).map((mail, index) => (
-                    <motion.div
+                    <motion.button
                       key={mail.id}
+                      type="button"
                       className={`mail-card-modern ${
                         selectedMail?.id === mail.id ? "mail-card-selected" : ""
                       }`}
                       onClick={() => handleMailClick(mail)}
+                      aria-pressed={selectedMail?.id === mail.id}
                       variants={{
-                        hidden: { opacity: 0, y: 20 },
+                        hidden: { opacity: 0, y: 14 },
                         visible: {
                           opacity: 1,
                           y: 0,
-                          transition: { delay: index * 0.02 },
+                          transition: { delay: index * 0.015 },
                         },
                       }}
-                      whileHover={{
-                        scale: 1.01,
-                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                      }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ y: -1 }}
+                      whileTap={{ scale: 0.985 }}
                     >
                       <div className="mail-card-info">
                         <div className="mail-card-author-row">
@@ -314,13 +318,13 @@ function Mail() {
                           </span>
                         </div>
                         <h3 className="mail-card-title" title={mail.title}>
-                          {truncateText(mail.title, 60)}
+                          {mail.title}
                         </h3>
                         <p className="mail-card-preview">
-                          {truncateText(mail.description || "", 100)}
+                          {mail.description || ""}
                         </p>
                       </div>
-                    </motion.div>
+                    </motion.button>
                   ))}
 
                   {/* Sentinel pour détecter le scroll */}
@@ -354,6 +358,9 @@ function Mail() {
                       transition={{ duration: 0.25 }}
                     >
                       <div className="mail-detail-header">
+                        <span className="mail-detail-eyebrow">
+                          Mail sélectionné
+                        </span>
                         <h2 className="mail-detail-title">
                           {selectedMail.title}
                         </h2>
@@ -402,7 +409,7 @@ function Mail() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            📨 Répondre sur Zimbra
+                            Répondre sur Zimbra
                           </motion.a>
                         </>
                       )}
@@ -415,7 +422,7 @@ function Mail() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      <div className="mail-detail-empty-icon">✉️</div>
+                      <div className="mail-detail-empty-icon">M</div>
                       <p>Sélectionnez un mail pour le lire</p>
                     </motion.div>
                   )}

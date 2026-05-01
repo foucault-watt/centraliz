@@ -3,7 +3,7 @@ import Mail from "./Mail";
 
 const Communication = () => {
   return (
-    <div className="div-mail">
+    <div className="div-mail app-legacy-panel">
       <Mail />
     </div>
   );

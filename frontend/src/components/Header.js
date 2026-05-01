@@ -1,4 +1,5 @@
 import { Info, Menu } from "lucide-react";
+import { motion } from "framer-motion";
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 
@@ -6,12 +7,13 @@ import { UserContext } from "../App";
  * Composant Header - Barre de navigation principale de l'application
  * Affiche le logo, le menu et les informations de classement de l'utilisateur
  */
-export default function Header({ onMenuToggle }) { // Accept onMenuToggle prop
+export default function Header({ onMenuToggle }) {
   // États locaux
   const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
 
   // Récupération du nom d'utilisateur depuis le contexte
-  const { displayName } = useContext(UserContext);
+  const { user } = useContext(UserContext);
+  const displayName = user?.displayName || user?.userName;
 
   /**
    * Récupère les informations de classement depuis l'API
@@ -43,45 +45,53 @@ export default function Header({ onMenuToggle }) { // Accept onMenuToggle prop
   }, [displayName]);
 
   return (
-    <>
-      <header className="bg-primary-dark text-white top-0 z-50 shadow-md sticky w-full overflow-visible">
-        {/* Bouton pour ouvrir le SlideMenu */}
-        <button
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white hover:bg-opacity-10 transition-colors"
+    <motion.header
+      className="app-header"
+      initial={{ opacity: 0, y: -14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.26, ease: "easeOut" }}
+    >
+      <div className="app-header-inner">
+        <motion.button
+          type="button"
+          className="app-header-menu"
           onClick={onMenuToggle}
           aria-label="Ouvrir le menu"
+          whileTap={{ scale: 0.94 }}
         >
-          <Menu size={24} />
-        </button>
+          <Menu size={22} />
+        </motion.button>
 
-        {/* Logo et titre */}
-        <div className="flex justify-center items-center h-18">
-          <img src={"logo-title.png"} className="h-12 pr-2 py-1" alt="logo" />
-          <h1 className="text-4xl font-semibold tracking-wide text-day">Centraliz</h1>
-          <span className="text-2xl font-light opacity-80 text-day ml-0.5 tracking-tighter hidden sm:inline">.it</span>
+        <div className="app-header-brand" aria-label="Centraliz.it">
+          <span className="app-header-logo-frame">
+            <img src={"logo-title.png"} className="app-header-logo" alt="" />
+          </span>
+          <div className="app-header-wordmark">
+            <span>Centraliz</span>
+            <small>.it</small>
+          </div>
         </div>
 
-        {/* Affichage du classement si disponible */}
         {rankingInfo && (
           <div
-            className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 text-day text-sm max-w-xs text-right"
-            onClick={(e) => e.stopPropagation()} // Empêcher la fermeture du menu quand on clique sur les infos de classement
+            className="app-header-ranking"
+            onClick={(e) => e.stopPropagation()}
           >
-            <span className="font-medium block leading-tight whitespace-normal break-words mr-1 sm:hidden">Top {rankingInfo.rank}</span>
-            <span className="font-medium block leading-tight whitespace-normal break-words hidden sm:block">{rankingInfo.message}</span>
-            <div className="relative cursor-help flex items-center p-1 rounded-full transition-colors hover:bg-white hover:bg-opacity-10 hidden sm:flex group">
-              <Info size={18} />
-              <div className="absolute right-0 top-full bg-white text-secondary p-3 rounded-md shadow-lg w-max max-w-xs invisible opacity-0 translate-y-[-10px] transition-all ease-in-out duration-200 z-50 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0">
-                <p className="my-0.5 text-sm leading-tight">Calculé sur le nombre de jours de connexion uniques</p>
-                <p className="my-0.5 text-sm leading-tight">
-                  Votre score : <strong className="font-bold">{rankingInfo.userScore}</strong> jours
+            <span className="ranking-short">Top {rankingInfo.rank}</span>
+            <span className="ranking-message">{rankingInfo.message}</span>
+            <div className="ranking-info">
+              <Info size={16} />
+              <div className="ranking-tooltip">
+                <p>Calculé sur le nombre de jours de connexion uniques</p>
+                <p>
+                  Votre score : <strong>{rankingInfo.userScore}</strong> jours
                   de connexion
                 </p>
               </div>
             </div>
           </div>
         )}
-      </header>
-    </>
+      </div>
+    </motion.header>
   );
 }

@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { slideMenuConfig } from "../config/slideMenuConfig";
@@ -25,48 +26,70 @@ const SlideMenu = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div
-      className={`fixed top-0 left-0 w-full h-full z-[1000] transition-all duration-300 ease-in-out ${
-        isOpen ? "visible opacity-100" : "invisible opacity-0"
-      }`}
-      onClick={onClose}
-    >
-      <div
-        className={`fixed top-0 left-0 w-full h-full bg-game-overlay backdrop-blur-sm transition-opacity duration-300 ${
-          isOpen ? "opacity-100" : "opacity-0"
-        }`}
-      />
-      <div
-        className={`fixed top-0 left-0 w-80 max-w-[85%] h-full bg-background-module shadow-lg flex flex-col p-5 pt-16 transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          className="absolute top-4 right-4 p-2 text-text-secondary hover:text-text-primary hover:bg-slate-500 transition-colors"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="app-slide-menu"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
           onClick={onClose}
-          aria-label="Fermer le menu"
         >
-          <X size={24} />
-        </button>
+          <motion.div
+            className="slide-menu-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          />
+          <motion.aside
+            className="slide-menu-panel"
+            initial={{ x: "-102%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-102%" }}
+            transition={{ type: "spring", stiffness: 360, damping: 34 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="slide-menu-top">
+              <div>
+                <p className="slide-menu-kicker">Centraliz</p>
+                <h2>Autres onglets</h2>
+              </div>
+              <motion.button
+                type="button"
+                className="slide-menu-close"
+                onClick={onClose}
+                aria-label="Fermer le menu"
+                whileTap={{ scale: 0.94 }}
+              >
+                <X size={22} />
+              </motion.button>
+            </div>
 
-        <h2 className="text-xl font-semibold mb-4 text-text-primary bg-background-light p-3 rounded-lg">Autres onglets</h2>
-        <div className="border-b border-border-light mb-6"></div>
-
-        <nav className="flex flex-col gap-3">
-          {slideMenuConfig.map((page) => (
-            <button
-              key={page.id}
-              onClick={() => handleNavigation(page.path)}
-              className="flex items-center gap-3 p-3 rounded-lg text-white bg-primary-dark/80 hover:bg-primary-dark transition-colors"
-            >
-              <page.icon size={20} />
-              <span className="text-lg">{page.label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
-    </div>
+            <nav className="slide-menu-items">
+              {slideMenuConfig.map((page, index) => (
+                <motion.button
+                  key={page.id}
+                  type="button"
+                  onClick={() => handleNavigation(page.path)}
+                  className="slide-menu-item"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.18, delay: index * 0.035 }}
+                  whileTap={{ scale: 0.985 }}
+                >
+                  <span className="slide-menu-item-icon">
+                    <page.icon size={19} />
+                  </span>
+                  <span>{page.label}</span>
+                </motion.button>
+              ))}
+            </nav>
+          </motion.aside>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

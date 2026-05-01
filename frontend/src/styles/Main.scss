@@ -40,27 +40,397 @@
 .div-bibli,
 .div-card {
   @extend %card;
-  background: $background-module;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.div-card:hover {
+  border-color: rgba($main, 0.14);
+  box-shadow: $shadow-card-hover;
+}
+
+.app-legacy-panel {
+  overflow: hidden;
+}
+
+.ui-card,
+.ui-panel {
+  border: 1px solid rgba($second, 0.08);
+  border-radius: $radius-card;
+  background:
+    linear-gradient(180deg, rgba(white, 0.95), rgba(white, 0.88)),
+    $background-module;
+  box-shadow: $shadow-card;
+}
+
+.ui-card {
+  padding: 1rem;
+}
+
+.ui-panel {
+  padding: 1.15rem;
+}
+
+.ui-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h1,
+  h2,
+  h3 {
+    margin: 0;
+    color: $second;
+    letter-spacing: 0;
+    line-height: 1.15;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: rgba($second, 0.64);
+    font-size: 0.9rem;
+  }
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba($main, 0.12);
+  background: rgba($main, 0.08);
+  color: var(--color-primary);
+  padding: 0.22rem 0.55rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.ui-button {
+  border: 0;
+  border-radius: $radius-control;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  padding: 0.62rem 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+
+  &:active {
+    transform: scale(0.985);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.ui-button-primary {
+  @extend .ui-button;
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 9px 20px rgba($main, 0.22);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    box-shadow: 0 12px 26px rgba($main, 0.28);
+  }
+}
+
+.ui-button-secondary {
+  @extend .ui-button;
+  border: 1px solid rgba($second, 0.1);
+  background: rgba(white, 0.88);
+  color: $second;
+
+  &:hover:not(:disabled) {
+    border-color: rgba($main, 0.22);
+    color: var(--color-primary);
+    background: white;
+  }
+}
+
+.ui-field,
+.ui-select,
+.ui-textarea {
+  width: 100%;
+  border: 1px solid rgba($second, 0.12);
+  border-radius: $radius-control;
+  background: rgba(white, 0.9);
+  color: $second;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.95rem;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+
+  &::placeholder {
+    color: rgba($second, 0.45);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba($main, 0.5);
+    background: white;
+    box-shadow: 0 0 0 4px rgba($main, 0.12);
+  }
+}
+
+.ui-textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 // Cekilui utilise maintenant Tailwind CSS exclusivement
 // .div-cekilui supprimé - maintenant géré par Tailwind
 
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid rgba($main, 0.24);
+  outline-offset: 2px;
+}
+
+:where(input, select, textarea) {
+  accent-color: var(--color-primary);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 calc(112px + env(safe-area-inset-bottom));
+}
+
+.app-main-inner {
+  width: 100%;
+  max-width: 72rem;
+  padding: 0 1rem;
+}
+
+.app-main-inner-full {
+  max-width: none;
+
+  @media (min-width: 1024px) {
+    padding: 0 1.5rem;
+  }
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: $shell-header-z;
+  width: 100%;
+  padding: 7px 12px;
+  color: white;
+  background:
+    linear-gradient(135deg, rgba($main-dark, 0.96), rgba($main, 0.9)),
+    $main-dark;
+  border-bottom: 1px solid rgba(white, 0.14);
+  box-shadow: 0 10px 28px rgba($second, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.app-header-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 44px;
+  max-width: 92rem;
+  margin: 0 auto;
+}
+
+.app-header-menu,
+.slide-menu-close {
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.app-header-menu {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  color: white;
+  background: rgba(white, 0.1);
+
+  &:hover {
+    background: rgba(white, 0.16);
+    transform: translateY(-1px);
+  }
+}
+
+.app-header-brand {
+  justify-self: center;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-header-logo-frame {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-header-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.app-header-wordmark {
+  display: flex;
+  align-items: baseline;
+  color: white;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+
+  span {
+    font-size: clamp(1.82rem, 4vw, 2.75rem);
+  }
+
+  small {
+    margin-left: 0.08rem;
+    font-size: clamp(1.08rem, 2vw, 1.35rem);
+    font-weight: 500;
+    opacity: 0.82;
+  }
+}
+
+.app-header-ranking {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 18rem;
+  min-width: 0;
+  border: 1px solid rgba(white, 0.16);
+  border-radius: 999px;
+  background: rgba(white, 0.11);
+  padding: 0.25rem 0.42rem 0.25rem 0.55rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(white, 0.12);
+}
+
+.ranking-short {
+  display: none;
+  white-space: nowrap;
+}
+
+.ranking-message {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  color: white;
+  background: rgba(white, 0.12);
+  cursor: help;
+
+  &:hover {
+    background: rgba(white, 0.18);
+
+    .ranking-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(6px);
+    }
+  }
+}
+
+.ranking-tooltip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 250px;
+  padding: 0.75rem;
+  border-radius: $radius-control;
+  background: white;
+  color: $second;
+  box-shadow: $shadow-shell;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0.16s ease;
+  z-index: $shell-menu-z;
+
+  p {
+    margin: 0.15rem 0;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    font-weight: 500;
+  }
+}
+
 // Navigation styles
 .app-navigation {
   position: fixed;
-  bottom: 20px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
   left: 50%;
-  z-index: 1000;
+  z-index: $shell-nav-z;
   padding: 8px;
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.86);
+  background: $glass-white;
   border: 1px solid rgba($second, 0.08);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 14px 34px rgba($second, 0.12);
+  box-shadow: $shadow-shell;
   transition: $transition;
-  max-width: 95%;
+  max-width: min(95vw, 760px);
   overflow: hidden;
 
   &:hover {
@@ -140,133 +510,195 @@
   }
 }
 
-// Menu mobile
-.mobile-nav {
+.app-slide-menu {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2000;
-  visibility: hidden;
+  z-index: $shell-menu-z;
+}
 
-  &.open {
-    visibility: visible;
+.slide-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba($second, 0.36);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
 
-    .mobile-nav-container {
-      transform: translateX(0);
-    }
+.slide-menu-panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(86vw, 340px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1rem;
+  background:
+    linear-gradient(180deg, rgba(white, 0.96), rgba(white, 0.9)),
+    $background-module;
+  border-right: 1px solid rgba($second, 0.08);
+  box-shadow: $shadow-shell-strong;
+  overflow-y: auto;
+}
 
-    .mobile-nav-overlay {
-      opacity: 1;
-    }
-  }
+.slide-menu-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0.2rem 0.9rem;
+  border-bottom: 1px solid rgba($second, 0.08);
 
-  .mobile-nav-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .mobile-nav-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 80%;
-    max-width: 300px;
-    height: 100%;
-    background: white;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 2001;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .mobile-nav-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-    border-bottom: 1px solid $day-border;
-
-    h2 {
-      margin: 0;
-      color: $second;
-    }
-
-    .close-mobile-nav {
-      background: none;
-      border: none;
-      color: $second;
-      cursor: pointer;
-      padding: 5px;
-
-      &:hover {
-        color: var(--color-primary);
-      }
-    }
-  }
-
-  .mobile-nav-items {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .mobile-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
-    padding: 15px;
-    border-radius: 10px;
-    background: transparent;
-    border: none;
-    text-align: left;
-    font-size: 1.1em;
+  h2 {
+    margin: 0;
     color: $second;
-    transition: $transition;
-
-    &:hover {
-      background: rgba($main, 0.1);
-    }
-
-    &.active {
-      background: var(--color-primary);
-      color: white;
-    }
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0;
   }
 }
 
-// Animation pour le pulsing dot
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+.slide-menu-kicker {
+  margin: 0 0 0.2rem;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.slide-menu-close {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: $second;
+  background: rgba($second, 0.06);
+
+  &:hover {
+    color: var(--color-primary);
+    background: rgba($main, 0.1);
   }
-  70% {
-    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0);
+}
+
+.slide-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.slide-menu-item {
+  width: 100%;
+  border: 1px solid rgba($second, 0.08);
+  border-radius: $radius-control;
+  background: rgba(white, 0.78);
+  color: $second;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    color 0.18s ease;
+
+  &:hover {
+    color: var(--color-primary);
+    border-color: rgba($main, 0.22);
+    background: white;
+    transform: translateX(2px);
   }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-  }
+}
+
+.slide-menu-item-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--color-primary);
+  background: rgba($main, 0.1);
 }
 
 // Media queries
 @media (max-width: 768px) {
+  .app-main {
+    padding-top: 12px;
+    padding-bottom: calc(98px + env(safe-area-inset-bottom));
+  }
+
+  .app-main-inner {
+    padding: 0 0.85rem;
+  }
+
+  .app-header {
+    padding: 5px 8px;
+  }
+
+  .app-header-inner {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    min-height: 40px;
+    gap: 0.45rem;
+  }
+
+  .app-header-menu {
+    width: 36px;
+    height: 36px;
+  }
+
+  .app-header-logo-frame {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .app-header-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .app-header-wordmark {
+    span {
+      font-size: 1.72rem;
+    }
+
+    small {
+      display: none;
+    }
+  }
+
+  .app-header-ranking {
+    max-width: 4.3rem;
+    padding: 0.26rem 0.45rem;
+    font-size: 0.68rem;
+  }
+
+  .ranking-short {
+    display: inline;
+  }
+
+  .ranking-message,
+  .ranking-info {
+    display: none;
+  }
+
   .nav-item .nav-label {
     display: none;
   }
 
   .app-navigation {
     padding: 6px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    border-radius: 999px;
 
     .nav-items {
       gap: 2px;
@@ -290,5 +722,10 @@
         margin: 0;
       }
     }
+  }
+
+  .slide-menu-panel {
+    width: min(88vw, 320px);
+    padding: 0.85rem;
   }
 }

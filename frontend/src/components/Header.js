@@ -1,48 +1,48 @@
-import { Info, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { motion } from "framer-motion";
-import { useContext, useEffect, useState } from "react";
-import { UserContext } from "../App";
+// import { useContext } from "react";
+// import { UserContext } from "../App";
 
 /**
  * Composant Header - Barre de navigation principale de l'application
  * Affiche le logo, le menu et les informations de classement de l'utilisateur
  */
 export default function Header({ onMenuToggle }) {
-  // États locaux
-  const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
+  // Classement temporairement masque.
+  // const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
 
   // Récupération du nom d'utilisateur depuis le contexte
-  const { user } = useContext(UserContext);
-  const displayName = user?.displayName || user?.userName;
+  // const { user } = useContext(UserContext);
+  // const displayName = user?.displayName || user?.userName;
 
-  /**
-   * Récupère les informations de classement depuis l'API
-   * @returns {Promise<Object|null>} Données de classement ou null en cas d'erreur
-   */
-  const getRankingInfo = async () => {
-    try {
-      const response = await fetch(`/api/ranking/`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Erreur réseau");
-      return await response.json();
-    } catch (error) {
-      console.error("Erreur lors de la récupération du classement:", error);
-      return null;
-    }
-  };
+  // /**
+  //  * Récupère les informations de classement depuis l'API
+  //  * @returns {Promise<Object|null>} Données de classement ou null en cas d'erreur
+  //  */
+  // const getRankingInfo = async () => {
+  //   try {
+  //     const response = await fetch(`/api/ranking/`, {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+  //     if (!response.ok) throw new Error("Erreur réseau");
+  //     return await response.json();
+  //   } catch (error) {
+  //     console.error("Erreur lors de la récupération du classement:", error);
+  //     return null;
+  //   }
+  // };
 
-  // Effet pour récupérer les informations de classement
-  useEffect(() => {
-    const fetchRanking = async () => {
-      if (displayName) {
-        const info = await getRankingInfo();
-        setRankingInfo(info);
-      }
-    };
-    fetchRanking();
-  }, [displayName]);
+  // // Effet pour récupérer les informations de classement
+  // useEffect(() => {
+  //   const fetchRanking = async () => {
+  //     if (displayName) {
+  //       const info = await getRankingInfo();
+  //       setRankingInfo(info);
+  //     }
+  //   };
+  //   fetchRanking();
+  // }, [displayName]);
 
   return (
     <motion.header
@@ -72,7 +72,7 @@ export default function Header({ onMenuToggle }) {
           </div>
         </div>
 
-        {rankingInfo && (
+        {/* {rankingInfo && (
           <div
             className="app-header-ranking"
             onClick={(e) => e.stopPropagation()}
@@ -90,7 +90,7 @@ export default function Header({ onMenuToggle }) {
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </motion.header>
   );

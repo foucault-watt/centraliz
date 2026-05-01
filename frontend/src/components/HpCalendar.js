@@ -4,10 +4,12 @@ import {
   ArrowRight,
   BookOpen,
   Briefcase,
+  CalendarDays,
   CircleChevronDown,
   DoorClosed,
   GraduationCap,
   MapPin,
+  Search,
   Users,
   X,
 } from "lucide-react";
@@ -15,6 +17,7 @@ import moment from "moment";
 import "moment/locale/fr";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
+import { motion } from "framer-motion";
 import { fetchApi } from "../utils/api";
 
 moment.locale("fr");
@@ -334,28 +337,29 @@ const HpCalendar = ({ user }) => {
       handleSelectEvent,
       isMobile,
       getAssociationEventsForDay,
+      associationPreviewRows,
     }) => {
       const dayAssociationEvents = getAssociationEventsForDay(day);
+      const previewCount = Math.min(
+        dayAssociationEvents.length,
+        associationPreviewRows,
+      );
 
       return (
         <div className="day-column">
           <div className="day-header">
-            {isMobile ? day.format("dddd DD/MM") : day.format("ddd DD/MM")}
+            <span className="day-label">
+              {isMobile ? day.format("dddd DD/MM") : day.format("ddd DD/MM")}
+            </span>
           </div>
-          {hours.map((hour) => (
-            <TimeCell
-              key={`${day.format("YYYY-MM-DD")}-${hour}`}
-              day={day}
-              hour={hour}
-              getEventsForCell={getEventsForCell}
-              handleSelectEvent={handleSelectEvent}
-            />
-          ))}
-
-          {dayAssociationEvents.length > 0 && (
-            <div className="day-association-preview">
+          <div
+            className={`day-association-preview rows-${associationPreviewRows} ${
+              dayAssociationEvents.length === 0 ? "is-empty" : ""
+            }`}
+          >
+            {dayAssociationEvents.length > 0 && (
               <div className="day-association-preview-list">
-                {dayAssociationEvents.slice(0, 3).map((event) => (
+                {dayAssociationEvents.slice(0, previewCount).map((event) => (
                   <button
                     key={event.id}
                     type="button"
@@ -395,28 +399,44 @@ const HpCalendar = ({ user }) => {
                     }
                     title={event.title}
                   >
-                    {isMobile && (
-                      <span className="chip-emoji">
-                        {event.event_emoji ||
-                          getDefaultEventEmoji(event.event_type)}
-                      </span>
-                    )}
+                    <span className="chip-emoji">
+                      {event.event_emoji ||
+                        getDefaultEventEmoji(event.event_type)}
+                    </span>
                     <span className="chip-title">
                       {getDefaultShortTitle(event) || "Event"}
                     </span>
                   </button>
                 ))}
-                {dayAssociationEvents.length > 3 && (
+                {dayAssociationEvents.length > previewCount && (
                   <div className="day-association-preview-more">
-                    +{dayAssociationEvents.length - 3}
+                    +{dayAssociationEvents.length - previewCount}
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
+          {hours.map((hour) => (
+            <TimeCell
+              key={`${day.format("YYYY-MM-DD")}-${hour}`}
+              day={day}
+              hour={hour}
+              getEventsForCell={getEventsForCell}
+              handleSelectEvent={handleSelectEvent}
+            />
+          ))}
+
         </div>
       );
     },
+  );
+
+  const visibleDays = isMobile ? [currentDate] : weekDays;
+  const associationPreviewRows = Math.max(
+    1,
+    ...visibleDays.map((day) =>
+      Math.min(getAssociationEventsForDay(day).length, 3),
+    ),
   );
 
   // Composant optimisé pour les cellules de temps
@@ -451,13 +471,22 @@ const HpCalendar = ({ user }) => {
 
     // Vérifier si on est en mode "partagé" (si sharedEvents existe et n'est pas vide)
     const isInSharedMode = sharedEvents && sharedEvents.length > 0;
+    const densityClass =
+      event.duration <= 1
+        ? "compact"
+        : event.duration <= 2
+          ? "comfortable"
+          : "roomy";
 
     return (
-      <div
-        className={`calendar-event ${event.className}`}
+      <motion.div
+        className={`calendar-event ${densityClass} ${event.className}`}
         onClick={() => handleSelectEvent(event)}
         style={style}
         title={event.sharedBy ? `Partagé par ${event.sharedBy}` : undefined}
+        whileHover={{ y: -1 }}
+        whileTap={{ scale: 0.985 }}
+        transition={{ duration: 0.14, ease: "easeOut" }}
       >
         <div className="event-title">{event.title}</div>
         {/* N'afficher les détails supplémentaires que si on n'est pas en mode partagé */}
@@ -474,7 +503,7 @@ const HpCalendar = ({ user }) => {
             )}
           </>
         )}
-      </div>
+      </motion.div>
     );
   });
 
@@ -849,28 +878,60 @@ const HpCalendar = ({ user }) => {
 
   return (
     <div className="hp-calendar">
-      <div className="calendar-header">
-        <div className="navigation-controls">
-          <button
-            onClick={() => navigateWeek("prev")}
-            title="Semaine précédente"
-          >
-            <ArrowLeft />
-          </button>
-          <button onClick={goToToday} className="today-btn" title="Aujourd'hui">
-            Aujourd'hui
-          </button>
-          <div
+      <motion.div
+        className="calendar-header"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: "easeOut" }}
+      >
+        <div className="calendar-top-row">
+          <div className="navigation-controls">
+            <motion.button
+              type="button"
+              className="calendar-icon-btn"
+              onClick={() => navigateWeek("prev")}
+              title="Semaine précédente"
+              whileTap={{ scale: 0.94 }}
+            >
+              <ArrowLeft />
+            </motion.button>
+            <motion.button
+              type="button"
+              onClick={goToToday}
+              className="today-btn"
+              title="Aujourd'hui"
+              whileTap={{ scale: 0.97 }}
+            >
+              Aujourd'hui
+            </motion.button>
+            <motion.button
+              type="button"
+              className="calendar-icon-btn"
+              onClick={() => navigateWeek("next")}
+              title="Semaine suivante"
+              whileTap={{ scale: 0.94 }}
+            >
+              <ArrowRight />
+            </motion.button>
+          </div>
+          <motion.div
             className="month-selector"
             onClick={() => setShowMonthPicker(!showMonthPicker)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setShowMonthPicker(!showMonthPicker);
+              }
+            }}
           >
+            <CalendarDays size={18} />
             <h2>
               {currentDate.format("MMMM")} <CircleChevronDown size={18} />
             </h2>
             {showMonthPicker && (
-              <div
-                className={`month-picker ${showMonthPicker ? "" : "hiding"}`}
-              >
+              <div className={`month-picker ${showMonthPicker ? "" : "hiding"}`}>
                 {getMonthsList().map(({ month, year, display, monthIndex }) => (
                   <div
                     key={`${month}-${year}`}
@@ -893,19 +954,18 @@ const HpCalendar = ({ user }) => {
                 ))}
               </div>
             )}
-          </div>
-          <button onClick={() => navigateWeek("next")} title="Semaine suivante">
-            <ArrowRight />
-          </button>
+          </motion.div>
         </div>
         <div className="user-selector">
           <div
+            className="search-shell"
             style={{
               position: "relative",
               display: "flex",
               alignItems: "center",
             }}
           >
+            <Search className="search-icon" size={17} />
             <input
               type="text"
               className={`search-input ${isSelectorFocused ? "is-focused" : ""}`}
@@ -960,19 +1020,12 @@ const HpCalendar = ({ user }) => {
             />
             {selectedUser && (
               <button
+                className="clear-user-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedUser(null);
                   setSharedEvents([]);
                   setSearchQuery("");
-                }}
-                style={{
-                  position: "absolute",
-                  right: "8px",
-                  background: "none",
-                  border: "none",
-                  padding: "4px",
-                  cursor: "pointer",
                 }}
                 title="Désélectionner l'utilisateur"
               >
@@ -1116,10 +1169,13 @@ const HpCalendar = ({ user }) => {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
       <div className="calendar-grid">
         <div className="time-column">
           <div className="corner-header"></div>
+          <div
+            className={`association-row-spacer rows-${associationPreviewRows}`}
+          ></div>
           {hours.map((hour) => (
             <div key={hour} className="time-slot">
               {formatHour(hour)}
@@ -1134,6 +1190,7 @@ const HpCalendar = ({ user }) => {
             handleSelectEvent={handleSelectEvent}
             isMobile={isMobile}
             getAssociationEventsForDay={getAssociationEventsForDay}
+            associationPreviewRows={associationPreviewRows}
           />
         ) : (
           weekDays.map((day) => (
@@ -1145,6 +1202,7 @@ const HpCalendar = ({ user }) => {
               handleSelectEvent={handleSelectEvent}
               isMobile={isMobile}
               getAssociationEventsForDay={getAssociationEventsForDay}
+              associationPreviewRows={associationPreviewRows}
             />
           ))
         )}

@@ -51,20 +51,20 @@
   position: fixed;
   bottom: 20px;
   left: 50%;
-  transform: translateX(-50%);
   z-index: 1000;
-  padding: 10px;
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: $shadow-default;
+  padding: 8px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba($second, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 14px 34px rgba($second, 0.12);
   transition: $transition;
   max-width: 95%;
   overflow: hidden;
 
   &:hover {
-    box-shadow: $shadow-hover;
+    box-shadow: 0 18px 40px rgba($second, 0.16);
   }
 
   .nav-items {
@@ -78,19 +78,41 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    border-radius: 20px;
+    border-radius: 22px;
     background: transparent;
     border: none;
     color: $second;
     font-weight: 500;
     cursor: pointer;
-    transition: $transition;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
     position: relative;
     overflow: hidden;
     min-width: 44px;
     text-decoration: none; /* Supprimer le soulignement */
+
+    .nav-active-pill {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--color-primary);
+      box-shadow: 0 8px 18px rgba($main, 0.25);
+      z-index: 0;
+    }
+
+    .nav-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 100%;
+      padding: 11px 12px;
+      border-radius: inherit;
+    }
 
     svg {
       position: relative;
@@ -98,10 +120,8 @@
     }
 
     @media (min-width: 769px) {
-      padding: 12px 16px;
-
-      .nav-label {
-        margin-left: 4px;
+      .nav-content {
+        padding: 11px 16px;
       }
     }
 
@@ -110,20 +130,7 @@
     }
 
     &.active {
-      background: var(--color-primary);
       color: white;
-
-      .nav-indicator {
-        position: absolute;
-        bottom: 5px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background: white;
-        animation: pulse 1.5s infinite;
-      }
     }
 
     &:disabled {
@@ -268,13 +275,16 @@
     }
 
     .nav-item {
-      padding: 12px;
       width: 44px;
       height: 44px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+
+      .nav-content {
+        padding: 0;
+      }
 
       svg {
         margin: 0;

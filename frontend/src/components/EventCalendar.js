@@ -345,7 +345,12 @@ const EventCalendar = ({ user }) => {
           background-clip: padding-box;
         }
       `}</style>
-      <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-200">
+      <motion.div
+        className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200/80"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+      >
         <div className="flex flex-col gap-3">
           <div>
             <h2 className="text-xl font-bold text-secondary flex items-center gap-2">
@@ -392,7 +397,7 @@ const EventCalendar = ({ user }) => {
             </select>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {feedback && (
         <div className="bg-primary/10 border border-primary/20 text-primary rounded-lg px-4 py-3">
@@ -429,28 +434,33 @@ const EventCalendar = ({ user }) => {
 
       {!loading && !error && filteredEvents.length > 0 && (
         <div className="space-y-3">
-          <div className="event-calendar-scrollbar max-h-[65vh] overflow-y-auto pr-2 space-y-3">
-            {visibleEvents.map((event) => (
-              <button
+          <div className="event-calendar-scrollbar xl:max-h-[65vh] xl:overflow-y-auto xl:pr-2 space-y-3">
+            {visibleEvents.map((event, index) => (
+              <motion.button
                 key={event.id}
                 type="button"
                 onClick={() => setSelectedEvent(event)}
-                className="w-full text-left bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md hover:border-primary/30 transition-all"
+                className="w-full text-left bg-white rounded-xl border border-gray-200/90 shadow-sm overflow-hidden hover:shadow-md hover:border-primary/30 transition-colors"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18, delay: Math.min(index, 4) * 0.025 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.992 }}
               >
                 <div className="relative p-3">
                   <div className="flex flex-col md:flex-row gap-3 md:items-stretch">
                     {event.photo_url && (
-                      <div className="w-full md:w-28 lg:w-32 shrink-0 aspect-[2/3] overflow-hidden">
+                      <div className="w-full md:w-28 lg:w-32 shrink-0 aspect-[4/5] md:aspect-[2/3] overflow-hidden rounded-lg bg-gray-50 border border-gray-100">
                         <img
                           src={event.photo_url}
                           alt={event.title}
-                          className="w-full h-full object-contain rounded-2xl"
+                          className="w-full h-full object-contain"
                           loading="lazy"
                         />
                       </div>
                     )}
 
-                    <div className="min-w-0 flex-1 flex flex-col pb-10">
+                    <div className="min-w-0 flex-1 flex flex-col pb-9">
                       <h3 className="text-base md:text-lg font-bold text-secondary leading-snug pr-2 line-clamp-2">
                         {event.title}
                       </h3>
@@ -458,7 +468,7 @@ const EventCalendar = ({ user }) => {
                         {event.description}
                       </p>
 
-                      <div className="mt-3 space-y-2 text-xs text-gray-700 pr-2">
+                      <div className="mt-3 grid gap-1.5 text-xs text-gray-700 pr-2">
                         <div className="flex items-center gap-2">
                           <CalendarDays size={14} className="text-primary" />
                           <span>
@@ -493,7 +503,7 @@ const EventCalendar = ({ user }) => {
                     </span>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
 

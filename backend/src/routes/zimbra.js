@@ -43,6 +43,8 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
       req,
       eventName: "mail_authenticated",
       module: "communication",
+      eventType: "load",
+      isAutomatic: true,
       properties: { method: "stored_password", mail_count: mails.length },
     });
     res.json({ success: true, mails });
@@ -89,6 +91,8 @@ router.post("/", authMiddleware, async (req, res) => {
       req,
       eventName: "mail_authenticated",
       module: "communication",
+      eventType: "interaction",
+      isAutomatic: false,
       properties: { method: "manual", remember_me: Boolean(rememberMe), mail_count: mails.length },
     });
     res.json({ success: true, mails });
@@ -125,6 +129,8 @@ router.get("/mails", authMiddleware, async (req, res) => {
       req,
       eventName: "mail_list_loaded",
       module: "communication",
+      eventType: "load",
+      isAutomatic: true,
       properties: { mail_count: mails.length },
     });
     res.json({ mails });
@@ -156,6 +162,8 @@ router.get("/mail/:id", authMiddleware, async (req, res) => {
       req,
       eventName: "mail_detail_opened",
       module: "communication",
+      eventType: "interaction",
+      isAutomatic: false,
     });
     res.json({ content });
   } catch (error) {

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { fetchApi } from "../utils/api";
+import { trackProductEvent } from "../utils/analytics";
 
 const TYPE_OPTIONS = [
   "Soirée",
@@ -290,6 +291,12 @@ const EventCalendar = ({ user }) => {
                         href={selectedEvent.event_link}
                         target="_blank"
                         rel="noreferrer"
+                        onClick={() =>
+                          trackProductEvent("event_link_clicked", "events", {
+                            event_type: selectedEvent.event_type,
+                            has_association: Boolean(selectedEvent.association_slug),
+                          })
+                        }
                         className="mt-3 inline-block max-w-full truncate text-sm text-primary underline underline-offset-2"
                         title={selectedEvent.event_link}
                       >
@@ -439,7 +446,14 @@ const EventCalendar = ({ user }) => {
               <motion.button
                 key={event.id}
                 type="button"
-                onClick={() => setSelectedEvent(event)}
+                onClick={() => {
+                  setSelectedEvent(event);
+                  trackProductEvent("event_opened", "events", {
+                    event_type: event.event_type,
+                    has_link: Boolean(event.event_link),
+                    has_association: Boolean(event.association_slug),
+                  });
+                }}
                 className="w-full text-left bg-white rounded-xl border border-gray-200/90 shadow-sm overflow-hidden hover:shadow-md hover:border-primary/30 transition-colors"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -488,6 +502,12 @@ const EventCalendar = ({ user }) => {
                             onClick={(evt) => {
                               evt.stopPropagation();
                               setSelectedEvent(event);
+                              trackProductEvent("event_opened", "events", {
+                                event_type: event.event_type,
+                                has_link: Boolean(event.event_link),
+                                has_association: Boolean(event.association_slug),
+                                source: "link_preview",
+                              });
                             }}
                             className="block max-w-full text-left text-primary underline underline-offset-2 truncate"
                             title={event.event_link}

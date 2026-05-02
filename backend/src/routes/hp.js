@@ -17,6 +17,8 @@ router.get("/hp-data", async (req, res) => {
       userUsername: req.session?.user?.userName || null,
       eventName: "calendar_loaded",
       module: "calendars",
+      eventType: "load",
+      isAutomatic: true,
       properties: {
         scope: req.session?.user?.userName === userId ? "own" : "user",
       },
@@ -39,6 +41,8 @@ router.get("/check-user/", authMiddleware, async (req, res) => {
       req,
       eventName: "calendar_loaded",
       module: "calendars",
+      eventType: "load",
+      isAutomatic: true,
       properties: { scope: "own_check" },
     });
     res.json(result);
@@ -124,6 +128,8 @@ router.get("/external-calendar", async (req, res) => {
       req,
       eventName: "calendar_loaded",
       module: "calendars",
+      eventType: "load",
+      isAutomatic: true,
       properties: { scope: "external" },
     });
     res.send(data);
@@ -155,6 +161,8 @@ router.get("/calendar/:type/:name", async (req, res) => {
         req,
         eventName: "calendar_loaded",
         module: "calendars",
+        eventType: "load",
+        isAutomatic: true,
         properties: { scope: "prof" },
       });
     } else if (type === "salle") {
@@ -192,6 +200,8 @@ router.get("/calendar/:type/:name", async (req, res) => {
         req,
         eventName: "calendar_loaded",
         module: "calendars",
+        eventType: "load",
+        isAutomatic: true,
         properties: { scope: "room" },
       });
     } else {

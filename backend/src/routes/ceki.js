@@ -147,6 +147,8 @@ router.post(
         req,
         eventName: "ceki_photo_uploaded",
         module: "cekilui",
+        eventType: "conversion",
+        isAutomatic: false,
       });
     } catch (error) {
       console.error("Erreur lors de l'upload de la photo:", error);
@@ -273,6 +275,8 @@ router.post("/game/start-competitive", authMiddleware, async (req, res) => {
       req,
       eventName: "ceki_game_started",
       module: "cekilui",
+      eventType: "interaction",
+      isAutomatic: false,
       properties: {
         mode: "competitive",
         selected_group_count: selectedGroups.length,
@@ -320,6 +324,8 @@ router.post("/game/start-endless", authMiddleware, async (req, res) => {
       req,
       eventName: "ceki_game_started",
       module: "cekilui",
+      eventType: "interaction",
+      isAutomatic: false,
       properties: {
         mode: "endless",
         selected_group_count: groups.length,
@@ -510,6 +516,8 @@ router.post("/game/answer", authMiddleware, async (req, res) => {
         req,
         eventName: "ceki_game_finished",
         module: "cekilui",
+        eventType: "conversion",
+        isAutomatic: false,
         properties: {
           mode: gameId ? "competitive" : "endless",
           current_round: result.currentRound,
@@ -622,6 +630,8 @@ router.post("/report-photo", authMiddleware, async (req, res) => {
       req,
       eventName: "ceki_photo_reported",
       module: "cekilui",
+      eventType: "interaction",
+      isAutomatic: false,
       properties: { reason },
     });
 

@@ -19,7 +19,12 @@ const routeModules = [
 export const getRouteAnalytics = (pathname) =>
   routeModules.find((entry) => entry.pattern.test(pathname));
 
-export const trackProductEvent = (eventName, module, properties = {}) => {
+export const trackProductEvent = (
+  eventName,
+  module,
+  properties = {},
+  { eventType = "interaction", isAutomatic = false } = {},
+) => {
   if (!eventName || !module) return;
 
   fetchApi("/api/analytics/track", {
@@ -28,6 +33,8 @@ export const trackProductEvent = (eventName, module, properties = {}) => {
     body: JSON.stringify({
       eventName,
       module,
+      eventType,
+      isAutomatic,
       properties,
     }),
   }).catch((error) => {

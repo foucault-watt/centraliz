@@ -11,7 +11,9 @@ import {
   Repeat2,
   Search,
   ShieldAlert,
+  SlidersHorizontal,
   Table2,
+  UserMinus,
   Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -65,6 +67,16 @@ const tabs = [
   { id: "modules", label: "Modules", icon: Layers3 },
   { id: "heatmap", label: "Temps forts", icon: Flame },
   { id: "retention", label: "Rétention", icon: Repeat2 },
+  { id: "excluded", label: "Exclusions", icon: UserMinus },
+];
+
+const eventTypeOptions = [
+  { value: "exposure", label: "Vues", detail: "Pages/modules affichés" },
+  { value: "load", label: "Loads", detail: "Chargements automatiques" },
+  { value: "interaction", label: "Interactions", detail: "Actions explicites" },
+  { value: "conversion", label: "Conversions", detail: "Actions à forte valeur" },
+  { value: "admin", label: "Admin", detail: "Activité admin" },
+  { value: "system", label: "Système", detail: "Backend/auth" },
 ];
 
 const moduleColors = ["#1f9d8a", "#2668d9", "#f59e0b", "#dc2626", "#7c3aed", "#0f766e"];
@@ -91,6 +103,13 @@ const toQueryString = (params) => {
   });
   return query.toString();
 };
+
+const analyticsQueryParams = ({ range, eventTypes, hideExcluded, ...params }) => ({
+  range,
+  eventTypes: eventTypes?.length ? eventTypes.join(",") : "",
+  hideExcluded: hideExcluded ? "true" : "",
+  ...params,
+});
 
 const sortStateToParam = (sorting, fallback) => {
   const first = sorting?.[0];
@@ -344,6 +363,13 @@ const OverviewTab = ({ summary, timeseries }) => (
       <StatCard icon={BarChart3} label="MAU" value={summary?.totals?.mau} />
     </div>
 
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <StatCard icon={Eye} label="Vues modules" value={summary?.eventTypeTotals?.exposure} detail="Exposition, pas usage actif" />
+      <StatCard icon={Clock3} label="Loads automatiques" value={summary?.eventTypeTotals?.load} detail="Fetchs et chargements data" />
+      <StatCard icon={Activity} label="Interactions réelles" value={summary?.eventTypeTotals?.interaction} detail="Intentions utilisateur" />
+      <StatCard icon={Flame} label="Conversions produit" value={summary?.eventTypeTotals?.conversion} detail="Actions à forte valeur" />
+    </div>
+
     <Card className="p-5">
       <SectionTitle
         icon={LineChartIcon}
@@ -390,7 +416,7 @@ const OverviewTab = ({ summary, timeseries }) => (
   </motion.div>
 );
 
-const ExplorerTab = ({ range }) => {
+const ExplorerTab = ({ range, eventTypes, hideExcluded }) => {
   const [events, setEvents] = useState([]);
   const [rowCount, setRowCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -400,13 +426,15 @@ const ExplorerTab = ({ range }) => {
 
   const loadEvents = useCallback(async () => {
     setLoading(true);
-    const query = toQueryString({
+    const query = toQueryString(analyticsQueryParams({
       range,
+      eventTypes,
+      hideExcluded,
       ...filters,
       page: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
       sort: sortStateToParam(sorting, "created_at.desc"),
-    });
+    }));
     try {
       const response = await fetchApi(`/api/analytics/admin/events?${query}`);
       const data = await response.json();
@@ -419,7 +447,7 @@ const ExplorerTab = ({ range }) => {
     } finally {
       setLoading(false);
     }
-  }, [filters, pagination.pageIndex, pagination.pageSize, range, sorting]);
+  }, [eventTypes, filters, hideExcluded, pagination.pageIndex, pagination.pageSize, range, sorting]);
 
   useEffect(() => {
     loadEvents();
@@ -451,6 +479,27 @@ const ExplorerTab = ({ range }) => {
         accessorKey: "event_name",
         header: "Event",
         cell: ({ row }) => <span className="font-semibold text-gray-700">{row.original.eventName}</span>,
+      },
+      {
+        accessorKey: "event_type",
+        header: "Type",
+        cell: ({ row }) => (
+          <span className="rounded-lg border border-primary/15 bg-primary/10 px-2 py-1 text-xs font-bold text-primary">
+            {row.original.eventType}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "source",
+        header: "Source",
+        cell: ({ row }) => (
+          <div className="text-xs font-semibold text-gray-600">
+            <p>{row.original.source || "backend"}</p>
+            <p className={row.original.isAutomatic ? "text-amber-600" : "text-emerald-600"}>
+              {row.original.isAutomatic ? "auto" : "manuel"}
+            </p>
+          </div>
+        ),
       },
       {
         accessorKey: "properties",
@@ -515,7 +564,7 @@ const ExplorerTab = ({ range }) => {
   );
 };
 
-const UsersTab = ({ range, onSelectUser }) => {
+const UsersTab = ({ range, eventTypes, hideExcluded, onSelectUser }) => {
   const [users, setUsers] = useState([]);
   const [rowCount, setRowCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -525,13 +574,15 @@ const UsersTab = ({ range, onSelectUser }) => {
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
-    const query = toQueryString({
+    const query = toQueryString(analyticsQueryParams({
       range,
+      eventTypes,
+      hideExcluded,
       ...filters,
       page: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
       sort: sortStateToParam(sorting, "lastActivity.desc"),
-    });
+    }));
     try {
       const response = await fetchApi(`/api/analytics/admin/users?${query}`);
       const data = await response.json();
@@ -544,7 +595,7 @@ const UsersTab = ({ range, onSelectUser }) => {
     } finally {
       setLoading(false);
     }
-  }, [filters, pagination.pageIndex, pagination.pageSize, range, sorting]);
+  }, [eventTypes, filters, hideExcluded, pagination.pageIndex, pagination.pageSize, range, sorting]);
 
   useEffect(() => {
     loadUsers();
@@ -663,7 +714,7 @@ const UsersTab = ({ range, onSelectUser }) => {
   );
 };
 
-const UserDetailPanel = ({ username, range, onClose }) => {
+const UserDetailPanel = ({ username, range, eventTypes, hideExcluded, onClose }) => {
   const [detail, setDetail] = useState(null);
   const [events, setEvents] = useState([]);
   const [rowCount, setRowCount] = useState(0);
@@ -676,7 +727,7 @@ const UserDetailPanel = ({ username, range, onClose }) => {
     const loadDetail = async () => {
       setLoading(true);
       try {
-        const query = toQueryString({ range });
+        const query = toQueryString(analyticsQueryParams({ range, eventTypes, hideExcluded }));
         const response = await fetchApi(`/api/analytics/admin/users/${username}?${query}`);
         const data = await response.json();
         setDetail(data.success ? data.user : null);
@@ -688,21 +739,23 @@ const UserDetailPanel = ({ username, range, onClose }) => {
       }
     };
     loadDetail();
-  }, [range, username]);
+  }, [eventTypes, hideExcluded, range, username]);
 
   const loadEvents = useCallback(async () => {
     if (!username) return;
-    const query = toQueryString({
+    const query = toQueryString(analyticsQueryParams({
       range,
+      eventTypes,
+      hideExcluded,
       page: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
       sort: sortStateToParam(sorting, "created_at.desc"),
-    });
+    }));
     const response = await fetchApi(`/api/analytics/admin/users/${username}/events?${query}`);
     const data = await response.json();
     setEvents(data.success ? data.events || [] : []);
     setRowCount(data.success ? data.pagination?.total || 0 : 0);
-  }, [pagination.pageIndex, pagination.pageSize, range, sorting, username]);
+  }, [eventTypes, hideExcluded, pagination.pageIndex, pagination.pageSize, range, sorting, username]);
 
   useEffect(() => {
     loadEvents();
@@ -724,6 +777,11 @@ const UserDetailPanel = ({ username, range, onClose }) => {
         accessorKey: "event_name",
         header: "Event",
         cell: ({ row }) => <span className="font-semibold">{row.original.eventName}</span>,
+      },
+      {
+        accessorKey: "event_type",
+        header: "Type",
+        cell: ({ row }) => <span className="ui-badge">{row.original.eventType}</span>,
       },
       {
         accessorKey: "properties",
@@ -831,7 +889,7 @@ const UserDetailPanel = ({ username, range, onClose }) => {
   );
 };
 
-const ModulesTab = ({ range }) => {
+const ModulesTab = ({ range, eventTypes, hideExcluded }) => {
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedModule, setSelectedModule] = useState(null);
@@ -840,7 +898,8 @@ const ModulesTab = ({ range }) => {
     const loadModules = async () => {
       setLoading(true);
       try {
-        const response = await fetchApi(`/api/analytics/admin/modules?range=${range}`);
+        const query = toQueryString(analyticsQueryParams({ range, eventTypes, hideExcluded }));
+        const response = await fetchApi(`/api/analytics/admin/modules?${query}`);
         const data = await response.json();
         const rows = data.success ? data.modules || [] : [];
         setModules(rows);
@@ -853,7 +912,7 @@ const ModulesTab = ({ range }) => {
       }
     };
     loadModules();
-  }, [range]);
+  }, [eventTypes, hideExcluded, range]);
 
   const selected = modules.find((item) => item.module === selectedModule);
 
@@ -929,7 +988,7 @@ const ModulesTab = ({ range }) => {
   );
 };
 
-const HeatmapTab = ({ range }) => {
+const HeatmapTab = ({ range, eventTypes, hideExcluded }) => {
   const [heatmap, setHeatmap] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -937,7 +996,8 @@ const HeatmapTab = ({ range }) => {
     const loadHeatmap = async () => {
       setLoading(true);
       try {
-        const response = await fetchApi(`/api/analytics/admin/heatmap?range=${range}`);
+        const query = toQueryString(analyticsQueryParams({ range, eventTypes, hideExcluded }));
+        const response = await fetchApi(`/api/analytics/admin/heatmap?${query}`);
         const data = await response.json();
         setHeatmap(data.success ? data.heatmap : null);
       } catch (error) {
@@ -948,7 +1008,7 @@ const HeatmapTab = ({ range }) => {
       }
     };
     loadHeatmap();
-  }, [range]);
+  }, [eventTypes, hideExcluded, range]);
 
   if (loading) return <LoadingPanel />;
 
@@ -999,7 +1059,7 @@ const HeatmapTab = ({ range }) => {
   );
 };
 
-const RetentionTab = ({ range }) => {
+const RetentionTab = ({ range, eventTypes, hideExcluded }) => {
   const [retention, setRetention] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -1007,7 +1067,8 @@ const RetentionTab = ({ range }) => {
     const loadRetention = async () => {
       setLoading(true);
       try {
-        const response = await fetchApi(`/api/analytics/admin/retention?range=${range}`);
+        const query = toQueryString(analyticsQueryParams({ range, eventTypes, hideExcluded }));
+        const response = await fetchApi(`/api/analytics/admin/retention?${query}`);
         const data = await response.json();
         setRetention(data.success ? data.retention : null);
       } catch (error) {
@@ -1018,7 +1079,7 @@ const RetentionTab = ({ range }) => {
       }
     };
     loadRetention();
-  }, [range]);
+  }, [eventTypes, hideExcluded, range]);
 
   if (loading) return <LoadingPanel />;
 
@@ -1080,11 +1141,153 @@ const RetentionTab = ({ range }) => {
   );
 };
 
+const ExcludedUsersTab = ({ onChange }) => {
+  const [excludedUsers, setExcludedUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ username: "", reason: "" });
+  const [saving, setSaving] = useState(false);
+
+  const loadExcludedUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetchApi("/api/analytics/admin/excluded-users");
+      const data = await response.json();
+      setExcludedUsers(data.success ? data.excludedUsers || [] : []);
+    } catch (error) {
+      console.error(error);
+      setExcludedUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadExcludedUsers();
+  }, [loadExcludedUsers]);
+
+  const addExcludedUser = async (event) => {
+    event.preventDefault();
+    if (!form.username.trim()) return;
+    setSaving(true);
+    try {
+      const response = await fetchApi("/api/analytics/admin/excluded-users", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setExcludedUsers(data.excludedUsers || []);
+        setForm({ username: "", reason: "" });
+        onChange?.();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeExcludedUser = async (username) => {
+    setSaving(true);
+    try {
+      const response = await fetchApi(
+        `/api/analytics/admin/excluded-users/${encodeURIComponent(username)}`,
+        { method: "DELETE" },
+      );
+      const data = await response.json();
+      if (data.success) {
+        setExcludedUsers(data.excludedUsers || []);
+        onChange?.();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <motion.div variants={pageVariants} initial="hidden" animate="visible" className="space-y-4">
+      <Card className="p-5">
+        <SectionTitle
+          icon={UserMinus}
+          title="Utilisateurs exclus"
+          subtitle="Ces comptes restent collectés, mais peuvent être masqués des visualisations avec le toggle global."
+        />
+        <form className="grid grid-cols-1 gap-3 md:grid-cols-[220px_1fr_auto]" onSubmit={addExcludedUser}>
+          <label>
+            <span className="text-xs font-bold uppercase text-gray-500">Username</span>
+            <input
+              className="ui-field mt-1"
+              value={form.username}
+              onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))}
+              placeholder="prenom.nom"
+            />
+          </label>
+          <label>
+            <span className="text-xs font-bold uppercase text-gray-500">Raison</span>
+            <input
+              className="ui-field mt-1"
+              value={form.reason}
+              onChange={(event) => setForm((prev) => ({ ...prev, reason: event.target.value }))}
+              placeholder="admin, test, debug, compte perso..."
+            />
+          </label>
+          <div className="flex items-end">
+            <button type="submit" className="ui-button" disabled={saving}>
+              <UserMinus size={16} /> Ajouter
+            </button>
+          </div>
+        </form>
+      </Card>
+
+      <Card className="p-5">
+        {loading ? (
+          <EmptyPanel label="Chargement des exclusions..." />
+        ) : excludedUsers.length ? (
+          <div className="space-y-2">
+            {excludedUsers.map((item) => (
+              <motion.div
+                key={item.username}
+                variants={itemVariants}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3"
+              >
+                <div>
+                  <p className="font-bold text-secondary">{item.displayName}</p>
+                  <p className="text-xs text-gray-500">
+                    {item.username} · {item.group} · {item.reason || "Sans raison"}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    Ajouté par {item.createdByDisplayName} le {formatDateTime(item.createdAt)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="ui-button-secondary min-h-0 px-3 py-1.5 text-xs"
+                  disabled={saving}
+                  onClick={() => removeExcludedUser(item.username)}
+                >
+                  Retirer
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <EmptyPanel label="Aucun utilisateur exclu pour l’instant" />
+        )}
+      </Card>
+    </motion.div>
+  );
+};
+
 const AnalyticsAdminPage = ({ user }) => {
   const [range, setRange] = useState("30d");
   const [activeTab, setActiveTab] = useState("overview");
   const [summary, setSummary] = useState(null);
   const [timeseries, setTimeseries] = useState(null);
+  const [eventTypes, setEventTypes] = useState(eventTypeOptions.map((item) => item.value));
+  const [hideExcluded, setHideExcluded] = useState(false);
+  const [exclusionVersion, setExclusionVersion] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
@@ -1099,9 +1302,20 @@ const AnalyticsAdminPage = ({ user }) => {
       setLoading(true);
       setError("");
       try {
+        const summaryQuery = toQueryString(analyticsQueryParams({
+          range,
+          eventTypes,
+          hideExcluded,
+        }));
+        const timeseriesQuery = toQueryString(analyticsQueryParams({
+          range,
+          eventTypes,
+          hideExcluded,
+          groupBy: "day",
+        }));
         const [summaryResponse, timeseriesResponse] = await Promise.all([
-          fetchApi(`/api/analytics/admin/summary?range=${range}`),
-          fetchApi(`/api/analytics/admin/timeseries?range=${range}&groupBy=day`),
+          fetchApi(`/api/analytics/admin/summary?${summaryQuery}`),
+          fetchApi(`/api/analytics/admin/timeseries?${timeseriesQuery}`),
         ]);
         const summaryData = await summaryResponse.json();
         const timeseriesData = await timeseriesResponse.json();
@@ -1126,7 +1340,7 @@ const AnalyticsAdminPage = ({ user }) => {
     };
 
     loadOverview();
-  }, [range, user?.is_admin]);
+  }, [eventTypes, exclusionVersion, hideExcluded, range, user?.is_admin]);
 
   if (!user?.is_admin) {
     return (
@@ -1195,6 +1409,61 @@ const AnalyticsAdminPage = ({ user }) => {
               </p>
             </div>
           </div>
+
+          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/80 p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-bold text-secondary">
+              <SlidersHorizontal size={16} className="text-primary" />
+              Filtres globaux
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {eventTypeOptions.map((item) => {
+                const active = eventTypes.includes(item.value);
+                return (
+                  <button
+                    key={item.value}
+                    type="button"
+                    className={`rounded-xl border px-3 py-2 text-left text-xs transition-colors ${
+                      active
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-gray-200 bg-white text-gray-500"
+                    }`}
+                    title={item.detail}
+                    onClick={() =>
+                      setEventTypes((prev) =>
+                        active
+                          ? prev.length > 1
+                            ? prev.filter((type) => type !== item.value)
+                            : prev
+                          : [...prev, item.value],
+                      )
+                    }
+                  >
+                    <span className="block font-bold">{item.label}</span>
+                    <span className="block text-[11px] opacity-75">{item.value}</span>
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 hover:border-primary/30 hover:text-primary"
+                onClick={() => setEventTypes(eventTypeOptions.map((item) => item.value))}
+              >
+                Tout afficher
+              </button>
+            </div>
+            <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-secondary">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-primary"
+                checked={hideExcluded}
+                onChange={(event) => setHideExcluded(event.target.checked)}
+              />
+              Masquer les utilisateurs exclus
+              <span className="text-xs font-medium text-gray-500">
+                désactivé par défaut pour garder la vue complète
+              </span>
+            </label>
+          </div>
         </div>
       </Card>
 
@@ -1226,19 +1495,55 @@ const AnalyticsAdminPage = ({ user }) => {
           {activeTab === "overview" && (
             <OverviewTab summary={summary} timeseries={timeseries} />
           )}
-          {activeTab === "explorer" && <ExplorerTab range={range} />}
-          {activeTab === "users" && (
-            <UsersTab range={range} onSelectUser={setSelectedUser} />
+          {activeTab === "explorer" && (
+            <ExplorerTab
+              range={range}
+              eventTypes={eventTypes}
+              hideExcluded={hideExcluded}
+            />
           )}
-          {activeTab === "modules" && <ModulesTab range={range} />}
-          {activeTab === "heatmap" && <HeatmapTab range={range} />}
-          {activeTab === "retention" && <RetentionTab range={range} />}
+          {activeTab === "users" && (
+            <UsersTab
+              range={range}
+              eventTypes={eventTypes}
+              hideExcluded={hideExcluded}
+              onSelectUser={setSelectedUser}
+            />
+          )}
+          {activeTab === "modules" && (
+            <ModulesTab
+              range={range}
+              eventTypes={eventTypes}
+              hideExcluded={hideExcluded}
+            />
+          )}
+          {activeTab === "heatmap" && (
+            <HeatmapTab
+              range={range}
+              eventTypes={eventTypes}
+              hideExcluded={hideExcluded}
+            />
+          )}
+          {activeTab === "retention" && (
+            <RetentionTab
+              range={range}
+              eventTypes={eventTypes}
+              hideExcluded={hideExcluded}
+            />
+          )}
+          {activeTab === "excluded" && (
+            <ExcludedUsersTab
+              onChange={() => setExclusionVersion((version) => version + 1)}
+            />
+          )}
         </>
       )}
 
       <UserDetailPanel
         username={selectedUser}
         range={range}
+        eventTypes={eventTypes}
+        hideExcluded={hideExcluded}
         onClose={() => setSelectedUser(null)}
       />
     </motion.div>

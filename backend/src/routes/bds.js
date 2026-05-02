@@ -18,6 +18,8 @@ router.post("/track", async (req, res) => {
     req,
     eventName: "bds_referral_tracked",
     module: "bds",
+    eventType: "conversion",
+    isAutomatic: false,
     properties: {
       support_key: supportKey,
       authenticated: Boolean(req.session?.user?.userName),

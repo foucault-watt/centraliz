@@ -11,6 +11,9 @@ const ProductRouteTracker = () => {
 
     trackProductEvent("module_viewed", route.module, {
       route: route.route,
+    }, {
+      eventType: "exposure",
+      isAutomatic: false,
     });
   }, [location.pathname]);
 

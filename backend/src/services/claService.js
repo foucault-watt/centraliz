@@ -235,6 +235,8 @@ exports.callback = async (req, res) => {
       userUsername: user.username,
       eventName: "user_logged_in",
       module: "auth",
+      eventType: "system",
+      source: "backend",
       properties: {
         remember_me: Boolean(req.session.rememberMe),
         has_association_role: Boolean(associationData.has_association_role),

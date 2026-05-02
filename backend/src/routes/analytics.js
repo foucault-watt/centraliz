@@ -10,6 +10,9 @@ router.post("/track", authMiddleware, async (req, res) => {
     req,
     eventName: req.body?.eventName,
     module: req.body?.module,
+    eventType: req.body?.eventType,
+    isAutomatic: req.body?.isAutomatic,
+    source: "frontend",
     properties: req.body?.properties || {},
   });
 
@@ -20,6 +23,8 @@ router.get("/admin/summary", authMiddleware, adminMiddleware, async (req, res) =
   try {
     const summary = await analyticsService.getSummary({
       range: req.query.range,
+      eventTypes: req.query.eventTypes,
+      hideExcluded: req.query.hideExcluded,
     });
     res.json({ success: true, summary });
   } catch (error) {
@@ -36,6 +41,8 @@ router.get("/admin/timeseries", authMiddleware, adminMiddleware, async (req, res
     const timeseries = await analyticsService.getTimeseries({
       range: req.query.range,
       groupBy: req.query.groupBy,
+      eventTypes: req.query.eventTypes,
+      hideExcluded: req.query.hideExcluded,
     });
     res.json({ success: true, timeseries });
   } catch (error) {
@@ -137,6 +144,53 @@ router.get("/admin/heatmap", authMiddleware, adminMiddleware, async (req, res) =
     res.status(500).json({
       success: false,
       error: "Erreur lors de la récupération de la heatmap analytics.",
+    });
+  }
+});
+
+router.get("/admin/excluded-users", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const excludedUsers = await analyticsService.getExcludedUsers();
+    res.json({ success: true, ...excludedUsers });
+  } catch (error) {
+    console.error("[Analytics] Erreur excluded users:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération des utilisateurs exclus.",
+    });
+  }
+});
+
+router.post("/admin/excluded-users", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const excludedUsers = await analyticsService.addExcludedUser({
+      username: req.body?.username,
+      reason: req.body?.reason,
+      createdBy: req.session?.user?.userName || req.session?.user?.username,
+    });
+    res.status(201).json({ success: true, ...excludedUsers });
+  } catch (error) {
+    console.error("[Analytics] Erreur add excluded user:", error);
+    res.status(error.status || 500).json({
+      success: false,
+      error: error.status === 400
+        ? error.message
+        : "Erreur lors de l'ajout de l'utilisateur exclu.",
+    });
+  }
+});
+
+router.delete("/admin/excluded-users/:username", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const excludedUsers = await analyticsService.removeExcludedUser(req.params.username);
+    res.json({ success: true, ...excludedUsers });
+  } catch (error) {
+    console.error("[Analytics] Erreur remove excluded user:", error);
+    res.status(error.status || 500).json({
+      success: false,
+      error: error.status === 400
+        ? error.message
+        : "Erreur lors de la suppression de l'utilisateur exclu.",
     });
   }
 });

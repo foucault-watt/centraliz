@@ -2,6 +2,7 @@ import React from "react";
 import { ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { links } from "../data/links";
+import { trackProductEvent } from "../utils/analytics";
 
 const pageVariants = {
   hidden: { opacity: 0, y: 12 },
@@ -19,12 +20,18 @@ const itemVariants = {
 
 const mainLinks = new Set(["Hyperplanning", "ENT", "Zimbra", "Moodle"]);
 
-const ServiceItem = ({ service }) => (
+const ServiceItem = ({ service, category = "secondary" }) => (
   <motion.li variants={itemVariants} whileHover={{ y: -3 }}>
     <a
       href={service.link}
       target="_blank"
       rel="noreferrer"
+      onClick={() =>
+        trackProductEvent("external_link_clicked", "links", {
+          name: service.name,
+          category,
+        })
+      }
       className="group flex h-full min-h-[112px] flex-col items-center justify-between rounded-xl border border-gray-200 bg-white px-3 py-4 text-center no-underline shadow-sm transition-all duration-200 hover:border-primary/35 hover:bg-slate-50 hover:shadow-md"
     >
       <span className="grid h-14 w-14 place-items-center rounded-xl bg-slate-50 ring-1 ring-gray-100 transition-transform duration-200 group-hover:-translate-y-0.5">
@@ -81,6 +88,12 @@ const Links = () => {
                   href={service.link}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() =>
+                    trackProductEvent("external_link_clicked", "links", {
+                      name: service.name,
+                      category: "primary",
+                    })
+                  }
                   className="group flex min-h-[118px] flex-col items-center justify-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3 text-center no-underline shadow-sm transition-all duration-200 hover:border-primary/40 hover:bg-white hover:shadow-md sm:flex-row sm:justify-start sm:p-4 sm:text-left"
                 >
                   <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-white ring-1 ring-primary/10">

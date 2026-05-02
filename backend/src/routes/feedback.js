@@ -14,6 +14,8 @@ router.post('/feedback', authMiddleware, async (req, res) => {
         req,
         eventName: "feedback_submitted",
         module: "feedback",
+        eventType: "conversion",
+        isAutomatic: false,
         properties: {
           type: req.body?.type,
           area: req.body?.area,
@@ -65,6 +67,8 @@ router.put('/feedback/admin/:id', authMiddleware, adminMiddleware, async (req, r
         req,
         eventName: "feedback_admin_updated",
         module: "feedback",
+        eventType: "admin",
+        isAutomatic: false,
         properties: {
           admin_status: req.body?.admin_status,
           has_response: Boolean(req.body?.admin_response),

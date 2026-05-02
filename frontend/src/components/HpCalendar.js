@@ -19,6 +19,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { motion } from "framer-motion";
 import { fetchApi } from "../utils/api";
+import { trackProductEvent } from "../utils/analytics";
 
 moment.locale("fr");
 
@@ -241,6 +242,15 @@ const HpCalendar = ({ user }) => {
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
     setShowModal(true);
+    trackProductEvent(
+      event?.associationEvent ? "calendar_event_opened" : "calendar_course_opened",
+      "calendars",
+      {
+        type: event?.associationEvent ? "association_event" : "course",
+        course_type: event?.courseType || event?.event_type,
+        has_location: Boolean(event?.location),
+      },
+    );
   };
 
   // Mémoisation des heures et jours
@@ -508,6 +518,10 @@ const HpCalendar = ({ user }) => {
   });
 
   const navigateWeek = (direction) => {
+    trackProductEvent("calendar_period_changed", "calendars", {
+      direction,
+      mode: isMobile ? "day" : "week",
+    });
     if (isMobile) {
       // Navigation quotidienne sur mobile (sans weekends)
       setCurrentDate((prev) => {
@@ -560,6 +574,9 @@ const HpCalendar = ({ user }) => {
   };
 
   const goToToday = () => {
+    trackProductEvent("calendar_today_clicked", "calendars", {
+      mode: isMobile ? "day" : "week",
+    });
     let today = moment();
 
     // Si on est sur mobile et que c'est un weekend
@@ -617,6 +634,9 @@ const HpCalendar = ({ user }) => {
 
   const fetchUserCalendar = async (userId) => {
     try {
+      trackProductEvent("calendar_user_searched", "calendars", {
+        scope: "student",
+      });
       const response = await fetchApi(`/api/hp-data?userId=${userId}`);
       if (!response.ok)
         throw new Error("Erreur lors de la récupération du calendrier");
@@ -634,6 +654,9 @@ const HpCalendar = ({ user }) => {
 
   const fetchCalendarByName = async (name, type) => {
     try {
+      trackProductEvent("calendar_resource_searched", "calendars", {
+        scope: type === "prof" ? "prof" : "room",
+      });
       const response = await fetch(
         `${
           process.env.REACT_APP_URL_BACK
@@ -655,6 +678,9 @@ const HpCalendar = ({ user }) => {
 
   // Ajouter cette fonction pour gérer le clic sur une catégorie
   const handleCategorySelect = (category) => {
+    trackProductEvent("calendar_search_category_opened", "calendars", {
+      category,
+    });
     setSlideDirection("left");
     setSelectedCategory(category);
     setShowCategoryMenu(false);

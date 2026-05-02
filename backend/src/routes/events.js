@@ -42,6 +42,8 @@ router.get("/", authMiddleware, async (req, res) => {
           req,
           eventName: "association_events_viewed",
           module: "events",
+          eventType: "load",
+          isAutomatic: true,
           properties: { limit, source: "query" },
         });
       }
@@ -52,12 +54,6 @@ router.get("/", authMiddleware, async (req, res) => {
       req.session.user.userName,
       limit,
     );
-    analyticsService.trackEvent({
-      req,
-      eventName: "events_list_viewed",
-      module: "events",
-      properties: { limit, count: events.length },
-    });
     return res.json({ success: true, events });
   } catch (error) {
     console.error("[Events] Erreur GET /:", error);
@@ -139,6 +135,8 @@ router.get("/association/:slug", authMiddleware, async (req, res) => {
         req,
         eventName: "association_events_viewed",
         module: "events",
+        eventType: "load",
+        isAutomatic: true,
         properties: { limit },
       });
     }
@@ -164,6 +162,8 @@ router.post("/", authMiddleware, upload.single("photo"), async (req, res) => {
         req,
         eventName: "event_created",
         module: "events",
+        eventType: "conversion",
+        isAutomatic: false,
         properties: {
           has_photo: Boolean(req.file),
           event_type: req.body?.event_type,
@@ -200,6 +200,8 @@ router.post(
           req,
           eventName: "event_created",
           module: "events",
+          eventType: "conversion",
+          isAutomatic: false,
           properties: {
             has_photo: Boolean(req.file),
             event_type: req.body?.event_type,
@@ -231,6 +233,8 @@ router.put("/:id", authMiddleware, upload.single("photo"), async (req, res) => {
         req,
         eventName: "event_updated",
         module: "events",
+        eventType: "interaction",
+        isAutomatic: false,
         properties: { has_photo: Boolean(req.file) },
       });
     }
@@ -255,6 +259,8 @@ router.delete("/:id", authMiddleware, async (req, res) => {
         req,
         eventName: "event_deleted",
         module: "events",
+        eventType: "interaction",
+        isAutomatic: false,
       });
     }
     res.status(result.status).json(result.body);

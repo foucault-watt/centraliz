@@ -125,6 +125,8 @@ router.post("/logout", async (req, res) => {
     req,
     eventName: "user_logged_out",
     module: "auth",
+    eventType: "system",
+    source: "backend",
   });
 
   const rememberMeToken = req.cookies.remember_me;

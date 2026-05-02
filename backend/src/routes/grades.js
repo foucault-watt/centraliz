@@ -25,6 +25,8 @@ router.get("/", authMiddleware, async (req, res) => {
       req,
       eventName: "grades_viewed",
       module: "notes",
+      eventType: "load",
+      isAutomatic: true,
       properties: {
         has_snapshot: Boolean(response?.snapshot),
       },
@@ -45,6 +47,8 @@ router.post("/refresh", authMiddleware, async (req, res) => {
       req,
       eventName: "grades_refreshed",
       module: "notes",
+      eventType: "conversion",
+      isAutomatic: false,
       properties: {
         source: response?.snapshot?.source || "manual_refresh",
         status: response?.snapshot?.status || "success",
@@ -91,6 +95,8 @@ router.post("/hidden-rules", authMiddleware, async (req, res) => {
       req,
       eventName: "grade_rule_hidden",
       module: "notes",
+      eventType: "interaction",
+      isAutomatic: false,
       properties: {
         match_strategy: rule?.match_strategy || "entry_fingerprint",
       },
@@ -123,6 +129,8 @@ router.post("/hidden-rules/:id/restore", authMiddleware, async (req, res) => {
       req,
       eventName: "grade_rule_restored",
       module: "notes",
+      eventType: "interaction",
+      isAutomatic: false,
     });
     res.status(200).json({ rule });
   } catch (error) {

@@ -7,6 +7,17 @@ const VALID_RANGES = {
   "365d": 365,
 };
 
+const VALID_EVENT_TYPES = new Set([
+  "exposure",
+  "load",
+  "interaction",
+  "conversion",
+  "admin",
+  "system",
+]);
+
+const VALID_SOURCES = new Set(["frontend", "backend", "system"]);
+
 const SENSITIVE_KEYS = new Set([
   "admin_response",
   "assessment_name",
@@ -153,13 +164,50 @@ const toSortedArray = (map, limit = 10) =>
 const uniqueUsers = (events) =>
   new Set(events.map((event) => event.user_username).filter(Boolean));
 
-const getEventsSince = async (startDate, select = "*") => {
+const parseCsv = (value) =>
+  String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const parseEventTypes = (value) =>
+  parseCsv(value).filter((eventType) => VALID_EVENT_TYPES.has(eventType));
+
+const normalizeEventType = (value, fallback = "interaction") =>
+  VALID_EVENT_TYPES.has(value) ? value : fallback;
+
+const normalizeSource = (value, fallback = "backend") =>
+  VALID_SOURCES.has(value) ? value : fallback;
+
+const toPostgrestInList = (values) =>
+  `(${values.map((value) => `"${String(value).replace(/"/g, '\\"')}"`).join(",")})`;
+
+const getExcludedUsernames = async () => {
   const { data, error } = await supabase
+    .from("analytics_excluded_users")
+    .select("username");
+
+  if (error) throw error;
+  return (data || []).map((entry) => entry.username);
+};
+
+const getEventsSince = async (startDate, select = "*", filters = {}) => {
+  let query = supabase
     .from("analytics_events")
     .select(select)
     .gte("created_at", startDate.toISOString())
     .order("created_at", { ascending: true })
     .limit(MAX_SCAN_ROWS);
+
+  const eventTypes = parseEventTypes(filters.eventTypes);
+  if (eventTypes.length) query = query.in("event_type", eventTypes);
+
+  if (filters.hideExcluded === "true" || filters.hideExcluded === true) {
+    const excluded = filters.excludedUsernames || (await getExcludedUsernames());
+    if (excluded.length) query = query.not("user_username", "in", toPostgrestInList(excluded));
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return data || [];
@@ -209,6 +257,9 @@ const enrichEvents = async (events) => {
       userDisplayName: user?.displayName || event.user_username || "Anonyme",
       userGroup: user?.group || "Non renseigne",
       eventName: event.event_name,
+      eventType: event.event_type || "interaction",
+      isAutomatic: Boolean(event.is_automatic),
+      source: event.source || "backend",
       module: event.module,
       properties: event.properties || {},
       createdAt: event.created_at,
@@ -222,8 +273,15 @@ const applyEventFilters = async (query, filters = {}) => {
 
   if (filters.module) query = query.eq("module", filters.module);
   if (filters.eventName) query = query.eq("event_name", filters.eventName);
+  const eventTypes = parseEventTypes(filters.eventTypes);
+  if (eventTypes.length) query = query.in("event_type", eventTypes);
   if (filters.exactUsername) query = query.eq("user_username", filters.exactUsername);
   else if (filters.username) query = query.ilike("user_username", `%${filters.username}%`);
+
+  if (filters.hideExcluded === "true" || filters.hideExcluded === true) {
+    const excluded = await getExcludedUsernames();
+    if (excluded.length) query = query.not("user_username", "in", toPostgrestInList(excluded));
+  }
 
   const groupUsernames = await getUsernamesForGroup(filters.group);
   if (groupUsernames) {
@@ -234,11 +292,15 @@ const applyEventFilters = async (query, filters = {}) => {
   return { query, forceEmpty: false };
 };
 
-const buildUserSummaries = async ({ range = "30d", search, group } = {}) => {
+const buildUserSummaries = async ({ range = "30d", search, group, eventTypes, hideExcluded } = {}) => {
   const start = getRangeStart(range);
+  const excludedUsernames = hideExcluded === "true" || hideExcluded === true
+    ? await getExcludedUsernames()
+    : [];
   const events = await getEventsSince(
     start,
-    "user_username, event_name, module, created_at",
+    "user_username, event_name, event_type, module, created_at",
+    { eventTypes, hideExcluded, excludedUsernames },
   );
   const users = await getUsersByUsername([...uniqueUsers(events)]);
   const summaries = new Map();
@@ -296,11 +358,25 @@ const analyticsService = {
 
   sanitizeProperties,
 
-  async trackEvent({ req, userUsername, anonymousId, eventName, module, properties = {} }) {
+  async trackEvent({
+    req,
+    userUsername,
+    anonymousId,
+    eventName,
+    module,
+    eventType = "interaction",
+    isAutomatic = false,
+    source = "backend",
+    properties = {},
+  }) {
     try {
       const safeEventName = normalizeIdentifier(eventName, "unknown_event");
       const safeModule = normalizeIdentifier(module, "general");
       const finalUserUsername = userUsername || getUserFromReq(req);
+      const finalEventType =
+        safeModule === "analytics"
+          ? "admin"
+          : normalizeEventType(eventType, "interaction");
 
       const { error } = await supabase.from("analytics_events").insert([
         {
@@ -308,6 +384,9 @@ const analyticsService = {
           anonymous_id: anonymousId || null,
           event_name: safeEventName,
           module: safeModule,
+          event_type: finalEventType,
+          is_automatic: Boolean(isAutomatic),
+          source: normalizeSource(source, "backend"),
           properties: sanitizeProperties(properties),
         },
       ]);
@@ -318,16 +397,22 @@ const analyticsService = {
     }
   },
 
-  async getSummary({ range = "30d" } = {}) {
+  async getSummary({ range = "30d", eventTypes, hideExcluded } = {}) {
     const start = getRangeStart(range);
+    const excludedUsernames =
+      hideExcluded === "true" || hideExcluded === true
+        ? await getExcludedUsernames()
+        : [];
     const events = await getEventsSince(
       start,
-      "user_username, event_name, module, created_at, properties",
+      "user_username, event_name, event_type, is_automatic, source, module, created_at, properties",
+      { eventTypes, hideExcluded, excludedUsernames },
     );
 
     const users = uniqueUsers(events);
     const modules = new Map();
     const eventNames = new Map();
+    const eventTypesMap = new Map();
     const activeDaysByUser = new Map();
     const hourly = new Map();
     const weekdays = new Map();
@@ -335,6 +420,7 @@ const analyticsService = {
     events.forEach((event) => {
       increment(modules, event.module);
       increment(eventNames, event.event_name);
+      increment(eventTypesMap, event.event_type || "interaction");
 
       const parsed = new Date(event.created_at);
       increment(hourly, String(parsed.getHours()).padStart(2, "0"));
@@ -359,12 +445,24 @@ const analyticsService = {
       ).size;
     };
 
-    const { data: previousEvents, error: previousError } = await supabase
+    let previousQuery = supabase
       .from("analytics_events")
       .select("user_username")
       .lt("created_at", start.toISOString())
       .not("user_username", "is", null)
       .limit(MAX_SCAN_ROWS);
+
+    const parsedEventTypes = parseEventTypes(eventTypes);
+    if (parsedEventTypes.length) previousQuery = previousQuery.in("event_type", parsedEventTypes);
+    if (excludedUsernames.length) {
+      previousQuery = previousQuery.not(
+        "user_username",
+        "in",
+        toPostgrestInList(excludedUsernames),
+      );
+    }
+
+    const { data: previousEvents, error: previousError } = await previousQuery;
 
     if (previousError) throw previousError;
 
@@ -397,6 +495,15 @@ const analyticsService = {
       newVsReturning: { newUsers, returningUsers },
       eventsByModule: toSortedArray(modules, 12),
       topEvents: toSortedArray(eventNames, 12),
+      eventsByType: toSortedArray(eventTypesMap, 10),
+      eventTypeTotals: {
+        exposure: eventTypesMap.get("exposure") || 0,
+        load: eventTypesMap.get("load") || 0,
+        interaction: eventTypesMap.get("interaction") || 0,
+        conversion: eventTypesMap.get("conversion") || 0,
+        admin: eventTypesMap.get("admin") || 0,
+        system: eventTypesMap.get("system") || 0,
+      },
       activityByHour: [...Array(24)].map((_, hour) => {
         const label = String(hour).padStart(2, "0");
         return { hour: label, count: hourly.get(label) || 0 };
@@ -406,12 +513,17 @@ const analyticsService = {
     };
   },
 
-  async getTimeseries({ range = "30d", groupBy = "day" } = {}) {
+  async getTimeseries({ range = "30d", groupBy = "day", eventTypes, hideExcluded } = {}) {
     const start = getRangeStart(range);
     const safeGroupBy = groupBy === "week" ? "week" : "day";
+    const excludedUsernames =
+      hideExcluded === "true" || hideExcluded === true
+        ? await getExcludedUsernames()
+        : [];
     const events = await getEventsSince(
       start,
-      "user_username, event_name, module, created_at",
+      "user_username, event_name, event_type, module, created_at",
+      { eventTypes, hideExcluded, excludedUsernames },
     );
 
     const buckets = new Map();
@@ -438,17 +550,29 @@ const analyticsService = {
     };
   },
 
-  async getEvents({ range, module, eventName, username, exactUsername, group, page, pageSize, sort } = {}) {
+  async getEvents({
+    range,
+    module,
+    eventName,
+    eventTypes,
+    username,
+    exactUsername,
+    group,
+    hideExcluded,
+    page,
+    pageSize,
+    sort,
+  } = {}) {
     const pagination = parsePagination({ page, pageSize });
     const parsedSort = parseSort(
       sort,
-      ["created_at", "module", "event_name", "user_username"],
+      ["created_at", "module", "event_name", "event_type", "source", "user_username"],
       "created_at.desc",
     );
 
     let query = supabase
       .from("analytics_events")
-      .select("id, user_username, event_name, module, properties, created_at", {
+      .select("id, user_username, event_name, event_type, is_automatic, source, module, properties, created_at", {
         count: "exact",
       });
 
@@ -456,9 +580,11 @@ const analyticsService = {
       range,
       module,
       eventName,
+      eventTypes,
       username,
       exactUsername,
       group,
+      hideExcluded,
     });
 
     if (filtered.forceEmpty) {
@@ -483,7 +609,7 @@ const analyticsService = {
     };
   },
 
-  async getUsers({ range, search, group, page, pageSize, sort } = {}) {
+  async getUsers({ range, search, group, eventTypes, hideExcluded, page, pageSize, sort } = {}) {
     const pagination = parsePagination({ page, pageSize });
     const parsedSort = parseSort(
       sort,
@@ -491,7 +617,13 @@ const analyticsService = {
       "lastActivity.desc",
     );
 
-    const summaries = await buildUserSummaries({ range, search, group });
+    const summaries = await buildUserSummaries({
+      range,
+      search,
+      group,
+      eventTypes,
+      hideExcluded,
+    });
     summaries.sort((a, b) => {
       const aValue = a[parsedSort.field];
       const bValue = b[parsedSort.field];
@@ -518,12 +650,17 @@ const analyticsService = {
     };
   },
 
-  async getUserDetail(username, { range = "30d" } = {}) {
+  async getUserDetail(username, { range = "30d", eventTypes, hideExcluded } = {}) {
     const users = await getUsersByUsername([username]);
     const user = users.get(username);
     if (!user) return null;
 
-    const summaries = await buildUserSummaries({ range, search: username });
+    const summaries = await buildUserSummaries({
+      range,
+      search: username,
+      eventTypes,
+      hideExcluded,
+    });
     const summary = summaries.find((item) => item.username === username) || {
       username,
       displayName: user.displayName,
@@ -537,13 +674,18 @@ const analyticsService = {
     };
 
     const start = getRangeStart(range);
-    const { data, error } = await supabase
+    let query = supabase
       .from("analytics_events")
-      .select("event_name, module, created_at")
+      .select("event_name, event_type, module, created_at")
       .eq("user_username", username)
       .gte("created_at", start.toISOString())
       .order("created_at", { ascending: true })
       .limit(MAX_SCAN_ROWS);
+
+    const parsedEventTypes = parseEventTypes(eventTypes);
+    if (parsedEventTypes.length) query = query.in("event_type", parsedEventTypes);
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -567,11 +709,16 @@ const analyticsService = {
     });
   },
 
-  async getModules({ range = "30d" } = {}) {
+  async getModules({ range = "30d", eventTypes, hideExcluded } = {}) {
     const start = getRangeStart(range);
+    const excludedUsernames =
+      hideExcluded === "true" || hideExcluded === true
+        ? await getExcludedUsernames()
+        : [];
     const events = await getEventsSince(
       start,
-      "user_username, event_name, module, created_at",
+      "user_username, event_name, event_type, module, created_at",
+      { eventTypes, hideExcluded, excludedUsernames },
     );
 
     const modules = new Map();
@@ -617,9 +764,17 @@ const analyticsService = {
     };
   },
 
-  async getRetention({ range = "30d" } = {}) {
+  async getRetention({ range = "30d", eventTypes, hideExcluded } = {}) {
     const start = getRangeStart(range);
-    const events = await getEventsSince(start, "user_username, created_at, module");
+    const excludedUsernames =
+      hideExcluded === "true" || hideExcluded === true
+        ? await getExcludedUsernames()
+        : [];
+    const events = await getEventsSince(
+      start,
+      "user_username, event_type, created_at, module",
+      { eventTypes, hideExcluded, excludedUsernames },
+    );
     const users = new Map();
 
     events.forEach((event) => {
@@ -680,9 +835,17 @@ const analyticsService = {
     };
   },
 
-  async getHeatmap({ range = "30d" } = {}) {
+  async getHeatmap({ range = "30d", eventTypes, hideExcluded } = {}) {
     const start = getRangeStart(range);
-    const events = await getEventsSince(start, "created_at");
+    const excludedUsernames =
+      hideExcluded === "true" || hideExcluded === true
+        ? await getExcludedUsernames()
+        : [];
+    const events = await getEventsSince(
+      start,
+      "user_username, event_type, created_at",
+      { eventTypes, hideExcluded, excludedUsernames },
+    );
     const weekdays = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
     const cells = new Map();
 
@@ -706,6 +869,73 @@ const analyticsService = {
       hours: [...Array(24)].map((_, hour) => hour),
       cells: [...cells.values()],
     };
+  },
+
+  async getExcludedUsers() {
+    const { data, error } = await supabase
+      .from("analytics_excluded_users")
+      .select("username, reason, created_by, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const users = await getUsersByUsername([
+      ...(data || []).map((entry) => entry.username),
+      ...(data || []).map((entry) => entry.created_by),
+    ]);
+
+    return {
+      excludedUsers: (data || []).map((entry) => ({
+        username: entry.username,
+        displayName: users.get(entry.username)?.displayName || entry.username,
+        group: users.get(entry.username)?.group || "Non renseigne",
+        reason: entry.reason || "",
+        createdBy: entry.created_by,
+        createdByDisplayName:
+          users.get(entry.created_by)?.displayName || entry.created_by || "Systeme",
+        createdAt: entry.created_at,
+      })),
+    };
+  },
+
+  async addExcludedUser({ username, reason, createdBy }) {
+    const safeUsername = String(username || "").trim();
+    if (!safeUsername) {
+      const error = new Error("Username requis.");
+      error.status = 400;
+      throw error;
+    }
+
+    const { error } = await supabase.from("analytics_excluded_users").upsert(
+      [
+        {
+          username: safeUsername,
+          reason: String(reason || "").trim().slice(0, 160) || null,
+          created_by: createdBy || null,
+        },
+      ],
+      { onConflict: "username" },
+    );
+
+    if (error) throw error;
+    return this.getExcludedUsers();
+  },
+
+  async removeExcludedUser(username) {
+    const safeUsername = String(username || "").trim();
+    if (!safeUsername) {
+      const error = new Error("Username requis.");
+      error.status = 400;
+      throw error;
+    }
+
+    const { error } = await supabase
+      .from("analytics_excluded_users")
+      .delete()
+      .eq("username", safeUsername);
+
+    if (error) throw error;
+    return this.getExcludedUsers();
   },
 };
 

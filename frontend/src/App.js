@@ -24,10 +24,8 @@ const Bdi = lazy(() => import("./components/Bdi"));
 const Links = lazy(() => import("./components/Links"));
 const Bibli = lazy(() => import("./components/Bibli"));
 const Cekilui = lazy(() => import("./components/Cekilui.js"));
-const InstallationPage = lazy(() => import("./components/InstallationPage.js"));
-const AboutPage = lazy(() => import("./components/AboutPage.js"));
+const HelpPage = lazy(() => import("./components/HelpPage.js"));
 const FeedbackPage = lazy(() => import("./components/FeedbackPage.js"));
-const ContactPage = lazy(() => import("./components/ContactPage.js"));
 const LegalPage = lazy(() => import("./components/LegalPage.js"));
 const BdsLanding = lazy(() => import("./components/BdsLanding.js"));
 
@@ -241,36 +239,29 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/install"
+                  path="/help"
                   element={
                     <PageLayout>
-                      <InstallationPage />
+                      <HelpPage />
                     </PageLayout>
                   }
                 />
+                <Route path="/install" element={<Navigate to="/help" replace />} />
                 <Route
                   path="/about"
-                  element={
-                    <PageLayout>
-                      <AboutPage />
-                    </PageLayout>
-                  }
+                  element={<Navigate to="/help" replace />}
                 />
                 <Route
                   path="/feedback"
                   element={
                     <PageLayout>
-                      <FeedbackPage />
+                      <FeedbackPage user={user} />
                     </PageLayout>
                   }
                 />
                 <Route
                   path="/contact"
-                  element={
-                    <PageLayout>
-                      <ContactPage />
-                    </PageLayout>
-                  }
+                  element={<Navigate to="/help" replace />}
                 />
                 <Route
                   path="/legal"

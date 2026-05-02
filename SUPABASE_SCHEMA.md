@@ -188,8 +188,18 @@ create table public.feedbacks (
   username text not null,
   text text not null,
   state text not null default 'waiting'::text,
+  type text not null default 'suggestion'::text,
+  area text null,
+  priority text not null default 'normal'::text,
+  wants_response boolean not null default true,
+  admin_response text null,
+  admin_status text not null default 'new'::text,
+  admin_updated_by text null,
+  admin_updated_at timestamp with time zone null,
   created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
   constraint feedbacks_pkey primary key (id),
+  constraint feedbacks_admin_updated_by_fkey foreign KEY (admin_updated_by) references users (username) on update CASCADE on delete set null,
   constraint feedbacks_username_fkey foreign KEY (username) references users (username) on update CASCADE on delete CASCADE
 ) TABLESPACE pg_default;
 ```

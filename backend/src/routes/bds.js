@@ -3,6 +3,7 @@ const router = express.Router();
 const cookieParser = require("cookie-parser");
 const supabase = require("../utils/supabaseClient");
 const bdsWhitelist = require("../config/bdsWhitelist");
+const analyticsService = require("../services/analyticsService");
 
 router.use(cookieParser());
 
@@ -12,6 +13,16 @@ router.post("/track", async (req, res) => {
   if (!supportKey || !bdsWhitelist.includes(supportKey)) {
     return res.status(400).json({ error: "Invalid support key" });
   }
+
+  analyticsService.trackEvent({
+    req,
+    eventName: "bds_referral_tracked",
+    module: "bds",
+    properties: {
+      support_key: supportKey,
+      authenticated: Boolean(req.session?.user?.userName),
+    },
+  });
 
   // Set the cookie
   res.cookie("bds_referral", supportKey, {

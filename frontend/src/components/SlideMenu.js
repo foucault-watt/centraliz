@@ -4,8 +4,11 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { slideMenuConfig } from "../config/slideMenuConfig";
 
-const SlideMenu = ({ isOpen, onClose }) => {
+const SlideMenu = ({ isOpen, onClose, user }) => {
   const navigate = useNavigate();
+  const visiblePages = slideMenuConfig.filter(
+    (page) => !page.adminOnly || user?.is_admin,
+  );
 
   useEffect(() => {
     // Prevent body scroll when menu is open
@@ -68,7 +71,7 @@ const SlideMenu = ({ isOpen, onClose }) => {
             </div>
 
             <nav className="slide-menu-items">
-              {slideMenuConfig.map((page, index) => (
+              {visiblePages.map((page, index) => (
                 <motion.button
                   key={page.id}
                   type="button"

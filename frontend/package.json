@@ -4,6 +4,7 @@
   "proxy": "http://localhost:3001",
   "private": true,
   "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
     "axios": "^1.11.0",
     "client": "file:",
     "dompurify": "^3.2.3",
@@ -20,6 +21,7 @@
     "react-router-dom": "^6.30.1",
     "react-scripts": "^5.0.1",
     "react-swipeable": "^7.0.2",
+    "recharts": "^2.15.4",
     "sass": "^1.77.8",
     "web-vitals": "^4.2.4"
   },

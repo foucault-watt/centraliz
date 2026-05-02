@@ -5,6 +5,7 @@ import Header from "./components/Header"; // Import Header
 import LoginPage from "./components/LoginPage.js";
 import Onboarding from "./components/Onboarding.js";
 import PageLayout from "./components/PageLayout";
+import ProductRouteTracker from "./components/ProductRouteTracker";
 import SlideMenu from "./components/SlideMenu"; // Import SlideMenu
 import { getSupportBdsInfo } from "./config/supportBds";
 import { fetchApi } from "./utils/api";
@@ -28,6 +29,7 @@ const HelpPage = lazy(() => import("./components/HelpPage.js"));
 const FeedbackPage = lazy(() => import("./components/FeedbackPage.js"));
 const LegalPage = lazy(() => import("./components/LegalPage.js"));
 const BdsLanding = lazy(() => import("./components/BdsLanding.js"));
+const AnalyticsAdminPage = lazy(() => import("./components/AnalyticsAdminPage.js"));
 
 export const UserContext = createContext();
 
@@ -90,7 +92,7 @@ const App = () => {
         fallback={
           <div className="loading-container">
             <img
-              src={"logo-title.png"}
+              src={"/logo-title.png"}
               className="logo-loading"
               alt="logo"
               rel="preload"
@@ -114,7 +116,7 @@ const App = () => {
     return (
       <div className="loading-container">
         <img
-          src={"logo-title.png"}
+          src={"/logo-title.png"}
           className="logo-loading"
           alt="logo"
           rel="preload"
@@ -142,8 +144,10 @@ const App = () => {
             <SlideMenu
               isOpen={isSlideMenuOpen}
               onClose={toggleSlideMenu}
+              user={user}
             />{" "}
             {/* Pass state and toggle to SlideMenu */}
+            <ProductRouteTracker />
             <Suspense fallback={<div></div>}>
               <Routes>
                 <Route
@@ -268,6 +272,14 @@ const App = () => {
                   element={
                     <PageLayout>
                       <LegalPage />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/analytics/admin"
+                  element={
+                    <PageLayout>
+                      <AnalyticsAdminPage user={user} />
                     </PageLayout>
                   }
                 />

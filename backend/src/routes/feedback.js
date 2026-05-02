@@ -3,11 +3,25 @@ const router = express.Router();
 const feedbackService = require('../services/feedbackService');
 const authMiddleware = require("../middlewares/auth");
 const adminMiddleware = require("../middlewares/admin");
+const analyticsService = require("../services/analyticsService");
 
 router.post('/feedback', authMiddleware, async (req, res) => {
   try {
     const userName = req.session.user.userName;
     const result = await feedbackService.addFeedback(userName, req.body);
+    if (result.status < 400) {
+      analyticsService.trackEvent({
+        req,
+        eventName: "feedback_submitted",
+        module: "feedback",
+        properties: {
+          type: req.body?.type,
+          area: req.body?.area,
+          priority: req.body?.priority,
+          wants_response: Boolean(req.body?.wants_response),
+        },
+      });
+    }
     res.status(result.status).json(result.body);
   } catch (error) {
     console.error('Erreur route POST /feedback:', error);
@@ -46,6 +60,17 @@ router.put('/feedback/admin/:id', authMiddleware, adminMiddleware, async (req, r
       req.session.user.userName,
       req.body,
     );
+    if (result.status < 400) {
+      analyticsService.trackEvent({
+        req,
+        eventName: "feedback_admin_updated",
+        module: "feedback",
+        properties: {
+          admin_status: req.body?.admin_status,
+          has_response: Boolean(req.body?.admin_response),
+        },
+      });
+    }
     res.status(result.status).json(result.body);
   } catch (error) {
     console.error('Erreur route PUT /feedback/admin/:id:', error);

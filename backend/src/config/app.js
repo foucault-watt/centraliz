@@ -20,6 +20,7 @@ const cekiRoutes = require("../routes/ceki");
 const bibliRoutes = require("../routes/bibli");
 const bdsRoutes = require("../routes/bds");
 const eventsRoutes = require("../routes/events");
+const analyticsRoutes = require("../routes/analytics");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -84,6 +85,7 @@ app.use("/api/ceki", cekiRoutes);
 app.use("/api/bibli", bibliRoutes);
 app.use("/api/bds", bdsRoutes);
 app.use("/api/events", eventsRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {

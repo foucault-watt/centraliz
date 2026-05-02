@@ -1,4 +1,4 @@
-import { ArrowRight, LogOut, ShieldAlert } from "lucide-react";
+import { ArrowRight, BarChart3, LogOut, ShieldAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { fetchApi } from "../utils/api";
 
@@ -118,6 +118,13 @@ const EventsHubPage = ({ user }) => {
               className="inline-flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-white font-semibold hover:opacity-90 transition-opacity"
             >
               Ouvrir l'admin
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/analytics/admin")}
+              className="inline-flex items-center gap-2 rounded-lg border border-secondary/20 bg-white px-4 py-2 text-secondary font-semibold hover:bg-secondary/5 transition-colors"
+            >
+              <BarChart3 size={16} /> Analytics
             </button>
           </div>
         </div>

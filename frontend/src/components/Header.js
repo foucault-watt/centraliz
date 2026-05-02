@@ -64,7 +64,7 @@ export default function Header({ onMenuToggle }) {
 
         <div className="app-header-brand" aria-label="Centraliz.it">
           <span className="app-header-logo-frame">
-            <img src={"logo-title.png"} className="app-header-logo" alt="" />
+            <img src={"/logo-title.png"} className="app-header-logo" alt="" />
           </span>
           <div className="app-header-wordmark">
             <span>Centraliz</span>

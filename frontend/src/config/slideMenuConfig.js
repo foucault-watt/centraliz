@@ -1,7 +1,8 @@
-import { CircleHelp, MessageCircle, Scale } from "lucide-react";
+import { BarChart3, CircleHelp, MessageCircle, Scale } from "lucide-react";
 
 export const slideMenuConfig = [
   { id: "help", label: "Autres infos", icon: CircleHelp, path: "/help" },
   { id: "feedback", label: "Donner son avis", icon: MessageCircle, path: "/feedback" },
+  { id: "analytics-admin", label: "Analytics admin", icon: BarChart3, path: "/analytics/admin", adminOnly: true },
   { id: "legal", label: "Mentions légales", icon: Scale, path: "/legal" },
 ];

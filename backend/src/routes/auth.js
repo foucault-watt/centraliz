@@ -6,6 +6,7 @@ const loginService = require("../services/loginService");
 const cookieParser = require("cookie-parser");
 const supabase = require("../utils/supabaseClient");
 const bdsWhitelist = require("../config/bdsWhitelist");
+const analyticsService = require("../services/analyticsService");
 
 const getUserAssociations = async (username) => {
   const { data, error } = await supabase
@@ -120,6 +121,12 @@ router.get("/login", (req, res, next) => {
 router.get("/endpoint", claService.callback); // <- CHANGEMENT ICI
 
 router.post("/logout", async (req, res) => {
+  analyticsService.trackEvent({
+    req,
+    eventName: "user_logged_out",
+    module: "auth",
+  });
+
   const rememberMeToken = req.cookies.remember_me;
   if (rememberMeToken) {
     await tokenService.deleteToken(rememberMeToken);

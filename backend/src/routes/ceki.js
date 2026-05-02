@@ -7,6 +7,7 @@ const fs = require("fs").promises;
 const cekiService = require("../services/cekiService");
 const authMiddleware = require("../middlewares/auth");
 const adminMiddleware = require("../middlewares/admin");
+const analyticsService = require("../services/analyticsService");
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -142,6 +143,11 @@ router.post(
         message: "Photo uploadée avec succès",
         photoName: fileName,
       });
+      analyticsService.trackEvent({
+        req,
+        eventName: "ceki_photo_uploaded",
+        module: "cekilui",
+      });
     } catch (error) {
       console.error("Erreur lors de l'upload de la photo:", error);
 
@@ -263,6 +269,15 @@ router.post("/game/start-competitive", authMiddleware, async (req, res) => {
       userName,
       selectedGroups
     );
+    analyticsService.trackEvent({
+      req,
+      eventName: "ceki_game_started",
+      module: "cekilui",
+      properties: {
+        mode: "competitive",
+        selected_group_count: selectedGroups.length,
+      },
+    });
 
     res.json({
       success: true,
@@ -301,6 +316,15 @@ router.post("/game/start-endless", authMiddleware, async (req, res) => {
     }
 
     const gameId = cekiService.createEndlessGameSession(userName, groups);
+    analyticsService.trackEvent({
+      req,
+      eventName: "ceki_game_started",
+      module: "cekilui",
+      properties: {
+        mode: "endless",
+        selected_group_count: groups.length,
+      },
+    });
 
     res.json({
       success: true,
@@ -481,6 +505,18 @@ router.post("/game/answer", authMiddleware, async (req, res) => {
       });
     }
 
+    if (result.isGameOver) {
+      analyticsService.trackEvent({
+        req,
+        eventName: "ceki_game_finished",
+        module: "cekilui",
+        properties: {
+          mode: gameId ? "competitive" : "endless",
+          current_round: result.currentRound,
+        },
+      });
+    }
+
     res.json({
       success: true,
       correct: result.correct,
@@ -581,6 +617,13 @@ router.post("/report-photo", authMiddleware, async (req, res) => {
         error: "Erreur lors de la création du signalement.",
       });
     }
+
+    analyticsService.trackEvent({
+      req,
+      eventName: "ceki_photo_reported",
+      module: "cekilui",
+      properties: { reason },
+    });
 
     res.json({
       success: true,

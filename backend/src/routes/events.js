@@ -3,6 +3,7 @@ const multer = require("multer");
 const authMiddleware = require("../middlewares/auth");
 const adminMiddleware = require("../middlewares/admin");
 const eventsService = require("../services/eventsService");
+const analyticsService = require("../services/analyticsService");
 
 const router = express.Router();
 
@@ -36,6 +37,14 @@ router.get("/", authMiddleware, async (req, res) => {
         req.query.association_slug,
         limit,
       );
+      if (result.status < 400) {
+        analyticsService.trackEvent({
+          req,
+          eventName: "association_events_viewed",
+          module: "events",
+          properties: { limit, source: "query" },
+        });
+      }
       return res.status(result.status).json(result.body);
     }
 
@@ -43,6 +52,12 @@ router.get("/", authMiddleware, async (req, res) => {
       req.session.user.userName,
       limit,
     );
+    analyticsService.trackEvent({
+      req,
+      eventName: "events_list_viewed",
+      module: "events",
+      properties: { limit, count: events.length },
+    });
     return res.json({ success: true, events });
   } catch (error) {
     console.error("[Events] Erreur GET /:", error);
@@ -119,6 +134,14 @@ router.get("/association/:slug", authMiddleware, async (req, res) => {
       req.params.slug,
       limit,
     );
+    if (result.status < 400) {
+      analyticsService.trackEvent({
+        req,
+        eventName: "association_events_viewed",
+        module: "events",
+        properties: { limit },
+      });
+    }
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error("[Events] Erreur GET /association/:slug:", error);
@@ -136,6 +159,18 @@ router.post("/", authMiddleware, upload.single("photo"), async (req, res) => {
       req.body,
       req.file,
     );
+    if (result.status < 400) {
+      analyticsService.trackEvent({
+        req,
+        eventName: "event_created",
+        module: "events",
+        properties: {
+          has_photo: Boolean(req.file),
+          event_type: req.body?.event_type,
+          school_count: Array.isArray(req.body?.ecoles) ? req.body.ecoles.length : undefined,
+        },
+      });
+    }
     res.status(result.status).json(result.body);
   } catch (error) {
     console.error("[Events] Erreur POST /:", error);
@@ -160,6 +195,18 @@ router.post(
         },
         req.file,
       );
+      if (result.status < 400) {
+        analyticsService.trackEvent({
+          req,
+          eventName: "event_created",
+          module: "events",
+          properties: {
+            has_photo: Boolean(req.file),
+            event_type: req.body?.event_type,
+            scope: "association",
+          },
+        });
+      }
       return res.status(result.status).json(result.body);
     } catch (error) {
       console.error("[Events] Erreur POST /association/:slug:", error);
@@ -179,6 +226,14 @@ router.put("/:id", authMiddleware, upload.single("photo"), async (req, res) => {
       req.body,
       req.file,
     );
+    if (result.status < 400) {
+      analyticsService.trackEvent({
+        req,
+        eventName: "event_updated",
+        module: "events",
+        properties: { has_photo: Boolean(req.file) },
+      });
+    }
     res.status(result.status).json(result.body);
   } catch (error) {
     console.error("[Events] Erreur PUT /:id:", error);
@@ -195,6 +250,13 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       req.session.user.userName,
       req.params.id,
     );
+    if (result.status < 400) {
+      analyticsService.trackEvent({
+        req,
+        eventName: "event_deleted",
+        module: "events",
+      });
+    }
     res.status(result.status).json(result.body);
   } catch (error) {
     console.error("[Events] Erreur DELETE /:id:", error);

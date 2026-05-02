@@ -4,6 +4,7 @@ const supabase = require("../utils/supabaseClient");
 const tokenService = require("./tokenService");
 const loginService = require("./loginService");
 const bdsWhitelist = require("../config/bdsWhitelist");
+const analyticsService = require("./analyticsService");
 
 // Remplacez par vos variables d'environnement
 const claAuthHost = process.env.CLA_AUTH_HOST;
@@ -229,6 +230,16 @@ exports.callback = async (req, res) => {
     }
 
     await loginService.addLogin(user.username);
+    analyticsService.trackEvent({
+      req,
+      userUsername: user.username,
+      eventName: "user_logged_in",
+      module: "auth",
+      properties: {
+        remember_me: Boolean(req.session.rememberMe),
+        has_association_role: Boolean(associationData.has_association_role),
+      },
+    });
     res.redirect(process.env.URL_FRONT);
   } catch (error) {
     console.error("[CLA Service] Erreur lors du callback:", error);

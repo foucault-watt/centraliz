@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth");
 const gradesService = require("../services/gradesService");
+const analyticsService = require("../services/analyticsService");
 
 const router = express.Router();
 
@@ -20,6 +21,14 @@ const handleError = (res, error) => {
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const response = await gradesService.getGrades(req.session.user.userName);
+    analyticsService.trackEvent({
+      req,
+      eventName: "grades_viewed",
+      module: "notes",
+      properties: {
+        has_snapshot: Boolean(response?.snapshot),
+      },
+    });
     res.status(200).json(response);
   } catch (error) {
     handleError(res, error);
@@ -32,6 +41,16 @@ router.post("/refresh", authMiddleware, async (req, res) => {
       req.session.user.userName,
       req.body || {},
     );
+    analyticsService.trackEvent({
+      req,
+      eventName: "grades_refreshed",
+      module: "notes",
+      properties: {
+        source: response?.snapshot?.source || "manual_refresh",
+        status: response?.snapshot?.status || "success",
+        new_entry_count: response?.refreshReport?.newEntryCount || 0,
+      },
+    });
     res.status(200).json(response);
   } catch (error) {
     handleError(res, error);
@@ -68,6 +87,14 @@ router.post("/hidden-rules", authMiddleware, async (req, res) => {
       req.session.user.userName,
       req.body || {},
     );
+    analyticsService.trackEvent({
+      req,
+      eventName: "grade_rule_hidden",
+      module: "notes",
+      properties: {
+        match_strategy: rule?.match_strategy || "entry_fingerprint",
+      },
+    });
     res.status(201).json({ rule });
   } catch (error) {
     handleError(res, error);
@@ -92,6 +119,11 @@ router.post("/hidden-rules/:id/restore", authMiddleware, async (req, res) => {
       req.session.user.userName,
       req.params.id,
     );
+    analyticsService.trackEvent({
+      req,
+      eventName: "grade_rule_restored",
+      module: "notes",
+    });
     res.status(200).json({ rule });
   } catch (error) {
     handleError(res, error);

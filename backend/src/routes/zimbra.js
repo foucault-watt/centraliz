@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const ZimbraService = require("../services/zimbraService");
 const authMiddleware = require("../middlewares/auth");
+const analyticsService = require("../services/analyticsService");
 
 /**
  * Route pour vérifier si un mot de passe est stocké pour l'utilisateur.
@@ -38,6 +39,12 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
     req.session.zimbraToken = await ZimbraService.getTokenFromUsername(
       username
     );
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_authenticated",
+      module: "communication",
+      properties: { method: "stored_password", mail_count: mails.length },
+    });
     res.json({ success: true, mails });
   } catch (error) {
     console.error(
@@ -78,6 +85,12 @@ router.post("/", authMiddleware, async (req, res) => {
       await ZimbraService.storeEncryptedPassword(ent_username, password);
     }
 
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_authenticated",
+      module: "communication",
+      properties: { method: "manual", remember_me: Boolean(rememberMe), mail_count: mails.length },
+    });
     res.json({ success: true, mails });
   } catch (error) {
     console.error(
@@ -108,6 +121,12 @@ router.get("/mails", authMiddleware, async (req, res) => {
     console.log(
       `[Zimbra Route] Mails récupérés pour ${username}: ${mails.length} emails`
     );
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_list_loaded",
+      module: "communication",
+      properties: { mail_count: mails.length },
+    });
     res.json({ mails });
   } catch (error) {
     console.error(
@@ -133,6 +152,11 @@ router.get("/mail/:id", authMiddleware, async (req, res) => {
 
   try {
     const content = await ZimbraService.getRawMailContent(zimbraToken, mailId);
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_detail_opened",
+      module: "communication",
+    });
     res.json({ content });
   } catch (error) {
     console.error(

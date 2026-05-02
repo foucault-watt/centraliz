@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import {
-  BookOpen,
+  ArrowRight,
   Calendar,
   GitBranch,
   Heart,
@@ -13,8 +13,8 @@ import {
 import { useEffect, useState } from "react";
 
 const LoginPage = () => {
-  const [rememberMe, setRememberMe] = useState(true);
   const [modalType, setModalType] = useState(null); // 'legal' | 'privacy' | null
+  const rememberMe = true;
 
   // Contact email: prefer env var, fallback to reasonable default
   const contactEmail = "foucault.wattinne@iteem.centralelille.fr";
@@ -61,10 +61,9 @@ const LoginPage = () => {
   };
 
   const features = [
-    { icon: <Calendar size={20} />, text: "Calendriers unifiés" },
-    { icon: <Mail size={20} />, text: "Accès aux mails Zimbra" },
-    { icon: <BookOpen size={20} />, text: "Consultation des notes" },
-    { icon: <Users size={20} />, text: "Prochaines soirées et événements" },
+    { icon: Calendar, text: "Calendriers" },
+    { icon: Mail, text: "Mails" },
+    { icon: Users, text: "Vie étudiante" },
   ];
 
   const containerVariants = {
@@ -76,50 +75,58 @@ const LoginPage = () => {
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 14, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: "spring", stiffness: 100 },
+      transition: { type: "spring", stiffness: 170, damping: 20 },
     },
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-background-light text-text-primary">
-      {/* Section Gauche - Branding */}
-      <div className="w-full lg:w-1/2 bg-primary-dark flex flex-col justify-center items-center p-8 lg:p-12 text-white text-center">
+    <div className="min-h-screen bg-background-light text-text-primary flex flex-col">
+      <main className="flex-1 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center w-full max-w-6xl mx-auto px-5 py-8 md:px-8 md:py-12">
         <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.42, ease: "easeOut" }}
+          className="min-w-0"
         >
-          <img
-            src="/logo-title.png"
-            alt="Centraliz Logo"
-            className="w-48 h-48 mx-auto mb-6"
-          />
-        </motion.div>
-        <motion.h1
-          className="text-4xl md:text-5xl font-bold mb-4"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          Centraliz
-        </motion.h1>
-        <motion.p
-          className="text-lg md:text-xl max-w-md"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          Votre espace numérique unifié pour les étudiants de Centrale Lille,
-          ITEEM et ENSCL.
-        </motion.p>
-      </div>
+          <div className="flex items-center gap-4">
+            <img
+              src="/logo-title.png"
+              alt="Centraliz"
+              className="h-20 w-20 object-contain"
+            />
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+                Centraliz
+              </p>
+              <h1 className="text-3xl md:text-5xl font-black text-secondary leading-tight">
+                Votre espace numérique unifié.
+              </h1>
+            </div>
+          </div>
 
-      {/* Section Droite - Connexion */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-16">
+          <p className="mt-5 text-base md:text-xl text-gray-700 max-w-2xl leading-relaxed">
+            Centraliz rassemble les outils utiles pour les étudiants de Centrale
+            Lille, ITEEM et ENSCL. Connectez-vous avec CLA, puis retrouvez
+            vos informations au même endroit.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {features.map((feature) => (
+              <span
+                key={feature.text}
+                className="inline-flex items-center gap-2 rounded-full bg-white/80 border border-gray-200 px-3 py-2 text-sm font-semibold text-secondary shadow-sm"
+              >
+                <feature.icon className="text-primary" size={16} />
+                {feature.text}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -128,72 +135,41 @@ const LoginPage = () => {
         >
           <motion.h2
             variants={itemVariants}
-            className="text-3xl font-bold text-secondary mb-2"
+            className="text-2xl md:text-3xl font-bold text-secondary mb-2"
           >
-            Bienvenue !
+            Connexion
           </motion.h2>
           <motion.p
             variants={itemVariants}
-            className="text-text-secondary mb-8"
+            className="text-text-secondary mb-6"
           >
-            Connectez-vous pour accéder à tous vos outils.
+            Accédez à l'application avec votre compte école.
           </motion.p>
 
           <motion.button
             variants={itemVariants}
             onClick={handleLogin}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-6 rounded-lg flex items-center justify-center text-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            whileHover={{ scale: 1.02 }}
+            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-5 rounded-xl flex items-center justify-center gap-3 text-lg shadow-lg shadow-primary/20 transition-all duration-200"
+            whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
-            <LogIn size={28} className="mr-4" />
-            Se connecter avec le CAS
+            <LogIn size={24} />
+            Se connecter via CLA
+            <ArrowRight size={20} />
           </motion.button>
 
           <motion.div
             variants={itemVariants}
-            className="mt-6 flex items-center justify-center"
+            className="mt-4 flex items-start gap-2 text-sm text-text-secondary"
           >
-            <input
-              type="checkbox"
-              id="remember"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <label
-              htmlFor="remember"
-              className="ml-3 text-md text-text-secondary cursor-pointer"
-            >
-              Se souvenir de moi
-            </label>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="mt-12 text-center">
-            <h3 className="text-lg font-semibold text-secondary mb-4">
-              Un seul portail pour tout gérer :
-            </h3>
-            <div className="grid grid-cols-2 gap-4 text-text-secondary">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 bg-gray-50 shadow-sm hover:shadow-md transition-shadow cursor-default"
-                >
-                  <div className="text-primary">{feature.icon}</div>
-                  <span className="text-sm">{feature.text}</span>
-                </div>
-              ))}
-            </div>
+            <Shield size={16} className="text-primary mt-0.5 shrink-0" />
+            <p>Connexion sécurisée via le portail de l'école.</p>
           </motion.div>
 
           <motion.div
             variants={itemVariants}
-            className="mt-10 text-center text-sm text-text-secondary"
+            className="mt-6 text-center text-sm text-text-secondary"
           >
-            <div className="flex items-center justify-center space-x-2">
-              <Shield size={16} />
-              <p>Connexion sécurisée via le portail de l'école.</p>
-            </div>
             <a
               href="https://github.com/foucault-watt/centraliz"
               className="flex items-center justify-center space-x-2 mt-4 hover:text-primary transition-colors"
@@ -201,14 +177,16 @@ const LoginPage = () => {
               rel="noopener noreferrer"
             >
               <GitBranch size={16} />
-              <span>Projet open-source, contribuez sur GitHub !</span>
+              <span>Projet open-source sur GitHub</span>
             </a>
           </motion.div>
         </motion.div>
-        <footer className="mt-auto pt-8 text-center text-sm text-text-secondary">
+      </main>
+
+      <footer className="px-4 pb-6 text-center text-sm text-text-secondary">
           <p className="flex items-center justify-center mb-2">
             <Heart size={14} className="mr-1.5 text-danger" />
-            Développé avec passion pour la communauté de Centrale Lille.
+            Fait pour la communauté de Centrale Lille.
           </p>
           <div className="flex justify-center items-center space-x-2">
             <button
@@ -256,8 +234,7 @@ const LoginPage = () => {
                 de centraliser leurs informations académiques sur une interface
                 unique. Il propose notamment :
                 <br />- L'accès à l'emploi du temps, aux notes et aux emails via
-                le système de connexion SSO (Central Authentication Service -
-                CAS) de l'école.
+                le système de connexion SSO (Centrale Lille Associations) de l'école.
                 <br />- Une interface simplifiée pour consulter les informations
                 académiques.
               </p>
@@ -284,7 +261,7 @@ const LoginPage = () => {
                 <br />
                 - Date de naissance
                 <br />
-                - Identifiants de connexion CAS
+                - Identifiants de connexion CLA
                 <br />- Mot de passe de messagerie (facultatif, stocké de
                 manière chiffrée et inaccessible en clair)
                 <br />
@@ -347,7 +324,6 @@ const LoginPage = () => {
             </div>
           </Modal>
         )}
-      </div>
     </div>
   );
 };

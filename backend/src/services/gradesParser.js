@@ -303,6 +303,84 @@ const parseCsvToEntries = (rawCsv, { parserVersion = "v1" } = {}) => {
   };
 };
 
+const buildEntriesFromNotationRows = (
+  rows,
+  { parserVersion = "v1-http" } = {},
+) => {
+  const entries = [];
+  const skippedRows = [];
+
+  (rows || []).forEach((row, index) => {
+    const moduleName = String(
+      row.code || row.moduleName || row.module || "",
+    ).trim();
+    const rawAssessmentName = String(
+      row.name || row.assessmentName || row.assessment || "",
+    ).trim();
+
+    if (!moduleName && !rawAssessmentName) {
+      skippedRows.push({ rowNumber: index + 1, reason: "empty_row" });
+      return;
+    }
+
+    const coefficient = parseFrenchNumber(
+      row.coefficient ?? row.weight ?? row.coef,
+    );
+    const grade = parseGrade(row.note ?? row.grade ?? row.gradeRaw);
+    const assessmentType = String(row.type || row.assessmentType || "").trim();
+    const comments = String(row.comments || "").trim();
+    const absenceReason = String(row.absenceReason || "").trim();
+    const teachersRaw = Array.isArray(row.teachers)
+      ? row.teachers.join(", ")
+      : String(row.teachers || "").trim();
+
+    const entry = {
+      id: null,
+      rowNumber: index + 1,
+      parserVersion,
+      moduleName: moduleName || "Module inconnu",
+      normalizedModuleName: normalizeLabel(moduleName || "Module inconnu"),
+      rawAssessmentName: rawAssessmentName || moduleName || "Note Aurion",
+      assessmentName: extractAssessmentName(rawAssessmentName || moduleName),
+      normalizedAssessmentName: normalizeLabel(rawAssessmentName || moduleName),
+      assessmentType,
+      normalizedAssessmentType: normalizeLabel(assessmentType),
+      assessmentDetail: comments || absenceReason || teachersRaw,
+      coefficient: coefficient ?? 1,
+      startAt: String(row.date || row.startAt || "").trim(),
+      endAt: String(row.endAt || "").trim(),
+      assessmentDate:
+        parseAssessmentDate(row.date || row.startAt) ||
+        parseAssessmentDate(row.endAt),
+      appreciation: [absenceReason, comments, teachersRaw]
+        .filter(Boolean)
+        .join(" | "),
+      sourceKind: "aurion_http_notations",
+      coefficientEstimated: coefficient === null,
+      ...grade,
+    };
+
+    entry.fingerprint = buildFingerprint(entry);
+    entry.id = entry.fingerprint;
+    entries.push(entry);
+  });
+
+  return {
+    entries,
+    diagnostics: {
+      parserVersion,
+      sourceKind: "aurion_http_notations",
+      rowCount: Array.isArray(rows) ? rows.length : 0,
+      parsedEntryCount: entries.length,
+      skippedRows,
+      parseErrors: [],
+      estimatedCoefficientCount: entries.filter(
+        (entry) => entry.coefficientEstimated,
+      ).length,
+    },
+  };
+};
+
 const buildGradesView = ({
   entries,
   userGroup,
@@ -441,6 +519,7 @@ const buildGradesView = ({
 };
 
 module.exports = {
+  buildEntriesFromNotationRows,
   buildGradesView,
   normalizeLabel,
   parseCsvToEntries,

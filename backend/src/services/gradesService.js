@@ -4,13 +4,24 @@ const path = require("path");
 const puppeteer = require("../utils/puppeteer");
 const supabase = require("../utils/supabaseClient");
 const ZimbraService = require("./zimbraService");
-const { buildGradesView, parseCsvToEntries } = require("./gradesParser");
+const AurionHttpService = require("./aurionHttpService");
+const {
+  buildGradesView,
+  parseCsvToEntries,
+} = require("./gradesParser");
 
 const PARSER_VERSION = "v1";
 const REFRESH_COOLDOWN_MS = Number.parseInt(
   process.env.GRADES_REFRESH_COOLDOWN_MS || "120000",
   15,
 );
+const HTTP_FALLBACK_ENABLED = /^true$/i.test(
+  process.env.GRADES_HTTP_FALLBACK_ENABLED || "true",
+);
+const HTTP_FIRST_ENABLED = /^true$/i.test(
+  process.env.GRADES_HTTP_FIRST_ENABLED || "",
+);
+const GRADES_DEBUG = /^true$/i.test(process.env.GRADES_DEBUG || "");
 const refreshLocks = new Map();
 
 const createHttpError = (statusCode, message, details = null) => {
@@ -18,6 +29,14 @@ const createHttpError = (statusCode, message, details = null) => {
   error.statusCode = statusCode;
   error.details = details;
   return error;
+};
+
+const logGradesDebug = (event, details = {}) => {
+  if (!GRADES_DEBUG) {
+    return;
+  }
+
+  console.log(`[GradesService] ${event}`, details);
 };
 
 const acquireRefreshLock = async (key) => {
@@ -428,6 +447,10 @@ const enforceRefreshCooldown = async (username, force = false) => {
 
 const refreshGrades = async (username, options = {}) => {
   const source = options.source || "manual_refresh";
+  const requestedStrategy = String(options.strategy || "").trim().toLowerCase();
+  const forceHttpOnly =
+    requestedStrategy === "http" || requestedStrategy === "aurion_http";
+  const tryHttpFirst = forceHttpOnly || HTTP_FIRST_ENABLED;
 
   const { entUsername, password, rememberMe, userRecord } =
     await resolveCredentials(username, options);
@@ -465,26 +488,183 @@ const refreshGrades = async (username, options = {}) => {
       details: { source },
     });
 
-    csvPath = await puppeteer.downloadCSV(entUsername, password, {
-      requestId: crypto.randomUUID(),
-    });
-    rawCsv = fs.readFileSync(csvPath, "utf-8");
+    let parsedPayload = null;
+    let effectiveSource = source;
+    let snapshotSource = source;
 
-    await insertRefreshLog({
+    logGradesDebug("refresh_started", {
       username,
-      step: "download",
-      level: "info",
-      message: "CSV téléchargé avec succès",
-      details: {
-        entUsername,
-        csvPath,
-        bytes: Buffer.byteLength(rawCsv, "utf-8"),
-      },
+      source,
+      requestedStrategy,
+      forceHttpOnly,
+      tryHttpFirst,
+      httpFallbackEnabled: HTTP_FALLBACK_ENABLED,
+      httpFirstEnabled: HTTP_FIRST_ENABLED,
+      entUsername,
     });
 
-    const parsedPayload = parseCsvToEntries(rawCsv, {
-      parserVersion: PARSER_VERSION,
-    });
+    if (tryHttpFirst) {
+      try {
+        logGradesDebug("http_strategy_attempt", {
+          username,
+          entUsername,
+          baseUrl: process.env.AURION_BASE_URL || null,
+        });
+        await insertRefreshLog({
+          username,
+          step: "debug",
+          level: "info",
+          message: "Tentative de récupération HTTP directe des notes",
+          details: {
+            strategy: "aurion_http_notations",
+          },
+        });
+
+        const httpCsv = await AurionHttpService.downloadNotesCsv(
+          entUsername,
+          password,
+          {
+            baseUrl: process.env.AURION_BASE_URL,
+          },
+        );
+
+        rawCsv = httpCsv.rawCsv;
+        parsedPayload = parseCsvToEntries(rawCsv, {
+          parserVersion: `${PARSER_VERSION}-aurion-http-csv`,
+        });
+        parsedPayload.metadata = {
+          ...(parsedPayload.metadata || {}),
+          sourceKind: "aurion_http_csv_export",
+          httpDiagnostics: httpCsv.diagnostics,
+        };
+        effectiveSource = `${source}:aurion_http_csv`;
+        snapshotSource = source;
+
+        logGradesDebug("http_strategy_success", {
+          username,
+          bytes: httpCsv.diagnostics?.bytes || 0,
+          durationMs: httpCsv.diagnostics?.durationMs || null,
+        });
+
+        await insertRefreshLog({
+          username,
+          step: "debug",
+          level: "info",
+          message: "CSV récupéré via HTTP sans navigateur",
+          details: httpCsv.diagnostics,
+        });
+      } catch (httpError) {
+        logGradesDebug("http_strategy_failed", {
+          username,
+          forceHttpOnly,
+          error: httpError.message,
+          ...(httpError.details || {}),
+        });
+        await insertRefreshLog({
+          username,
+          step: "debug",
+          level: forceHttpOnly ? "error" : "warn",
+          message: "Échec de la stratégie HTTP directe",
+          details: {
+            strategy: "aurion_http_notations",
+            error: httpError.message,
+            ...httpError.details,
+          },
+        });
+
+        if (forceHttpOnly) {
+          throw createHttpError(
+            502,
+            "La récupération HTTP directe des notes a échoué",
+            {
+              strategy: "aurion_http_notations",
+              originalMessage: httpError.message,
+              ...(httpError.details || {}),
+            },
+          );
+        }
+      }
+    }
+
+    if (!parsedPayload) {
+      try {
+        logGradesDebug("csv_strategy_attempt", {
+          username,
+          entUsername,
+        });
+        csvPath = await puppeteer.downloadCSV(entUsername, password, {
+          requestId: crypto.randomUUID(),
+        });
+        rawCsv = fs.readFileSync(csvPath, "utf-8");
+
+        logGradesDebug("csv_strategy_success", {
+          username,
+          csvPath,
+          bytes: Buffer.byteLength(rawCsv, "utf-8"),
+        });
+
+        await insertRefreshLog({
+          username,
+          step: "download",
+          level: "info",
+          message: "CSV téléchargé avec succès",
+          details: {
+            entUsername,
+            csvPath,
+            bytes: Buffer.byteLength(rawCsv, "utf-8"),
+          },
+        });
+
+        parsedPayload = parseCsvToEntries(rawCsv, {
+          parserVersion: PARSER_VERSION,
+        });
+      } catch (csvError) {
+        logGradesDebug("csv_strategy_failed", {
+          username,
+          error: csvError.message,
+        });
+        if (!HTTP_FALLBACK_ENABLED || forceHttpOnly || tryHttpFirst) {
+          throw csvError;
+        }
+
+        await insertRefreshLog({
+          username,
+          step: "download",
+          level: "warn",
+          message: "Échec du téléchargement CSV, fallback HTTP activé",
+          details: {
+            error: csvError.message,
+          },
+        });
+
+        const httpCsv = await AurionHttpService.downloadNotesCsv(
+          entUsername,
+          password,
+          {
+            baseUrl: process.env.AURION_BASE_URL,
+          },
+        );
+
+        rawCsv = httpCsv.rawCsv;
+        parsedPayload = parseCsvToEntries(rawCsv, {
+          parserVersion: `${PARSER_VERSION}-aurion-http-csv`,
+        });
+        parsedPayload.metadata = {
+          ...(parsedPayload.metadata || {}),
+          sourceKind: "aurion_http_csv_export",
+          httpDiagnostics: httpCsv.diagnostics,
+        };
+        effectiveSource = `${source}:aurion_http_csv_fallback`;
+        snapshotSource = source;
+
+        logGradesDebug("http_fallback_success", {
+          username,
+          bytes: httpCsv.diagnostics?.bytes || 0,
+          durationMs: httpCsv.diagnostics?.durationMs || null,
+        });
+      }
+    }
+
     const refreshReport = buildRefreshReport(
       previousSnapshot,
       parsedPayload.entries,
@@ -503,11 +683,26 @@ const refreshGrades = async (username, options = {}) => {
       hiddenRules,
     });
 
+    logGradesDebug("parsed_payload_ready", {
+      username,
+      effectiveSource,
+      entryCount: parsedPayload.entries?.length || 0,
+      sourceKind:
+        parsedPayload.metadata?.sourceKind ||
+        (rawCsv ? "csv_export" : "aurion_http_notations"),
+      parseErrors: parsedPayload.diagnostics?.parseErrors?.length || 0,
+    });
+
     parsedPayload.metadata = {
-      parserVersion: PARSER_VERSION,
+      parserVersion:
+        parsedPayload.diagnostics?.parserVersion || parsedPayload.parserVersion,
       importedAt: new Date().toISOString(),
       userGroup,
-      source,
+      source: snapshotSource,
+      effectiveSource,
+      sourceKind:
+        parsedPayload.metadata?.sourceKind ||
+        (rawCsv ? "csv_export" : "aurion_http_notations"),
     };
 
     await insertRefreshLog({
@@ -544,7 +739,7 @@ const refreshGrades = async (username, options = {}) => {
     snapshot = await persistSnapshot({
       username,
       entUsername,
-      source,
+      source: snapshotSource,
       rawCsv,
       parsedPayload,
       computedView,
@@ -602,6 +797,14 @@ const refreshGrades = async (username, options = {}) => {
     });
 
     const response = await buildResponseFromSnapshot(username, snapshot);
+    logGradesDebug("refresh_completed", {
+      username,
+      snapshotId: snapshot.id,
+      effectiveSource,
+      visibleEntryCount: response?.data?.visibleEntryCount || 0,
+      hiddenEntryCount: response?.data?.hiddenEntryCount || 0,
+      newEntryCount: refreshReport.newEntryCount,
+    });
     return {
       ...response,
       refreshReport,

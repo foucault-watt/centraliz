@@ -16,8 +16,6 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "../App";
 import { fetchApi } from "../utils/api";
 
-const FAKE_REFRESH_DURATION_MS = 16000;
-
 const pageVariants = {
   hidden: { opacity: 0, y: 14 },
   visible: {
@@ -166,6 +164,19 @@ const formatTimeSince = (value, now = Date.now()) => {
 
   const elapsedDays = Math.floor(elapsedHours / 24);
   return `Mis a jour il y a ${elapsedDays} jour${elapsedDays > 1 ? "s" : ""}`;
+};
+
+const REFRESH_MODES = {
+  http: {
+    label: "Rapide",
+    description: "HTTP direct",
+    loaderDurationMs: 8000,
+  },
+  csv: {
+    label: "Secours",
+    description: "Navigation navigateur",
+    loaderDurationMs: 12000,
+  },
 };
 
 const isCredentialFailure = (response, payload) => {
@@ -708,6 +719,7 @@ const NotesV2 = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [showRefreshForm, setShowRefreshForm] = useState(false);
+  const [refreshMode, setRefreshMode] = useState("http");
 
   const [simOverrides, setSimOverrides] = useState({});
   const [simulatedEntries, setSimulatedEntries] = useState([]);
@@ -725,22 +737,27 @@ const NotesV2 = () => {
       return undefined;
     }
 
-    const startedAt = Date.now();
+    const loaderDurationMs =
+      REFRESH_MODES[refreshMode]?.loaderDurationMs || 8000;
+    const intervalMs = 120;
+    const targetProgress = 90;
+    const startProgress = 12;
+    const totalSteps = Math.max(1, Math.round(loaderDurationMs / intervalMs));
+    const progressStep = (targetProgress - startProgress) / totalSteps;
+
+    setRefreshProgress(12);
     const timer = setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      const ratio = Math.min(elapsed / FAKE_REFRESH_DURATION_MS, 1);
-      const eased = 1 - Math.pow(1 - ratio, 2.6);
-      const nextProgress = Math.min(98, eased * 98);
+      setRefreshProgress((previous) => {
+        if (previous >= targetProgress) {
+          return previous;
+        }
 
-      setRefreshProgress(nextProgress);
-
-      if (ratio >= 1) {
-        clearInterval(timer);
-      }
-    }, 80);
+        return Math.min(targetProgress, previous + progressStep);
+      });
+    }, intervalMs);
 
     return () => clearInterval(timer);
-  }, [isRefreshing]);
+  }, [isRefreshing, refreshMode]);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 60000);
@@ -811,18 +828,18 @@ const NotesV2 = () => {
     setCooldownRetryAfterMs(null);
     setLastRefreshReport(null);
     setIsRefreshing(true);
-    const minDelay = new Promise((resolve) => {
-      setTimeout(resolve, FAKE_REFRESH_DURATION_MS);
-    });
+    const requestBody = {
+      ...body,
+      strategy: refreshMode === "http" ? "http" : "csv",
+    };
 
     try {
       const response = await fetchApi("/api/grades/refresh", {
         method: "POST",
-        body: JSON.stringify(body),
+        body: JSON.stringify(requestBody),
       });
 
       const payload = await response.json();
-      await minDelay;
       if (!response.ok) {
         if (response.status === 429) {
           const retryAfterMs = Number(payload?.details?.retryAfterMs || 0);
@@ -864,12 +881,11 @@ const NotesV2 = () => {
       setPassword("");
       setShowRefreshForm(false);
     } catch (refreshError) {
-      await minDelay;
       setError(refreshError.message || "Impossible de mettre a jour les notes");
     } finally {
       setTimeout(() => {
         setIsRefreshing(false);
-      }, 260);
+      }, 120);
     }
   };
 
@@ -1160,6 +1176,29 @@ const NotesV2 = () => {
               </span>
             )}
 
+            <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1">
+              {Object.entries(REFRESH_MODES).map(([mode, config]) => {
+                const isActive = refreshMode === mode;
+
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setRefreshMode(mode)}
+                    disabled={isRefreshing}
+                    title={config.description}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                      isActive
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {config.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-500">
               <Clock3 className="w-3.5 h-3.5" />
               {formatTimeSince(snapshot?.createdAt, now)}
@@ -1229,6 +1268,16 @@ const NotesV2 = () => {
               Connexion ENT
             </h3>
             <form className="space-y-3" onSubmit={handleSubmitCredentials}>
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                <p className="text-xs font-semibold text-gray-700">
+                  Mode selectionne
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {REFRESH_MODES[refreshMode]?.label} ·{" "}
+                  {REFRESH_MODES[refreshMode]?.description}
+                </p>
+              </div>
+
               <label className="block">
                 <span className="text-xs text-gray-500">Identifiant ENT</span>
                 <input

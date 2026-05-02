@@ -3,6 +3,128 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
+const AURION_HOST = "webaurion.centralelille.fr";
+const PUPPETEER_NETWORK_DEBUG = /^true$/i.test(
+  process.env.PUPPETEER_NETWORK_DEBUG || "",
+);
+
+const maskSensitiveValue = (value) => {
+  const raw = String(value || "");
+  if (raw.length <= 8) {
+    return `${raw.slice(0, 2)}***`;
+  }
+
+  return `${raw.slice(0, 4)}***${raw.slice(-2)}`;
+};
+
+const sanitizePostData = (postData) => {
+  if (!postData) {
+    return null;
+  }
+
+  return String(postData)
+    .replace(/(password=)([^&]+)/gi, (_, prefix) => `${prefix}***`)
+    .replace(/(username=)([^&]+)/gi, (_, prefix, value) => {
+      try {
+        return `${prefix}${maskSensitiveValue(decodeURIComponent(value))}`;
+      } catch (error) {
+        return `${prefix}***`;
+      }
+    });
+};
+
+const summarizeHeaders = (headers = {}) => {
+  const keysToKeep = [
+    "content-type",
+    "content-disposition",
+    "location",
+    "faces-request",
+    "x-requested-with",
+  ];
+
+  return Object.fromEntries(
+    Object.entries(headers).filter(([key]) =>
+      keysToKeep.includes(String(key).toLowerCase()),
+    ),
+  );
+};
+
+const shouldLogRequest = (url, headers = {}) => {
+  return (
+    String(url || "").includes(AURION_HOST) ||
+    Boolean(headers["content-disposition"]) ||
+    Boolean(headers["Content-Disposition"])
+  );
+};
+
+const attachNetworkDebug = async (page) => {
+  if (!PUPPETEER_NETWORK_DEBUG) {
+    return page.target().createCDPSession();
+  }
+
+  const cdp = await page.target().createCDPSession();
+  await cdp.send("Network.enable");
+
+  page.on("request", (request) => {
+    const url = request.url();
+    if (!shouldLogRequest(url)) {
+      return;
+    }
+
+    console.log("[Puppeteer][request]", {
+      method: request.method(),
+      resourceType: request.resourceType(),
+      url,
+      postData: sanitizePostData(request.postData()),
+      headers: summarizeHeaders(request.headers()),
+    });
+  });
+
+  page.on("response", async (response) => {
+    const url = response.url();
+    const headers = response.headers();
+    if (!shouldLogRequest(url, headers)) {
+      return;
+    }
+
+    console.log("[Puppeteer][response]", {
+      status: response.status(),
+      url,
+      headers: summarizeHeaders(headers),
+    });
+  });
+
+  page.on("requestfailed", (request) => {
+    const url = request.url();
+    if (!shouldLogRequest(url)) {
+      return;
+    }
+
+    console.warn("[Puppeteer][requestfailed]", {
+      method: request.method(),
+      url,
+      failure: request.failure()?.errorText || "unknown",
+    });
+  });
+
+  cdp.on("Page.downloadWillBegin", (event) => {
+    console.log("[Puppeteer][downloadWillBegin]", {
+      url: event.url,
+      suggestedFilename: event.suggestedFilename,
+    });
+  });
+
+  cdp.on("Page.downloadProgress", (event) => {
+    console.log("[Puppeteer][downloadProgress]", {
+      state: event.state,
+      receivedBytes: event.receivedBytes,
+      totalBytes: event.totalBytes,
+    });
+  });
+
+  return cdp;
+};
+
 exports.downloadCSV = async (username, password, options = {}) => {
   console.log("Launching soon...");
   const browser = await puppeteer.launch({
@@ -22,7 +144,8 @@ exports.downloadCSV = async (username, password, options = {}) => {
 
   try {
     // Set up download behavior
-    await page._client().send("Page.setDownloadBehavior", {
+    const cdp = await attachNetworkDebug(page);
+    await cdp.send("Page.setDownloadBehavior", {
       behavior: "allow",
       downloadPath: downloadPath,
     });
@@ -102,6 +225,9 @@ exports.downloadCSV = async (username, password, options = {}) => {
     await page.waitForSelector(csvSelector, { visible: true, timeout: 10000 });
     await page.click(csvSelector);
     console.log("Clicked on the csv element");
+    if (PUPPETEER_NETWORK_DEBUG) {
+      console.log("[Puppeteer] Current page after CSV click:", page.url());
+    }
 
     // Wait for the file to be downloaded
     const waitForFileDownload = async (downloadPath) => {

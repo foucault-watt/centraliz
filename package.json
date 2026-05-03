@@ -3,6 +3,8 @@
   "version": "1.1",
   "scripts": {
     "go": "concurrently \"npm --prefix frontend start\" \"npm --prefix backend run dev\"",
+    "install-all": "concurrently \"npm --prefix frontend install\" \"npm --prefix backend install\"",
+    "audit-fix": "concurrently \"npm --prefix frontend audit fix\" \"npm --prefix backend audit fix\"",
     "build": "npm --prefix frontend run build",
     "deploy": "node deploy.js",
     "rezo": "npm run build && npm run deploy"

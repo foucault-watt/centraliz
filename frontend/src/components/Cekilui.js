@@ -9,6 +9,9 @@ function Cekilui() {
   const [photoStatus, setPhotoStatus] = useState({
     hasPhoto: false,
     photoName: null,
+    noPhotoCompetitiveGamesPlayed: 0,
+    remainingFreeCompetitiveGames: 0,
+    canPlayCompetitiveWithoutPhoto: false,
     loading: true,
   });
   const [showUploader, setShowUploader] = useState(false);
@@ -17,6 +20,7 @@ function Cekilui() {
   const [showAdmin, setShowAdmin] = useState(false); // État pour l'interface admin
   const [isAdmin, setIsAdmin] = useState(false); // TODO: Récupérer dynamiquement
   const [message, setMessage] = useState("");
+  const [launchQuickCompetitive, setLaunchQuickCompetitive] = useState(false);
 
   // Vérifier le statut de la photo et le statut admin au chargement
   useEffect(() => {
@@ -38,12 +42,20 @@ function Cekilui() {
       const result = await response.json();
 
       if (result.success) {
-        setPhotoStatus({
+        const nextPhotoStatus = {
           hasPhoto: result.hasPhoto,
           photoName: result.photoName,
+          noPhotoCompetitiveGamesPlayed:
+            result.noPhotoCompetitiveGamesPlayed || 0,
+          remainingFreeCompetitiveGames:
+            result.remainingFreeCompetitiveGames || 0,
+          canPlayCompetitiveWithoutPhoto:
+            result.canPlayCompetitiveWithoutPhoto || false,
           loading: false,
-        });
+        };
+        setPhotoStatus(nextPhotoStatus);
         setIsAdmin(result.isAdmin || false); // Définir le statut admin depuis l'API
+
       } else {
         console.error(
           "Erreur lors de la vérification du statut:",
@@ -52,6 +64,9 @@ function Cekilui() {
         setPhotoStatus({
           hasPhoto: false,
           photoName: null,
+          noPhotoCompetitiveGamesPlayed: 0,
+          remainingFreeCompetitiveGames: 0,
+          canPlayCompetitiveWithoutPhoto: false,
           loading: false,
         });
       }
@@ -63,6 +78,9 @@ function Cekilui() {
       setPhotoStatus({
         hasPhoto: false,
         photoName: null,
+        noPhotoCompetitiveGamesPlayed: 0,
+        remainingFreeCompetitiveGames: 0,
+        canPlayCompetitiveWithoutPhoto: false,
         loading: false,
       });
     }
@@ -74,6 +92,10 @@ function Cekilui() {
     setPhotoStatus({
       hasPhoto: true,
       photoName: result.photoName,
+      noPhotoCompetitiveGamesPlayed: photoStatus.noPhotoCompetitiveGamesPlayed,
+      remainingFreeCompetitiveGames: photoStatus.remainingFreeCompetitiveGames,
+      canPlayCompetitiveWithoutPhoto:
+        photoStatus.canPlayCompetitiveWithoutPhoto,
       loading: false,
     });
 
@@ -100,13 +122,32 @@ function Cekilui() {
   const handleStartGame = () => {
     setShowGame(true);
     setShowUploader(false);
+    setShowLeaderboard(false);
+    setLaunchQuickCompetitive(false);
     setMessage("");
+  };
+
+  const handleQuickStartGame = () => {
+    setShowGame(true);
+    setShowUploader(false);
+    setShowLeaderboard(false);
+    setLaunchQuickCompetitive(true);
+    setMessage("");
+  };
+
+  const handleRequirePhoto = () => {
+    setShowGame(false);
+    setShowUploader(true);
+    setLaunchQuickCompetitive(false);
+    setMessage("Ajoute une photo pour continuer à jouer à Cékilui.");
+    checkPhotoStatus();
   };
 
   const handleBackToMenu = () => {
     setShowGame(false);
     setShowUploader(false);
     setShowLeaderboard(false);
+    setLaunchQuickCompetitive(false);
     setMessage("");
   };
 
@@ -114,6 +155,7 @@ function Cekilui() {
    setShowAdmin(true);
    setShowGame(false);
    setShowUploader(false);
+   setLaunchQuickCompetitive(false);
    setMessage("");
  };
 
@@ -125,6 +167,7 @@ function Cekilui() {
    setShowLeaderboard(true);
    setShowGame(false);
    setShowUploader(false);
+   setLaunchQuickCompetitive(false);
    setMessage("");
  };
 
@@ -171,7 +214,20 @@ function Cekilui() {
         ) : showLeaderboard ? (
           <CekiluiLeaderboard onBack={handleBackToMenu} />
         ) : showGame ? (
-          <CekiluiGame onBackToMenu={handleBackToMenu} onShowLeaderboard={handleShowLeaderboard} />
+          <CekiluiGame
+            onBackToMenu={handleBackToMenu}
+            onShowLeaderboard={handleShowLeaderboard}
+            onRequirePhoto={handleRequirePhoto}
+            hasPhoto={photoStatus.hasPhoto}
+            remainingFreeCompetitiveGames={
+              photoStatus.remainingFreeCompetitiveGames
+            }
+            quickStartTrial={
+              !photoStatus.hasPhoto &&
+              photoStatus.remainingFreeCompetitiveGames > 0
+            }
+            quickStartCompetitive={launchQuickCompetitive}
+          />
         ) : showUploader ? (
           <PhotoUploader
             onUploadSuccess={handleUploadSuccess}
@@ -223,28 +279,71 @@ function Cekilui() {
                    </button>
                  )}
                 </div>
+                <div className="pt-3 mt-2 border-t border-gray-200">
+                  <button
+                    onClick={handleQuickStartGame}
+                    className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white py-4 px-6 rounded-2xl font-semibold transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
+                  >
+                    <div className="flex items-center justify-center space-x-3">
+                      <span className="text-xl">⚡</span>
+                      <span>Lancer une partie rapide</span>
+                    </div>
+                    <p className="text-sm opacity-90 mt-2">
+                      Mode compétitif • 1 clic pour jouer
+                    </p>
+                  </button>
+                </div>
               </>
             ) : (
               <>
                 {/* État sans photo */}
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-3xl">📷</span>
+                <div
+                  className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
+                    photoStatus.remainingFreeCompetitiveGames > 0
+                      ? "bg-primary/10"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  <span className="text-3xl">
+                    {photoStatus.remainingFreeCompetitiveGames > 0 ? "🎯" : "📷"}
+                  </span>
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold text-secondary">
-                    Aucune photo de profil
+                    {photoStatus.remainingFreeCompetitiveGames > 0
+                      ? "Essai gratuit disponible"
+                      : "Aucune photo de profil"}
                   </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Vous devez ajouter une photo pour pouvoir jouer au jeu
-                    Cékilui.
+                    {photoStatus.remainingFreeCompetitiveGames > 0
+                      ? `Vous pouvez tester Cékilui sur 2 parties compétitives toutes promos avant d'ajouter votre photo. Il vous reste ${photoStatus.remainingFreeCompetitiveGames} partie${
+                          photoStatus.remainingFreeCompetitiveGames > 1
+                            ? "s"
+                            : ""
+                        }.`
+                      : "Vous avez utilisé vos 2 parties d'essai. Ajoutez une photo pour continuer à jouer à Cékilui."}
                   </p>
                 </div>
-                <button
-                  onClick={handleShowUploader}
-                  className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
-                >
-                  Ajouter une photo
-                </button>
+                <div className="space-y-3">
+                  {photoStatus.remainingFreeCompetitiveGames > 0 && (
+                    <button
+                      onClick={handleStartGame}
+                      className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
+                    >
+                      Jouer tout de suite
+                    </button>
+                  )}
+                  <button
+                    onClick={handleShowUploader}
+                    className={`w-full py-3 px-6 rounded-xl font-medium transition-all duration-300 border ${
+                      photoStatus.remainingFreeCompetitiveGames > 0
+                        ? "bg-gray-100 hover:bg-gray-200 text-secondary border-gray-200"
+                        : "bg-primary hover:bg-primary-dark text-white border-primary shadow-lg hover:shadow-xl"
+                    }`}
+                  >
+                    Ajouter une photo
+                  </button>
+                </div>
                 {isAdmin && (
                  <button
                    onClick={handleShowAdmin}

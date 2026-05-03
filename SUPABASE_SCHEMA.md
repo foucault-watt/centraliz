@@ -71,6 +71,7 @@ create table public.users (
   notes_count smallint null,
   "hasPhoto" boolean not null default false,
   "photoName" text null,
+  ceki_no_photo_games_played integer not null default 0,
   is_admin boolean null default false,
   is_bibli_admin boolean null default false,
   photo_banned_until timestamp with time zone null,

@@ -276,7 +276,7 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="/analytics/admin"
+                  path="/analytics/admin/*"
                   element={
                     <PageLayout>
                       <AnalyticsAdminPage user={user} />

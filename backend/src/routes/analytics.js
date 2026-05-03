@@ -93,6 +93,48 @@ router.get("/admin/users/:username/events", authMiddleware, adminMiddleware, asy
   }
 });
 
+router.get("/admin/users/:username/summary", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const user = await analyticsService.getUserSummary(req.params.username, req.query);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "Utilisateur introuvable." });
+    }
+    return res.json({ success: true, user });
+  } catch (error) {
+    console.error("[Analytics] Erreur user summary:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération du résumé utilisateur.",
+    });
+  }
+});
+
+router.get("/admin/users/:username/timeseries", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const timeseries = await analyticsService.getUserTimeseries(req.params.username, req.query);
+    return res.json({ success: true, timeseries });
+  } catch (error) {
+    console.error("[Analytics] Erreur user timeseries:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération de la série utilisateur.",
+    });
+  }
+});
+
+router.get("/admin/users/:username/sessions", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const sessions = await analyticsService.getUserSessions(req.params.username, req.query);
+    return res.json({ success: true, ...sessions });
+  } catch (error) {
+    console.error("[Analytics] Erreur user sessions:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération des sessions utilisateur.",
+    });
+  }
+});
+
 router.get("/admin/users/:username", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const user = await analyticsService.getUserDetail(req.params.username, req.query);
@@ -122,6 +164,48 @@ router.get("/admin/modules", authMiddleware, adminMiddleware, async (req, res) =
   }
 });
 
+router.get("/admin/modules/:module/summary", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const moduleSummary = await analyticsService.getModuleSummary(req.params.module, req.query);
+    if (!moduleSummary) {
+      return res.status(404).json({ success: false, error: "Module introuvable." });
+    }
+    return res.json({ success: true, module: moduleSummary });
+  } catch (error) {
+    console.error("[Analytics] Erreur module summary:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération du résumé module.",
+    });
+  }
+});
+
+router.get("/admin/modules/:module/timeseries", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const timeseries = await analyticsService.getModuleTimeseries(req.params.module, req.query);
+    return res.json({ success: true, timeseries });
+  } catch (error) {
+    console.error("[Analytics] Erreur module timeseries:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération de la série module.",
+    });
+  }
+});
+
+router.get("/admin/modules/:module/users", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const users = await analyticsService.getModuleUsers(req.params.module, req.query);
+    return res.json({ success: true, ...users });
+  } catch (error) {
+    console.error("[Analytics] Erreur module users:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération des utilisateurs du module.",
+    });
+  }
+});
+
 router.get("/admin/retention", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const retention = await analyticsService.getRetention(req.query);
@@ -131,6 +215,19 @@ router.get("/admin/retention", authMiddleware, adminMiddleware, async (req, res)
     res.status(500).json({
       success: false,
       error: "Erreur lors de la récupération de la rétention analytics.",
+    });
+  }
+});
+
+router.get("/admin/sessions", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const sessions = await analyticsService.getSessions(req.query);
+    res.json({ success: true, ...sessions });
+  } catch (error) {
+    console.error("[Analytics] Erreur sessions:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération des sessions analytics.",
     });
   }
 });

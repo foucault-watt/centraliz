@@ -1,11 +1,30 @@
-import { ArrowLeft, Flag, Home, Infinity, Trophy, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Flag,
+  Home,
+  Infinity,
+  Trophy,
+  XCircle,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getSupportBdsInfo } from "../config/supportBds";
 import "../styles/supportBds.css";
 import PromoSelector from "./PromoSelector";
 import ReportPhotoModal from "./ReportPhotoModal";
 
-const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
+const RESULT_DELAY_CORRECT_MS = 1500;
+const RESULT_DELAY_INCORRECT_MS = 3000;
+
+const CekiluiGame = ({
+  onBackToMenu,
+  onShowLeaderboard,
+  onRequirePhoto,
+  hasPhoto = true,
+  remainingFreeCompetitiveGames = 0,
+  quickStartTrial = false,
+  quickStartCompetitive = false,
+}) => {
   const [gameState, setGameState] = useState("menu"); // 'menu', 'promoSelection', 'playing', 'result', 'gameover'
   const [selectedPromos, setSelectedPromos] = useState([]);
   const [currentRoundData, setCurrentRoundData] = useState(null);
@@ -30,6 +49,13 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
   const [roundProgress, setRoundProgress] = useState([]); // Track progress of each round
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportFeedback, setReportFeedback] = useState("");
+  const [trialStatus, setTrialStatus] = useState({
+    isNoPhotoTrial: !hasPhoto,
+    remainingFreeGames: remainingFreeCompetitiveGames,
+    gamesPlayedWithoutPhoto: 0,
+  });
+  const [hasAttemptedQuickCompetitiveStart, setHasAttemptedQuickCompetitiveStart] =
+    useState(false);
   const timerRef = useRef(null);
 
   const supportInfo = currentRoundData?.supportBds
@@ -79,6 +105,14 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
   // Constants
   const MAX_COMPETITIVE_ROUNDS = 10; // For UI display only, backend controls the actual limit
 
+  useEffect(() => {
+    setTrialStatus((prev) => ({
+      ...prev,
+      isNoPhotoTrial: !hasPhoto,
+      remainingFreeGames: remainingFreeCompetitiveGames,
+    }));
+  }, [hasPhoto, remainingFreeCompetitiveGames]);
+
   const showPromoSelection = useCallback((mode) => {
     setGameMode(mode);
     setGameState("promoSelection");
@@ -114,7 +148,8 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
   }, [reportFeedback]);
 
   const loadNextRound = useCallback(
-    async (currentLoadedGameId = gameId, isFirstRound = false) => {
+    async (currentLoadedGameId = gameId, modeOverride = gameMode) => {
+      const activeMode = modeOverride || gameMode;
       setIsLoading(true);
       setError("");
       setSelectedChoice(null);
@@ -142,27 +177,27 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
           setTimerStarted(false);
           setGamePhase("playing");
 
-          if (gameMode === "competitive") {
+          if (activeMode === "competitive") {
             setCompetitiveTotalScore(data.totalScore);
             setCompetitiveCurrentRoundNumber(data.currentRound);
           }
         } else {
           // Gérer la fin du mode sans fin
           if (
-            gameMode === "endless" &&
+            activeMode === "endless" &&
             data.error &&
             data.error.includes("Félicitations")
           ) {
             setGameState("gameover");
           } else {
             setError(data.error || "Erreur lors du chargement du round");
-            setGameState(gameMode === "competitive" ? "gameover" : "menu");
+            setGameState(activeMode === "competitive" ? "gameover" : "menu");
           }
         }
       } catch (error) {
         console.error("Erreur lors du chargement du round:", error);
         setError("Erreur de connexion");
-        setGameState(gameMode === "competitive" ? "gameover" : "menu");
+        setGameState(activeMode === "competitive" ? "gameover" : "menu");
       } finally {
         setIsLoading(false);
       }
@@ -171,18 +206,20 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
   );
 
   const startGameWithPromos = useCallback(
-    async (promos) => {
+    async (promos, modeOverride = gameMode) => {
       setSelectedPromos(promos);
+      setGameMode(modeOverride);
       setCompetitiveTotalScore(0);
       setCompetitiveCurrentRoundNumber(0);
       setEndlessScore({ correct: 0, total: 0, points: 0 }); // Reset scores
       setGameId(null); // Reset gameId
+      setRoundProgress([]);
 
       setIsLoading(true);
       setError("");
 
       try {
-        const isCompetitive = gameMode === "competitive";
+        const isCompetitive = modeOverride === "competitive";
         const url = isCompetitive
           ? `${process.env.REACT_APP_URL_BACK}/api/ceki/game/start-competitive`
           : `${process.env.REACT_APP_URL_BACK}/api/ceki/game/start-endless`;
@@ -199,7 +236,16 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
         if (data.success) {
           setGameId(data.gameId);
           setGameState("playing");
-          await loadNextRound(data.gameId, true);
+          setTrialStatus({
+            isNoPhotoTrial: data.noPhotoTrial || !hasPhoto,
+            remainingFreeGames:
+              data.remainingFreeCompetitiveGames ??
+              remainingFreeCompetitiveGames,
+            gamesPlayedWithoutPhoto:
+              data.noPhotoCompetitiveGamesPlayed ||
+              trialStatus.gamesPlayedWithoutPhoto,
+          });
+          await loadNextRound(data.gameId, modeOverride);
         } else {
           setError(
             data.error ||
@@ -217,7 +263,13 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
         setIsLoading(false);
       }
     },
-    [gameMode, loadNextRound]
+    [
+      gameMode,
+      hasPhoto,
+      loadNextRound,
+      remainingFreeCompetitiveGames,
+      trialStatus.gamesPlayedWithoutPhoto,
+    ]
   );
 
   const startServerTimer = useCallback(async () => {
@@ -252,6 +304,90 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
       console.error("Erreur lors du démarrage du chrono serveur:", error);
     }
   }, [gameMode, gameId, currentRoundData, timerStarted]);
+
+  const startQuickTrial = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/ceki/promos-stats`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(
+          data.error || "Impossible de charger les promos pour l'essai."
+        );
+      }
+
+      const allPromos = (data.promos || []).map((promo) => promo.group);
+      await startGameWithPromos(allPromos, "competitive");
+    } catch (quickTrialError) {
+      setError(
+        quickTrialError.message ||
+          "Impossible de lancer rapidement votre essai."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startGameWithPromos]);
+
+  const startQuickCompetitiveGame = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_URL_BACK}/api/ceki/promos-stats`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(
+          data.error || "Impossible de charger les promos pour la partie rapide."
+        );
+      }
+
+      const allPromos = (data.promos || []).map((promo) => promo.group);
+      await startGameWithPromos(allPromos, "competitive");
+    } catch (quickStartError) {
+      setError(
+        quickStartError.message ||
+          "Impossible de lancer la partie rapide pour le moment."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startGameWithPromos]);
+
+  useEffect(() => {
+    if (
+      !quickStartCompetitive ||
+      !hasPhoto ||
+      gameState !== "menu" ||
+      hasAttemptedQuickCompetitiveStart
+    ) {
+      return;
+    }
+
+    setHasAttemptedQuickCompetitiveStart(true);
+    startQuickCompetitiveGame();
+  }, [
+    gameState,
+    hasAttemptedQuickCompetitiveStart,
+    hasPhoto,
+    quickStartCompetitive,
+    startQuickCompetitiveGame,
+  ]);
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true);
@@ -382,6 +518,9 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
   useEffect(() => {
     let nextRoundTimer;
     if (gamePhase === "answered" && !isReportModalOpen) {
+      const nextRoundDelay = roundResult?.correct
+        ? RESULT_DELAY_CORRECT_MS
+        : RESULT_DELAY_INCORRECT_MS;
       nextRoundTimer = setTimeout(() => {
         // Après avoir montré le résultat, vérifier si le jeu est terminé
         if (roundResult && roundResult.isGameOver) {
@@ -398,7 +537,7 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
         } else {
           loadNextRound();
         }
-      }, 3000); // Wait 3 seconds
+      }, nextRoundDelay);
     }
     return () => clearTimeout(nextRoundTimer);
   }, [gamePhase, isReportModalOpen, loadNextRound, roundResult]);
@@ -415,6 +554,14 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
           <p className="text-gray-600 leading-relaxed">{error}</p>
         </div>
         <div className="space-y-3">
+          {!hasPhoto && (
+            <button
+              onClick={onRequirePhoto}
+              className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
+            >
+              Ajouter une photo
+            </button>
+          )}
           <button
             onClick={backToMenu}
             className="w-full bg-primary hover:bg-primary-dark text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95"
@@ -441,32 +588,71 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
           <p className="text-gray-600 text-lg leading-relaxed">
             Devinez qui est sur la photo !
           </p>
+          {!hasPhoto && trialStatus.remainingFreeGames > 0 && (
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold">
+              <Trophy className="w-4 h-4" />
+              <span>
+                Essai gratuit: {trialStatus.remainingFreeGames} partie
+                {trialStatus.remainingFreeGames > 1 ? "s" : ""} restante
+                {trialStatus.remainingFreeGames > 1 ? "s" : ""}
+              </span>
+            </div>
+          )}
         </div>
         <div className="space-y-4">
-          <button
-            className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95"
-            onClick={() => showPromoSelection("competitive")}
-          >
-            <div className="flex items-center justify-center space-x-3">
-              <Trophy className="w-6 h-6" />{" "}
-              <span className="text-lg font-semibold">Mode Compétitif</span>
-            </div>
-            <p className="text-sm opacity-90 mt-2">
-              10 rounds • Score basé sur la vitesse
-            </p>
-          </button>
-          <button
-            className="w-full bg-gradient-to-r from-secondary to-gray-700 hover:from-gray-700 hover:to-secondary text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95"
-            onClick={() => showPromoSelection("endless")}
-          >
-            <div className="flex items-center justify-center space-x-3">
-              <Infinity className="w-6 h-6" />{" "}
-              <span className="text-lg font-semibold">Mode Sans Fin</span>
-            </div>
-            <p className="text-sm opacity-90 mt-2">
-              Entraînement • Pas de limite de temps
-            </p>
-          </button>
+          {!hasPhoto && quickStartTrial && (
+            <button
+              className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 disabled:opacity-70"
+              onClick={startQuickTrial}
+              disabled={isLoading}
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <Trophy className="w-6 h-6" />
+                <span className="text-lg font-semibold">
+                  Lancer l'essai toutes promos
+                </span>
+              </div>
+              <p className="text-sm opacity-90 mt-2">
+                10 rounds • 1 partie d'essai consommée
+              </p>
+            </button>
+          )}
+          {(hasPhoto || !quickStartTrial) && (
+            <button
+              className="w-full bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95"
+              onClick={() => showPromoSelection("competitive")}
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <Trophy className="w-6 h-6" />{" "}
+                <span className="text-lg font-semibold">Mode Compétitif</span>
+              </div>
+              <p className="text-sm opacity-90 mt-2">
+                10 rounds • Score basé sur la vitesse
+              </p>
+            </button>
+          )}
+          {hasPhoto && (
+            <button
+              className="w-full bg-gradient-to-r from-secondary to-gray-700 hover:from-gray-700 hover:to-secondary text-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95"
+              onClick={() => showPromoSelection("endless")}
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <Infinity className="w-6 h-6" />{" "}
+                <span className="text-lg font-semibold">Mode Sans Fin</span>
+              </div>
+              <p className="text-sm opacity-90 mt-2">
+                Entraînement • Pas de limite de temps
+              </p>
+            </button>
+          )}
+          {!hasPhoto && (
+            <button
+              onClick={onRequirePhoto}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-secondary py-3 px-6 rounded-xl font-medium transition-all duration-300 border border-gray-200"
+            >
+              Ajouter une photo
+            </button>
+          )}
         </div>
         <button
           onClick={onBackToMenu}
@@ -534,6 +720,14 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
         </header>
 
         <main className="max-w-md mx-auto pt-2 pb-safe ">
+          {!hasPhoto && trialStatus.isNoPhotoTrial && (
+            <div className="mb-4 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-secondary">
+              <strong>Essai gratuit.</strong> Cette partie compte dans vos 2
+              essais compétitifs toutes promos. Il restera{" "}
+              <strong>{trialStatus.remainingFreeGames}</strong> partie
+              {trialStatus.remainingFreeGames > 1 ? "s" : ""} après celle-ci.
+            </div>
+          )}
           {gamePhase === "playing" && currentRoundData ? (
             <div className="animate-scale-in md:grid md:grid-cols-5 md:gap-8 md:items-center">
               {/* Colonne Gauche: Photo (prend 3/5 de la largeur) */}
@@ -684,6 +878,11 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
                       key={currentRoundData.roundId}
                       className="bg-primary h-full animate-countdown"
                       style={{
+                        animationDuration: `${
+                          roundResult?.correct
+                            ? RESULT_DELAY_CORRECT_MS
+                            : RESULT_DELAY_INCORRECT_MS
+                        }ms`,
                         animationPlayState: isReportModalOpen
                           ? "paused"
                           : "running",
@@ -801,6 +1000,15 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
                 ? "Bien joué ! Continue comme ça !"
                 : "Tu n'as pas battu ton meilleur score mais persévère !"}
             </p>
+            {!hasPhoto && trialStatus.isNoPhotoTrial && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-secondary">
+                {trialStatus.remainingFreeGames > 0
+                  ? `Il vous reste ${trialStatus.remainingFreeGames} partie${
+                      trialStatus.remainingFreeGames > 1 ? "s" : ""
+                    } d'essai avant d'ajouter votre photo.`
+                  : "Vous avez utilisé vos 2 parties d'essai. Ajoutez une photo pour continuer à jouer."}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
             <div className="text-center">
@@ -829,12 +1037,24 @@ const CekiluiGame = ({ onBackToMenu, onShowLeaderboard }) => {
           </div>
         </div>
         <div className="space-y-4">
-          <button
-            onClick={() => startGameWithPromos(selectedPromos)}
-            className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
-          >
-            🔄 Rejouer
-          </button>
+          {!hasPhoto && trialStatus.isNoPhotoTrial && trialStatus.remainingFreeGames === 0 ? (
+            <button
+              onClick={onRequirePhoto}
+              className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <Camera size={20} />
+                <span>Ajouter une photo pour continuer</span>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => startGameWithPromos(selectedPromos)}
+              className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"
+            >
+              🔄 Rejouer
+            </button>
+          )}
           <button
             onClick={onShowLeaderboard}
             className="w-full bg-gradient-to-r from-secondary to-gray-700 hover:from-gray-700 hover:to-secondary text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl"

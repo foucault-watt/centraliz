@@ -50,6 +50,12 @@ router.get("/photo-status", authMiddleware, async (req, res) => {
       photoName: photoStatus.photoName,
       isBanned: photoStatus.isBanned,
       isAdmin: photoStatus.isAdmin,
+      noPhotoCompetitiveGamesPlayed:
+        photoStatus.noPhotoCompetitiveGamesPlayed,
+      remainingFreeCompetitiveGames:
+        photoStatus.remainingFreeCompetitiveGames,
+      canPlayCompetitiveWithoutPhoto:
+        photoStatus.canPlayCompetitiveWithoutPhoto,
     });
   } catch (error) {
     console.error(
@@ -260,16 +266,66 @@ router.post("/game/start-competitive", authMiddleware, async (req, res) => {
 
     // Vérifier que l'utilisateur a une photo pour pouvoir jouer
     const userPhotoStatus = await cekiService.checkUserPhoto(userName);
+    let noPhotoAccess = null;
+
     if (!userPhotoStatus.hasPhoto) {
-      return res.status(403).json({
-        success: false,
-        error: "Vous devez avoir une photo de profil pour jouer.",
-      });
+      if (!userPhotoStatus.canPlayCompetitiveWithoutPhoto) {
+        return res.status(403).json({
+          success: false,
+          error:
+            "Vous avez utilisé vos 2 parties d'essai. Ajoutez une photo pour continuer à jouer.",
+          requiresPhoto: true,
+        });
+      }
+
+      const allPlayablePromos = await cekiService.getAllPlayablePromoGroups();
+      const sortedSelectedGroups = [...selectedGroups].sort();
+      const sortedAllPlayablePromos = [...allPlayablePromos].sort();
+      const isAllPromosSelection =
+        sortedSelectedGroups.length === sortedAllPlayablePromos.length &&
+        sortedSelectedGroups.every(
+          (group, index) => group === sortedAllPlayablePromos[index]
+        );
+
+      if (!isAllPromosSelection) {
+        return res.status(403).json({
+          success: false,
+          error:
+            "Sans photo, l'essai gratuit est disponible uniquement en mode compétitif sur toutes les promos.",
+          requiresAllPromos: true,
+        });
+      }
+
+      const playableUsers = await cekiService.getUsersWithPhotosByGroups(
+        selectedGroups
+      );
+      if (playableUsers.length < 10) {
+        return res.status(400).json({
+          success: false,
+          error:
+            "Pas assez de joueurs avec photo pour lancer une partie compétitive toutes promos pour le moment.",
+        });
+      }
+
+      noPhotoAccess = await cekiService.incrementNoPhotoCompetitiveGamesPlayed(
+        userName
+      );
+
+      if (!noPhotoAccess) {
+        return res.status(500).json({
+          success: false,
+          error:
+            "Impossible d'enregistrer votre partie d'essai pour le moment.",
+        });
+      }
     }
 
     const gameId = cekiService.createCompetitiveGameSession(
       userName,
-      selectedGroups
+      selectedGroups,
+      {
+        isNoPhotoTrial: !userPhotoStatus.hasPhoto,
+      }
     );
     analyticsService.trackEvent({
       req,
@@ -288,6 +344,13 @@ router.post("/game/start-competitive", authMiddleware, async (req, res) => {
       gameId: gameId,
       currentRound: 0,
       totalScore: 0,
+      noPhotoTrial: !userPhotoStatus.hasPhoto,
+      noPhotoCompetitiveGamesPlayed:
+        noPhotoAccess?.noPhotoCompetitiveGamesPlayed ??
+        userPhotoStatus.noPhotoCompetitiveGamesPlayed,
+      remainingFreeCompetitiveGames:
+        noPhotoAccess?.remainingFreeCompetitiveGames ??
+        userPhotoStatus.remainingFreeCompetitiveGames,
     });
   } catch (error) {
     console.error("Erreur lors du démarrage du jeu compétitif:", error);
@@ -355,19 +418,26 @@ router.get("/game/round", authMiddleware, async (req, res) => {
     const userName = req.session.user.userName;
     const gameId = req.query.gameId; // Peut être null pour le mode sans fin
 
-    // Vérifier que l'utilisateur a une photo pour pouvoir jouer
     const userPhotoStatus = await cekiService.checkUserPhoto(userName);
-    if (!userPhotoStatus.hasPhoto) {
+    const session = gameId
+      ? cekiService.getCompetitiveGameSession(gameId)
+      : null;
+    const canBypassPhotoRequirement =
+      session &&
+      session.userId === userName &&
+      session.isNoPhotoTrial === true;
+
+    if (!userPhotoStatus.hasPhoto && !canBypassPhotoRequirement) {
       return res.status(403).json({
         success: false,
-        error: "Vous devez avoir une photo de profil pour jouer.",
+        error:
+          "Vous devez avoir une photo de profil pour jouer ou utiliser une partie d'essai compétitive.",
       });
     }
 
     let gameRound;
     if (gameId) {
       // Mode compétitif
-      const session = cekiService.getCompetitiveGameSession(gameId);
       if (!session || session.userId !== userName) {
         return res.status(404).json({
           success: false,

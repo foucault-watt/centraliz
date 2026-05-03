@@ -56,7 +56,27 @@ const SENSITIVE_KEYS = new Set([
 const MAX_PROPERTY_KEYS = 20;
 const MAX_STRING_LENGTH = 120;
 const MAX_PAGE_SIZE = 100;
-const MAX_SCAN_ROWS = 10000;
+const FETCH_BATCH_SIZE = 1000;
+const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
+
+const EVENT_TYPE_ORDER = [
+  "exposure",
+  "load",
+  "interaction",
+  "conversion",
+  "admin",
+  "system",
+];
+
+const WEEKDAYS = [
+  "lundi",
+  "mardi",
+  "mercredi",
+  "jeudi",
+  "vendredi",
+  "samedi",
+  "dimanche",
+];
 
 const normalizeKey = (key) =>
   String(key || "")
@@ -138,6 +158,24 @@ const parseSort = (sort, allowedFields, fallback = "created_at.desc") => {
   return { field, ascending: direction === "asc", value: `${field}.${direction}` };
 };
 
+const parseCsv = (value) =>
+  String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const parseEventTypes = (value) =>
+  parseCsv(value).filter((eventType) => VALID_EVENT_TYPES.has(eventType));
+
+const normalizeEventType = (value, fallback = "interaction") =>
+  VALID_EVENT_TYPES.has(value) ? value : fallback;
+
+const normalizeSource = (value, fallback = "backend") =>
+  VALID_SOURCES.has(value) ? value : fallback;
+
+const toPostgrestInList = (values) =>
+  `(${values.map((value) => `"${String(value).replace(/"/g, '\\"')}"`).join(",")})`;
+
 const getPeriodKey = (date, groupBy = "day") => {
   const parsed = new Date(date);
   if (groupBy === "week") {
@@ -164,23 +202,23 @@ const toSortedArray = (map, limit = 10) =>
 const uniqueUsers = (events) =>
   new Set(events.map((event) => event.user_username).filter(Boolean));
 
-const parseCsv = (value) =>
-  String(value || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+const safeDateValue = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
-const parseEventTypes = (value) =>
-  parseCsv(value).filter((eventType) => VALID_EVENT_TYPES.has(eventType));
+const round = (value, digits = 1) => {
+  if (!Number.isFinite(value)) return 0;
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+};
 
-const normalizeEventType = (value, fallback = "interaction") =>
-  VALID_EVENT_TYPES.has(value) ? value : fallback;
-
-const normalizeSource = (value, fallback = "backend") =>
-  VALID_SOURCES.has(value) ? value : fallback;
-
-const toPostgrestInList = (values) =>
-  `(${values.map((value) => `"${String(value).replace(/"/g, '\\"')}"`).join(",")})`;
+const getDurationMinutes = (startAt, endAt) => {
+  const start = safeDateValue(startAt);
+  const end = safeDateValue(endAt);
+  if (!start || !end) return 0;
+  return Math.max((end.getTime() - start.getTime()) / 60000, 0);
+};
 
 const getExcludedUsernames = async () => {
   const { data, error } = await supabase
@@ -189,28 +227,6 @@ const getExcludedUsernames = async () => {
 
   if (error) throw error;
   return (data || []).map((entry) => entry.username);
-};
-
-const getEventsSince = async (startDate, select = "*", filters = {}) => {
-  let query = supabase
-    .from("analytics_events")
-    .select(select)
-    .gte("created_at", startDate.toISOString())
-    .order("created_at", { ascending: true })
-    .limit(MAX_SCAN_ROWS);
-
-  const eventTypes = parseEventTypes(filters.eventTypes);
-  if (eventTypes.length) query = query.in("event_type", eventTypes);
-
-  if (filters.hideExcluded === "true" || filters.hideExcluded === true) {
-    const excluded = filters.excludedUsernames || (await getExcludedUsernames());
-    if (excluded.length) query = query.not("user_username", "in", toPostgrestInList(excluded));
-  }
-
-  const { data, error } = await query;
-
-  if (error) throw error;
-  return data || [];
 };
 
 const getUsersByUsername = async (usernames) => {
@@ -223,6 +239,7 @@ const getUsersByUsername = async (usernames) => {
     .in("username", unique);
 
   if (error) throw error;
+
   return new Map(
     (data || []).map((user) => [
       user.username,
@@ -247,6 +264,295 @@ const getUsernamesForGroup = async (group) => {
   return (data || []).map((user) => user.username);
 };
 
+const applyEventQueryFilters = (query, filters = {}) => {
+  if (filters.startDate) query = query.gte("created_at", filters.startDate.toISOString());
+  if (filters.beforeDate) query = query.lt("created_at", filters.beforeDate.toISOString());
+  if (filters.module) query = query.eq("module", filters.module);
+  if (filters.eventName) query = query.eq("event_name", filters.eventName);
+  if (filters.eventTypes?.length) query = query.in("event_type", filters.eventTypes);
+  if (filters.exactUsername) query = query.eq("user_username", filters.exactUsername);
+  else if (filters.username) query = query.ilike("user_username", `%${filters.username}%`);
+
+  if (filters.allowedUsernames) {
+    if (!filters.allowedUsernames.length) return null;
+    query = query.in("user_username", filters.allowedUsernames);
+  }
+
+  if (filters.excludedUsernames?.length) {
+    query = query.not("user_username", "in", toPostgrestInList(filters.excludedUsernames));
+  }
+
+  return query;
+};
+
+const resolveEventFilters = async (filters = {}) => {
+  const eventTypes = parseEventTypes(filters.eventTypes);
+  const hideExcluded = filters.hideExcluded === "true" || filters.hideExcluded === true;
+  const excludedUsernames = hideExcluded ? await getExcludedUsernames() : [];
+  const allowedUsernames = await getUsernamesForGroup(filters.group);
+
+  return {
+    startDate: filters.range ? getRangeStart(filters.range) : filters.startDate,
+    beforeDate: filters.beforeDate,
+    module: filters.module || null,
+    eventName: filters.eventName || null,
+    eventTypes,
+    username: filters.username || null,
+    exactUsername: filters.exactUsername || null,
+    allowedUsernames,
+    excludedUsernames,
+  };
+};
+
+const fetchAllRows = async (buildQuery) => {
+  const rows = [];
+  let from = 0;
+
+  while (true) {
+    const to = from + FETCH_BATCH_SIZE - 1;
+    const query = buildQuery(from, to);
+    if (!query) return rows;
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const batch = data || [];
+    rows.push(...batch);
+
+    if (batch.length < FETCH_BATCH_SIZE) break;
+    from += FETCH_BATCH_SIZE;
+  }
+
+  return rows;
+};
+
+const fetchEvents = async (filters = {}, select = "*") => {
+  const resolved = await resolveEventFilters(filters);
+
+  if (resolved.allowedUsernames && !resolved.allowedUsernames.length) {
+    return [];
+  }
+
+  return fetchAllRows((from, to) => {
+    let query = supabase
+      .from("analytics_events")
+      .select(select)
+      .order("created_at", { ascending: true })
+      .range(from, to);
+
+    query = applyEventQueryFilters(query, resolved);
+    return query;
+  });
+};
+
+const buildSessions = (events, timeoutMs = SESSION_TIMEOUT_MS) => {
+  const sessions = [];
+  const sortedEvents = [...(events || [])].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
+  const lastSessions = new Map();
+
+  sortedEvents.forEach((event) => {
+    if (!event.user_username) return;
+
+    const eventAt = safeDateValue(event.created_at);
+    if (!eventAt) return;
+
+    const previousSession = lastSessions.get(event.user_username);
+    const needsNewSession =
+      !previousSession ||
+      eventAt.getTime() - previousSession.lastEventAt.getTime() > timeoutMs;
+
+    const session = needsNewSession
+      ? {
+          id: `${event.user_username}:${event.created_at}:${sessions.length + 1}`,
+          userUsername: event.user_username,
+          startedAt: event.created_at,
+          endedAt: event.created_at,
+          lastEventAt: eventAt,
+          eventCount: 0,
+          modules: new Set(),
+          eventNames: new Map(),
+          eventTypes: new Map(),
+          loginEvents: 0,
+        }
+      : previousSession;
+
+    if (needsNewSession) {
+      sessions.push(session);
+      lastSessions.set(event.user_username, session);
+    }
+
+    session.eventCount += 1;
+    session.endedAt = event.created_at;
+    session.lastEventAt = eventAt;
+    session.modules.add(event.module || "general");
+    increment(session.eventNames, event.event_name || "unknown_event");
+    increment(session.eventTypes, event.event_type || "interaction");
+    if (event.event_name === "user_logged_in") session.loginEvents += 1;
+  });
+
+  return sessions.map((session) => ({
+    ...session,
+    durationMinutes: round(getDurationMinutes(session.startedAt, session.endedAt), 1),
+    moduleCount: session.modules.size,
+    modules: [...session.modules].sort(),
+    topEvents: toSortedArray(session.eventNames, 6),
+    eventTypeCounts: EVENT_TYPE_ORDER.reduce((acc, eventType) => {
+      acc[eventType] = session.eventTypes.get(eventType) || 0;
+      return acc;
+    }, {}),
+  }));
+};
+
+const buildSessionMetrics = (sessions) => {
+  const totalEvents = sessions.reduce((sum, session) => sum + session.eventCount, 0);
+  const totalDuration = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+  const sessionsByDay = new Map();
+
+  sessions.forEach((session) => {
+    increment(sessionsByDay, getPeriodKey(session.startedAt));
+  });
+
+  return {
+    sessionsTotal: sessions.length,
+    avgEventsPerSession: sessions.length ? round(totalEvents / sessions.length, 1) : 0,
+    avgSessionDuration: sessions.length ? round(totalDuration / sessions.length, 1) : 0,
+    sessionsByDay: [...sessionsByDay.entries()]
+      .map(([period, count]) => ({ period, count }))
+      .sort((a, b) => a.period.localeCompare(b.period)),
+  };
+};
+
+const buildUserSummaries = async (filters = {}) => {
+  const events = await fetchEvents(
+    filters,
+    "user_username, event_name, event_type, module, created_at",
+  );
+  const sessions = buildSessions(events);
+  const users = await getUsersByUsername([...uniqueUsers(events)]);
+  const summaries = new Map();
+
+  events.forEach((event) => {
+    if (!event.user_username) return;
+    const user = users.get(event.user_username);
+    if (!user) return;
+
+    if (
+      filters.search &&
+      !user.username.toLowerCase().includes(String(filters.search).toLowerCase()) &&
+      !user.displayName.toLowerCase().includes(String(filters.search).toLowerCase())
+    ) {
+      return;
+    }
+
+    if (!summaries.has(user.username)) {
+      summaries.set(user.username, {
+        username: user.username,
+        displayName: user.displayName,
+        group: user.group,
+        totalEvents: 0,
+        activeDaysSet: new Set(),
+        activeHoursSet: new Set(),
+        modulesMap: new Map(),
+        eventsMap: new Map(),
+        eventTypesMap: new Map(),
+        firstSeenAt: event.created_at,
+        lastSeenAt: event.created_at,
+        loginsBackend: 0,
+        sessionsTotal: 0,
+        totalSessionDuration: 0,
+        totalSessionEvents: 0,
+        sessionsByDayMap: new Map(),
+      });
+    }
+
+    const summary = summaries.get(event.user_username);
+    const parsed = safeDateValue(event.created_at);
+    summary.totalEvents += 1;
+    summary.activeDaysSet.add(getPeriodKey(event.created_at));
+    if (parsed) summary.activeHoursSet.add(parsed.getUTCHours());
+    increment(summary.modulesMap, event.module);
+    increment(summary.eventsMap, event.event_name);
+    increment(summary.eventTypesMap, event.event_type || "interaction");
+    if (event.event_name === "user_logged_in") summary.loginsBackend += 1;
+
+    if (new Date(event.created_at) < new Date(summary.firstSeenAt)) {
+      summary.firstSeenAt = event.created_at;
+    }
+    if (new Date(event.created_at) > new Date(summary.lastSeenAt)) {
+      summary.lastSeenAt = event.created_at;
+    }
+  });
+
+  sessions.forEach((session) => {
+    const summary = summaries.get(session.userUsername);
+    if (!summary) return;
+    summary.sessionsTotal += 1;
+    summary.totalSessionDuration += session.durationMinutes;
+    summary.totalSessionEvents += session.eventCount;
+    increment(summary.sessionsByDayMap, getPeriodKey(session.startedAt));
+  });
+
+  return [...summaries.values()].map((summary) => ({
+    username: summary.username,
+    displayName: summary.displayName,
+    group: summary.group,
+    totalEvents: summary.totalEvents,
+    activeDays: summary.activeDaysSet.size,
+    activeHoursCount: summary.activeHoursSet.size,
+    firstSeenAt: summary.firstSeenAt,
+    lastSeenAt: summary.lastSeenAt,
+    loginsBackend: summary.loginsBackend,
+    sessionsTotal: summary.sessionsTotal,
+    avgEventsPerSession: summary.sessionsTotal
+      ? round(summary.totalSessionEvents / summary.sessionsTotal, 1)
+      : 0,
+    avgSessionDuration: summary.sessionsTotal
+      ? round(summary.totalSessionDuration / summary.sessionsTotal, 1)
+      : 0,
+    exposureCount: summary.eventTypesMap.get("exposure") || 0,
+    loadCount: summary.eventTypesMap.get("load") || 0,
+    interactionCount: summary.eventTypesMap.get("interaction") || 0,
+    conversionCount: summary.eventTypesMap.get("conversion") || 0,
+    adminCount: summary.eventTypesMap.get("admin") || 0,
+    systemCount: summary.eventTypesMap.get("system") || 0,
+    modules: toSortedArray(summary.modulesMap, 8),
+    topEvents: toSortedArray(summary.eventsMap, 8),
+    sessionsByDay: [...summary.sessionsByDayMap.entries()]
+      .map(([period, count]) => ({ period, count }))
+      .sort((a, b) => a.period.localeCompare(b.period)),
+  }));
+};
+
+const buildActivityByHour = (events) => {
+  const hours = new Map();
+  events.forEach((event) => {
+    const parsed = safeDateValue(event.created_at);
+    if (!parsed) return;
+    increment(hours, String(parsed.getUTCHours()).padStart(2, "0"));
+  });
+
+  return [...Array(24)].map((_, hour) => {
+    const label = String(hour).padStart(2, "0");
+    return { hour: label, count: hours.get(label) || 0 };
+  });
+};
+
+const buildActivityByWeekday = (events) => {
+  const weekdays = new Map();
+  events.forEach((event) => {
+    const parsed = safeDateValue(event.created_at);
+    if (!parsed) return;
+    increment(weekdays, parsed.toLocaleDateString("fr-FR", { weekday: "long" }));
+  });
+
+  return WEEKDAYS.map((weekday) => ({
+    name: weekday,
+    count: weekdays.get(weekday) || 0,
+  }));
+};
+
 const enrichEvents = async (events) => {
   const users = await getUsersByUsername(events.map((event) => event.user_username));
   return events.map((event) => {
@@ -267,95 +573,193 @@ const enrichEvents = async (events) => {
   });
 };
 
-const applyEventFilters = async (query, filters = {}) => {
-  const start = getRangeStart(filters.range);
-  query = query.gte("created_at", start.toISOString());
-
-  if (filters.module) query = query.eq("module", filters.module);
-  if (filters.eventName) query = query.eq("event_name", filters.eventName);
-  const eventTypes = parseEventTypes(filters.eventTypes);
-  if (eventTypes.length) query = query.in("event_type", eventTypes);
-  if (filters.exactUsername) query = query.eq("user_username", filters.exactUsername);
-  else if (filters.username) query = query.ilike("user_username", `%${filters.username}%`);
-
-  if (filters.hideExcluded === "true" || filters.hideExcluded === true) {
-    const excluded = await getExcludedUsernames();
-    if (excluded.length) query = query.not("user_username", "in", toPostgrestInList(excluded));
-  }
-
-  const groupUsernames = await getUsernamesForGroup(filters.group);
-  if (groupUsernames) {
-    if (!groupUsernames.length) return { query, forceEmpty: true };
-    query = query.in("user_username", groupUsernames);
-  }
-
-  return { query, forceEmpty: false };
+const sortItems = (items, parsedSort, stableKey = "username") => {
+  const rows = [...items];
+  rows.sort((a, b) => {
+    const aValue = a[parsedSort.field];
+    const bValue = b[parsedSort.field];
+    if (aValue === bValue) return String(a[stableKey] || "").localeCompare(String(b[stableKey] || ""));
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      return parsedSort.ascending ? aValue - bValue : bValue - aValue;
+    }
+    return parsedSort.ascending
+      ? String(aValue || "").localeCompare(String(bValue || ""))
+      : String(bValue || "").localeCompare(String(aValue || ""));
+  });
+  return rows;
 };
 
-const buildUserSummaries = async ({ range = "30d", search, group, eventTypes, hideExcluded } = {}) => {
-  const start = getRangeStart(range);
-  const excludedUsernames = hideExcluded === "true" || hideExcluded === true
-    ? await getExcludedUsernames()
-    : [];
-  const events = await getEventsSince(
-    start,
-    "user_username, event_name, event_type, module, created_at",
-    { eventTypes, hideExcluded, excludedUsernames },
-  );
-  const users = await getUsersByUsername([...uniqueUsers(events)]);
-  const summaries = new Map();
+const paginateRows = (rows, pagination, sortValue) => ({
+  rows: rows.slice(pagination.from, pagination.to + 1),
+  pagination: {
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    total: rows.length,
+    pageCount: Math.ceil(rows.length / pagination.pageSize),
+    sort: sortValue,
+  },
+});
+
+const buildTimeseriesPoints = (events, sessions, groupBy = "day") => {
+  const buckets = new Map();
 
   events.forEach((event) => {
-    if (!event.user_username) return;
-    const user = users.get(event.user_username);
-    if (!user) return;
-    if (group && user.group !== group) return;
-    if (
-      search &&
-      !user.username.toLowerCase().includes(String(search).toLowerCase()) &&
-      !user.displayName.toLowerCase().includes(String(search).toLowerCase())
-    ) {
-      return;
-    }
-
-    if (!summaries.has(user.username)) {
-      summaries.set(user.username, {
-        username: user.username,
-        displayName: user.displayName,
-        group: user.group,
-        totalEvents: 0,
-        activeDays: new Set(),
-        modules: new Map(),
-        events: new Map(),
-        firstActivity: event.created_at,
-        lastActivity: event.created_at,
+    const key = getPeriodKey(event.created_at, groupBy);
+    if (!buckets.has(key)) {
+      buckets.set(key, {
+        period: key,
+        events: 0,
+        activeUsers: new Set(),
+        interactions: 0,
+        conversions: 0,
+        logins: 0,
       });
     }
 
-    const summary = summaries.get(user.username);
-    summary.totalEvents += 1;
-    summary.activeDays.add(new Date(event.created_at).toISOString().slice(0, 10));
-    increment(summary.modules, event.module);
-    increment(summary.events, event.event_name);
-    if (new Date(event.created_at) < new Date(summary.firstActivity)) {
-      summary.firstActivity = event.created_at;
+    const bucket = buckets.get(key);
+    bucket.events += 1;
+    if (event.user_username) bucket.activeUsers.add(event.user_username);
+    if (event.event_type === "interaction") bucket.interactions += 1;
+    if (event.event_type === "conversion") bucket.conversions += 1;
+    if (event.event_name === "user_logged_in") bucket.logins += 1;
+  });
+
+  sessions.forEach((session) => {
+    const key = getPeriodKey(session.startedAt, groupBy);
+    if (!buckets.has(key)) {
+      buckets.set(key, {
+        period: key,
+        events: 0,
+        activeUsers: new Set(),
+        interactions: 0,
+        conversions: 0,
+        logins: 0,
+      });
     }
-    if (new Date(event.created_at) > new Date(summary.lastActivity)) {
-      summary.lastActivity = event.created_at;
+
+    const bucket = buckets.get(key);
+    bucket.sessions = (bucket.sessions || 0) + 1;
+  });
+
+  return [...buckets.values()]
+    .map((bucket) => ({
+      period: bucket.period,
+      events: bucket.events,
+      activeUsers: bucket.activeUsers.size,
+      sessions: bucket.sessions || 0,
+      interactions: bucket.interactions,
+      conversions: bucket.conversions,
+      logins: bucket.logins || 0,
+    }))
+    .sort((a, b) => a.period.localeCompare(b.period));
+};
+
+const buildModuleSummaries = async (filters = {}) => {
+  const events = await fetchEvents(
+    filters,
+    "user_username, event_name, event_type, module, created_at",
+  );
+  const sessions = buildSessions(events);
+  const sessionsByModule = new Map();
+
+  sessions.forEach((session) => {
+    session.modules.forEach((moduleName) => {
+      if (!sessionsByModule.has(moduleName)) sessionsByModule.set(moduleName, []);
+      sessionsByModule.get(moduleName).push(session);
+    });
+  });
+
+  const modules = new Map();
+  events.forEach((event) => {
+    if (!modules.has(event.module)) {
+      modules.set(event.module, {
+        module: event.module,
+        totalEvents: 0,
+        users: new Set(),
+        eventsMap: new Map(),
+        eventTypesMap: new Map(),
+        timelineMap: new Map(),
+        firstSeenAt: event.created_at,
+        lastSeenAt: event.created_at,
+      });
+    }
+
+    const summary = modules.get(event.module);
+    summary.totalEvents += 1;
+    if (event.user_username) summary.users.add(event.user_username);
+    increment(summary.eventsMap, event.event_name);
+    increment(summary.eventTypesMap, event.event_type || "interaction");
+    increment(summary.timelineMap, getPeriodKey(event.created_at));
+    if (new Date(event.created_at) < new Date(summary.firstSeenAt)) {
+      summary.firstSeenAt = event.created_at;
+    }
+    if (new Date(event.created_at) > new Date(summary.lastSeenAt)) {
+      summary.lastSeenAt = event.created_at;
     }
   });
 
-  return [...summaries.values()].map((summary) => ({
-    ...summary,
-    activeDays: summary.activeDays.size,
-    modules: toSortedArray(summary.modules, 6),
-    topEvents: toSortedArray(summary.events, 6),
-  }));
+  return [...modules.values()]
+    .map((summary) => {
+      const moduleSessions = sessionsByModule.get(summary.module) || [];
+      const sessionMetrics = buildSessionMetrics(moduleSessions);
+
+      return {
+        module: summary.module,
+        totalEvents: summary.totalEvents,
+        activeUsers: summary.users.size,
+        sessionsTotal: sessionMetrics.sessionsTotal,
+        avgEventsPerSession: sessionMetrics.avgEventsPerSession,
+        avgSessionDuration: sessionMetrics.avgSessionDuration,
+        exposureCount: summary.eventTypesMap.get("exposure") || 0,
+        loadCount: summary.eventTypesMap.get("load") || 0,
+        interactionCount: summary.eventTypesMap.get("interaction") || 0,
+        conversionCount: summary.eventTypesMap.get("conversion") || 0,
+        topEvents: toSortedArray(summary.eventsMap, 8),
+        timeline: [...summary.timelineMap.entries()]
+          .map(([period, count]) => ({ period, count }))
+          .sort((a, b) => a.period.localeCompare(b.period)),
+        firstSeenAt: summary.firstSeenAt,
+        lastSeenAt: summary.lastSeenAt,
+      };
+    })
+    .sort((a, b) => b.totalEvents - a.totalEvents || a.module.localeCompare(b.module));
+};
+
+const buildGlobalSessions = async (filters = {}) => {
+  const events = await fetchEvents(
+    filters,
+    "user_username, event_name, event_type, module, created_at",
+  );
+  const users = await getUsersByUsername([...uniqueUsers(events)]);
+  const sessions = buildSessions(events)
+    .map((session) => {
+      const user = users.get(session.userUsername);
+      return {
+        ...session,
+        userDisplayName: user?.displayName || session.userUsername,
+        userGroup: user?.group || "Non renseigne",
+      };
+    })
+    .filter((session) => {
+      if (filters.module && !session.modules.includes(filters.module)) return false;
+      if (filters.username) {
+        const needle = String(filters.username).toLowerCase();
+        if (
+          !session.userUsername.toLowerCase().includes(needle) &&
+          !session.userDisplayName.toLowerCase().includes(needle)
+        ) {
+          return false;
+        }
+      }
+      if (filters.group && session.userGroup !== filters.group) return false;
+      return true;
+    });
+
+  return sessions;
 };
 
 const analyticsService = {
   VALID_RANGES,
-
   sanitizeProperties,
 
   async trackEvent({
@@ -398,89 +802,87 @@ const analyticsService = {
   },
 
   async getSummary({ range = "30d", eventTypes, hideExcluded } = {}) {
-    const start = getRangeStart(range);
-    const excludedUsernames =
-      hideExcluded === "true" || hideExcluded === true
-        ? await getExcludedUsernames()
-        : [];
-    const events = await getEventsSince(
-      start,
-      "user_username, event_name, event_type, is_automatic, source, module, created_at, properties",
-      { eventTypes, hideExcluded, excludedUsernames },
+    const startDate = getRangeStart(range);
+    const events = await fetchEvents(
+      { range, eventTypes, hideExcluded },
+      "user_username, event_name, event_type, module, created_at",
     );
-
+    const sessions = buildSessions(events);
+    const sessionMetrics = buildSessionMetrics(sessions);
     const users = uniqueUsers(events);
     const modules = new Map();
     const eventNames = new Map();
     const eventTypesMap = new Map();
     const activeDaysByUser = new Map();
-    const hourly = new Map();
-    const weekdays = new Map();
+    const totalEventsByUser = new Map();
+    const userGroups = new Map();
+    const usersByUsername = await getUsersByUsername([...users]);
 
     events.forEach((event) => {
       increment(modules, event.module);
       increment(eventNames, event.event_name);
       increment(eventTypesMap, event.event_type || "interaction");
 
-      const parsed = new Date(event.created_at);
-      increment(hourly, String(parsed.getHours()).padStart(2, "0"));
-      increment(weekdays, parsed.toLocaleDateString("fr-FR", { weekday: "long" }));
-
+      const dayKey = getPeriodKey(event.created_at);
       if (event.user_username) {
+        increment(totalEventsByUser, event.user_username);
         if (!activeDaysByUser.has(event.user_username)) {
           activeDaysByUser.set(event.user_username, new Set());
         }
-        activeDaysByUser
-          .get(event.user_username)
-          .add(parsed.toISOString().slice(0, 10));
+        activeDaysByUser.get(event.user_username).add(dayKey);
       }
     });
 
-    const now = new Date();
+    [...users].forEach((username) => {
+      increment(userGroups, usersByUsername.get(username)?.group || "Non renseigne");
+    });
+
     const activeSince = (days) => {
-      const threshold = new Date(now);
+      const threshold = new Date();
       threshold.setDate(threshold.getDate() - days);
       return uniqueUsers(
         events.filter((event) => new Date(event.created_at) >= threshold),
       ).size;
     };
 
-    let previousQuery = supabase
-      .from("analytics_events")
-      .select("user_username")
-      .lt("created_at", start.toISOString())
-      .not("user_username", "is", null)
-      .limit(MAX_SCAN_ROWS);
-
-    const parsedEventTypes = parseEventTypes(eventTypes);
-    if (parsedEventTypes.length) previousQuery = previousQuery.in("event_type", parsedEventTypes);
-    if (excludedUsernames.length) {
-      previousQuery = previousQuery.not(
-        "user_username",
-        "in",
-        toPostgrestInList(excludedUsernames),
-      );
-    }
-
-    const { data: previousEvents, error: previousError } = await previousQuery;
-
-    if (previousError) throw previousError;
-
-    const previousUsers = uniqueUsers(previousEvents || []);
-    const returningUsers = [...users].filter((username) =>
-      previousUsers.has(username),
-    ).length;
+    const previousUsers = uniqueUsers(
+      await fetchEvents(
+        {
+          eventTypes,
+          hideExcluded,
+          beforeDate: startDate,
+        },
+        "user_username, created_at",
+      ),
+    );
+    const returningUsers = [...users].filter((username) => previousUsers.has(username)).length;
     const newUsers = Math.max(users.size - returningUsers, 0);
-
-    const userGroups = new Map();
-    const usersByUsername = await getUsersByUsername([...users]);
-    [...users].forEach((username) => {
-      increment(userGroups, usersByUsername.get(username)?.group || "Non renseigne");
+    const recurrentUsers = [...activeDaysByUser.values()].filter((days) => days.size > 1).length;
+    const firstSeenAt = events[0]?.created_at || null;
+    const lastSeenAt = events[events.length - 1]?.created_at || null;
+    const loginCount = events.filter((event) => event.event_name === "user_logged_in").length;
+    const sessionCountByUser = new Map();
+    sessions.forEach((session) => {
+      increment(sessionCountByUser, session.userUsername);
     });
-
-    const recurrentUsers = [...activeDaysByUser.values()].filter(
-      (days) => days.size > 1,
-    ).length;
+    const returningUsersPreview = [...users]
+      .filter((username) => previousUsers.has(username))
+      .map((username) => ({
+        username,
+        displayName: usersByUsername.get(username)?.displayName || username,
+        group: usersByUsername.get(username)?.group || "Non renseigne",
+        totalEvents: totalEventsByUser.get(username) || 0,
+        activeDays: activeDaysByUser.get(username)?.size || 0,
+        sessionsTotal: sessionCountByUser.get(username) || 0,
+      }))
+      .sort(
+        (a, b) =>
+          b.sessionsTotal - a.sessionsTotal ||
+          b.activeDays - a.activeDays ||
+          b.totalEvents - a.totalEvents,
+      )
+      .slice(0, 6);
+    const activeHoursCount = buildActivityByHour(events).filter((item) => item.count > 0).length;
 
     return {
       range: VALID_RANGES[range] ? range : "30d",
@@ -491,11 +893,25 @@ const analyticsService = {
         wau: activeSince(7),
         mau: activeSince(30),
         recurrentUsers,
+        sessionsTotal: sessionMetrics.sessionsTotal,
+        avgEventsPerSession: sessionMetrics.avgEventsPerSession,
+        avgSessionDuration: sessionMetrics.avgSessionDuration,
+        loginCount,
+        firstSeenAt,
+        lastSeenAt,
+        activeHoursCount,
       },
+      firstSeenAt,
+      lastSeenAt,
+      activeHoursCount,
       newVsReturning: { newUsers, returningUsers },
+      returningUsersPreview,
       eventsByModule: toSortedArray(modules, 12),
       topEvents: toSortedArray(eventNames, 12),
-      eventsByType: toSortedArray(eventTypesMap, 10),
+      eventsByType: EVENT_TYPE_ORDER.map((eventType) => ({
+        name: eventType,
+        count: eventTypesMap.get(eventType) || 0,
+      })),
       eventTypeTotals: {
         exposure: eventTypesMap.get("exposure") || 0,
         load: eventTypesMap.get("load") || 0,
@@ -504,49 +920,25 @@ const analyticsService = {
         admin: eventTypesMap.get("admin") || 0,
         system: eventTypesMap.get("system") || 0,
       },
-      activityByHour: [...Array(24)].map((_, hour) => {
-        const label = String(hour).padStart(2, "0");
-        return { hour: label, count: hourly.get(label) || 0 };
-      }),
-      activityByWeekday: toSortedArray(weekdays, 7),
+      activityByHour: buildActivityByHour(events),
+      activityByWeekday: buildActivityByWeekday(events),
       usersByGroup: toSortedArray(userGroups, 12),
+      sessionsByDay: sessionMetrics.sessionsByDay,
     };
   },
 
   async getTimeseries({ range = "30d", groupBy = "day", eventTypes, hideExcluded } = {}) {
-    const start = getRangeStart(range);
     const safeGroupBy = groupBy === "week" ? "week" : "day";
-    const excludedUsernames =
-      hideExcluded === "true" || hideExcluded === true
-        ? await getExcludedUsernames()
-        : [];
-    const events = await getEventsSince(
-      start,
+    const events = await fetchEvents(
+      { range, eventTypes, hideExcluded },
       "user_username, event_name, event_type, module, created_at",
-      { eventTypes, hideExcluded, excludedUsernames },
     );
-
-    const buckets = new Map();
-    events.forEach((event) => {
-      const key = getPeriodKey(event.created_at, safeGroupBy);
-      if (!buckets.has(key)) {
-        buckets.set(key, { period: key, events: 0, users: new Set() });
-      }
-      const bucket = buckets.get(key);
-      bucket.events += 1;
-      if (event.user_username) bucket.users.add(event.user_username);
-    });
+    const sessions = buildSessions(events);
 
     return {
       range: VALID_RANGES[range] ? range : "30d",
       groupBy: safeGroupBy,
-      points: [...buckets.values()]
-        .map((bucket) => ({
-          period: bucket.period,
-          events: bucket.events,
-          activeUsers: bucket.users.size,
-        }))
-        .sort((a, b) => a.period.localeCompare(b.period)),
+      points: buildTimeseriesPoints(events, sessions, safeGroupBy),
     };
   },
 
@@ -569,14 +961,7 @@ const analyticsService = {
       ["created_at", "module", "event_name", "event_type", "source", "user_username"],
       "created_at.desc",
     );
-
-    let query = supabase
-      .from("analytics_events")
-      .select("id, user_username, event_name, event_type, is_automatic, source, module, properties, created_at", {
-        count: "exact",
-      });
-
-    const filtered = await applyEventFilters(query, {
+    const resolved = await resolveEventFilters({
       range,
       module,
       eventName,
@@ -587,11 +972,19 @@ const analyticsService = {
       hideExcluded,
     });
 
-    if (filtered.forceEmpty) {
-      return { events: [], pagination: { ...pagination, total: 0, pageCount: 0 } };
+    if (resolved.allowedUsernames && !resolved.allowedUsernames.length) {
+      return { events: [], pagination: { ...pagination, total: 0, pageCount: 0, sort: parsedSort.value } };
     }
 
-    const { data, error, count } = await filtered.query
+    let query = supabase
+      .from("analytics_events")
+      .select(
+        "id, user_username, event_name, event_type, is_automatic, source, module, properties, created_at",
+        { count: "exact" },
+      );
+
+    query = applyEventQueryFilters(query, resolved);
+    const { data, error, count } = await query
       .order(parsedSort.field, { ascending: parsedSort.ascending })
       .range(pagination.from, pagination.to);
 
@@ -613,8 +1006,17 @@ const analyticsService = {
     const pagination = parsePagination({ page, pageSize });
     const parsedSort = parseSort(
       sort,
-      ["lastActivity", "firstActivity", "totalEvents", "activeDays", "username"],
-      "lastActivity.desc",
+      [
+        "lastSeenAt",
+        "firstSeenAt",
+        "totalEvents",
+        "activeDays",
+        "username",
+        "sessionsTotal",
+        "avgEventsPerSession",
+        "avgSessionDuration",
+      ],
+      "lastSeenAt.desc",
     );
 
     const summaries = await buildUserSummaries({
@@ -624,82 +1026,142 @@ const analyticsService = {
       eventTypes,
       hideExcluded,
     });
-    summaries.sort((a, b) => {
-      const aValue = a[parsedSort.field];
-      const bValue = b[parsedSort.field];
-      if (aValue === bValue) return a.username.localeCompare(b.username);
-      if (typeof aValue === "number") {
-        return parsedSort.ascending ? aValue - bValue : bValue - aValue;
-      }
-      return parsedSort.ascending
-        ? String(aValue).localeCompare(String(bValue))
-        : String(bValue).localeCompare(String(aValue));
-    });
-
-    const rows = summaries.slice(pagination.from, pagination.to + 1);
+    const sorted = sortItems(summaries, parsedSort);
+    const paginated = paginateRows(sorted, pagination, parsedSort.value);
 
     return {
-      users: rows,
-      pagination: {
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        total: summaries.length,
-        pageCount: Math.ceil(summaries.length / pagination.pageSize),
-        sort: parsedSort.value,
-      },
+      users: paginated.rows,
+      pagination: paginated.pagination,
     };
   },
 
-  async getUserDetail(username, { range = "30d", eventTypes, hideExcluded } = {}) {
-    const users = await getUsersByUsername([username]);
-    const user = users.get(username);
+  async getUserSummary(username, { range = "30d", eventTypes, hideExcluded } = {}) {
+    const [userMap, summaries, events] = await Promise.all([
+      getUsersByUsername([username]),
+      buildUserSummaries({
+        range,
+        eventTypes,
+        hideExcluded,
+      }),
+      fetchEvents(
+        {
+          range,
+          eventTypes,
+          hideExcluded,
+          exactUsername: username,
+        },
+        "user_username, event_name, event_type, module, created_at",
+      ),
+    ]);
+
+    const user = userMap.get(username);
     if (!user) return null;
 
-    const summaries = await buildUserSummaries({
-      range,
-      search: username,
-      eventTypes,
-      hideExcluded,
-    });
-    const summary = summaries.find((item) => item.username === username) || {
+    const detail = summaries.find((item) => item.username === username) || {
       username,
       displayName: user.displayName,
       group: user.group,
       totalEvents: 0,
       activeDays: 0,
+      sessionsTotal: 0,
+      avgEventsPerSession: 0,
+      avgSessionDuration: 0,
       modules: [],
       topEvents: [],
-      firstActivity: null,
-      lastActivity: null,
+      firstSeenAt: null,
+      lastSeenAt: null,
+      sessionsByDay: [],
+      activeHoursCount: 0,
+      exposureCount: 0,
+      loadCount: 0,
+      interactionCount: 0,
+      conversionCount: 0,
+      adminCount: 0,
+      systemCount: 0,
+      loginsBackend: 0,
     };
 
-    const start = getRangeStart(range);
-    let query = supabase
-      .from("analytics_events")
-      .select("event_name, event_type, module, created_at")
-      .eq("user_username", username)
-      .gte("created_at", start.toISOString())
-      .order("created_at", { ascending: true })
-      .limit(MAX_SCAN_ROWS);
+    const sessions = buildSessions(events);
+    const sessionsByDayMap = new Map();
+    sessions.forEach((session) => {
+      increment(sessionsByDayMap, getPeriodKey(session.startedAt));
+    });
 
-    const parsedEventTypes = parseEventTypes(eventTypes);
-    if (parsedEventTypes.length) query = query.in("event_type", parsedEventTypes);
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    const timeline = new Map();
-    (data || []).forEach((event) => {
-      const key = getPeriodKey(event.created_at);
-      if (!timeline.has(key)) timeline.set(key, { period: key, events: 0 });
-      timeline.get(key).events += 1;
+    const eventsByDayMap = new Map();
+    const eventTypeMap = new Map();
+    events.forEach((event) => {
+      increment(eventsByDayMap, getPeriodKey(event.created_at));
+      increment(eventTypeMap, event.event_type || "interaction");
     });
 
     return {
-      ...summary,
-      timeline: [...timeline.values()].sort((a, b) => a.period.localeCompare(b.period)),
+      ...detail,
+      eventTypes: EVENT_TYPE_ORDER.map((eventType) => ({
+        name: eventType,
+        count: eventTypeMap.get(eventType) || 0,
+      })),
+      eventsByDay: [...eventsByDayMap.entries()]
+        .map(([period, count]) => ({ period, count }))
+        .sort((a, b) => a.period.localeCompare(b.period)),
+      sessionsByDay: [...sessionsByDayMap.entries()]
+        .map(([period, count]) => ({ period, count }))
+        .sort((a, b) => a.period.localeCompare(b.period)),
+      activityByHour: buildActivityByHour(events),
+      activityByWeekday: buildActivityByWeekday(events),
+      sessionsPreview: sessions
+        .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+        .slice(0, 10),
     };
+  },
+
+  async getUserTimeseries(username, { range = "30d", eventTypes, hideExcluded } = {}) {
+    const events = await fetchEvents(
+      {
+        range,
+        eventTypes,
+        hideExcluded,
+        exactUsername: username,
+      },
+      "user_username, event_name, event_type, module, created_at",
+    );
+    const sessions = buildSessions(events);
+
+    return {
+      range: VALID_RANGES[range] ? range : "30d",
+      points: buildTimeseriesPoints(events, sessions, "day"),
+      sessionsByDay: buildSessionMetrics(sessions).sessionsByDay,
+    };
+  },
+
+  async getUserSessions(username, { range, eventTypes, hideExcluded, page, pageSize, sort } = {}) {
+    const pagination = parsePagination({ page, pageSize });
+    const parsedSort = parseSort(
+      sort,
+      ["startedAt", "endedAt", "eventCount", "durationMinutes", "moduleCount"],
+      "startedAt.desc",
+    );
+    const events = await fetchEvents(
+      {
+        range,
+        eventTypes,
+        hideExcluded,
+        exactUsername: username,
+      },
+      "user_username, event_name, event_type, module, created_at",
+    );
+
+    const sessions = buildSessions(events);
+    const sorted = sortItems(sessions, parsedSort, "id");
+    const paginated = paginateRows(sorted, pagination, parsedSort.value);
+
+    return {
+      sessions: paginated.rows,
+      pagination: paginated.pagination,
+    };
+  },
+
+  async getUserDetail(username, filters = {}) {
+    return this.getUserSummary(username, filters);
   },
 
   async getUserEvents(username, query = {}) {
@@ -710,89 +1172,72 @@ const analyticsService = {
   },
 
   async getModules({ range = "30d", eventTypes, hideExcluded } = {}) {
-    const start = getRangeStart(range);
-    const excludedUsernames =
-      hideExcluded === "true" || hideExcluded === true
-        ? await getExcludedUsernames()
-        : [];
-    const events = await getEventsSince(
-      start,
-      "user_username, event_name, event_type, module, created_at",
-      { eventTypes, hideExcluded, excludedUsernames },
-    );
+    return {
+      modules: await buildModuleSummaries({ range, eventTypes, hideExcluded }),
+    };
+  },
 
-    const modules = new Map();
-    events.forEach((event) => {
-      if (!modules.has(event.module)) {
-        modules.set(event.module, {
-          module: event.module,
-          totalEvents: 0,
-          users: new Set(),
-          events: new Map(),
-          days: new Map(),
-          firstActivity: event.created_at,
-          lastActivity: event.created_at,
-        });
-      }
-      const item = modules.get(event.module);
-      item.totalEvents += 1;
-      if (event.user_username) item.users.add(event.user_username);
-      increment(item.events, event.event_name);
-      increment(item.days, getPeriodKey(event.created_at));
-      if (new Date(event.created_at) < new Date(item.firstActivity)) {
-        item.firstActivity = event.created_at;
-      }
-      if (new Date(event.created_at) > new Date(item.lastActivity)) {
-        item.lastActivity = event.created_at;
-      }
+  async getModuleSummary(module, { range = "30d", eventTypes, hideExcluded } = {}) {
+    const modules = await buildModuleSummaries({
+      range,
+      eventTypes,
+      hideExcluded,
+      module,
     });
 
+    return modules.find((item) => item.module === module) || null;
+  },
+
+  async getModuleTimeseries(module, { range = "30d", eventTypes, hideExcluded } = {}) {
+    const events = await fetchEvents(
+      { range, eventTypes, hideExcluded, module },
+      "user_username, event_name, event_type, module, created_at",
+    );
+    const sessions = buildSessions(events).filter((session) => session.modules.includes(module));
+
     return {
-      modules: [...modules.values()]
-        .map((item) => ({
-          module: item.module,
-          totalEvents: item.totalEvents,
-          activeUsers: item.users.size,
-          topEvents: toSortedArray(item.events, 8),
-          timeline: [...item.days.entries()]
-            .map(([period, count]) => ({ period, count }))
-            .sort((a, b) => a.period.localeCompare(b.period)),
-          firstActivity: item.firstActivity,
-          lastActivity: item.lastActivity,
-        }))
-        .sort((a, b) => b.totalEvents - a.totalEvents),
+      range: VALID_RANGES[range] ? range : "30d",
+      points: buildTimeseriesPoints(events, sessions, "day"),
+    };
+  },
+
+  async getModuleUsers(module, { range, eventTypes, hideExcluded, page, pageSize, sort } = {}) {
+    const pagination = parsePagination({ page, pageSize });
+    const parsedSort = parseSort(
+      sort,
+      [
+        "lastSeenAt",
+        "firstSeenAt",
+        "totalEvents",
+        "activeDays",
+        "username",
+        "sessionsTotal",
+        "avgEventsPerSession",
+        "avgSessionDuration",
+      ],
+      "totalEvents.desc",
+    );
+
+    const summaries = await buildUserSummaries({
+      range,
+      eventTypes,
+      hideExcluded,
+    });
+
+    const filtered = summaries.filter((summary) =>
+      (summary.modules || []).some((item) => item.name === module),
+    );
+    const sorted = sortItems(filtered, parsedSort);
+    const paginated = paginateRows(sorted, pagination, parsedSort.value);
+
+    return {
+      users: paginated.rows,
+      pagination: paginated.pagination,
     };
   },
 
   async getRetention({ range = "30d", eventTypes, hideExcluded } = {}) {
-    const start = getRangeStart(range);
-    const excludedUsernames =
-      hideExcluded === "true" || hideExcluded === true
-        ? await getExcludedUsernames()
-        : [];
-    const events = await getEventsSince(
-      start,
-      "user_username, event_type, created_at, module",
-      { eventTypes, hideExcluded, excludedUsernames },
-    );
-    const users = new Map();
-
-    events.forEach((event) => {
-      if (!event.user_username) return;
-      if (!users.has(event.user_username)) {
-        users.set(event.user_username, {
-          username: event.user_username,
-          activeDays: new Set(),
-          modules: new Set(),
-          events: 0,
-        });
-      }
-      const user = users.get(event.user_username);
-      user.activeDays.add(new Date(event.created_at).toISOString().slice(0, 10));
-      user.modules.add(event.module);
-      user.events += 1;
-    });
-
+    const summaries = await buildUserSummaries({ range, eventTypes, hideExcluded });
     const buckets = new Map([
       ["1 jour actif", 0],
       ["2-3 jours actifs", 0],
@@ -804,68 +1249,119 @@ const analyticsService = {
       ["2-3 modules", 0],
       ["4+ modules", 0],
     ]);
+    const sessionBreadth = new Map([
+      ["1 session", 0],
+      ["2-3 sessions", 0],
+      ["4-7 sessions", 0],
+      ["8+ sessions", 0],
+    ]);
 
-    [...users.values()].forEach((user) => {
-      const days = user.activeDays.size;
-      if (days <= 1) increment(buckets, "1 jour actif");
-      else if (days <= 3) increment(buckets, "2-3 jours actifs");
-      else if (days <= 7) increment(buckets, "4-7 jours actifs");
+    summaries.forEach((user) => {
+      if (user.activeDays <= 1) increment(buckets, "1 jour actif");
+      else if (user.activeDays <= 3) increment(buckets, "2-3 jours actifs");
+      else if (user.activeDays <= 7) increment(buckets, "4-7 jours actifs");
       else increment(buckets, "8+ jours actifs");
 
-      const modules = user.modules.size;
-      if (modules <= 1) increment(moduleBreadth, "1 module");
-      else if (modules <= 3) increment(moduleBreadth, "2-3 modules");
+      const moduleCount = user.modules.length;
+      if (moduleCount <= 1) increment(moduleBreadth, "1 module");
+      else if (moduleCount <= 3) increment(moduleBreadth, "2-3 modules");
       else increment(moduleBreadth, "4+ modules");
+
+      if (user.sessionsTotal <= 1) increment(sessionBreadth, "1 session");
+      else if (user.sessionsTotal <= 3) increment(sessionBreadth, "2-3 sessions");
+      else if (user.sessionsTotal <= 7) increment(sessionBreadth, "4-7 sessions");
+      else increment(sessionBreadth, "8+ sessions");
     });
 
     return {
       range: VALID_RANGES[range] ? range : "30d",
-      activeUsers: users.size,
+      activeUsers: summaries.length,
+      avgSessionsPerUser: summaries.length
+        ? round(summaries.reduce((sum, user) => sum + user.sessionsTotal, 0) / summaries.length, 1)
+        : 0,
       activeDayBuckets: [...buckets.entries()].map(([name, count]) => ({ name, count })),
       moduleBreadth: [...moduleBreadth.entries()].map(([name, count]) => ({ name, count })),
-      stickyUsers: [...users.values()]
+      sessionBreadth: [...sessionBreadth.entries()].map(([name, count]) => ({ name, count })),
+      stickyUsers: summaries
         .map((user) => ({
           username: user.username,
-          activeDays: user.activeDays.size,
-          moduleCount: user.modules.size,
-          events: user.events,
+          displayName: user.displayName,
+          activeDays: user.activeDays,
+          moduleCount: user.modules.length,
+          events: user.totalEvents,
+          sessionsTotal: user.sessionsTotal,
+          avgSessionDuration: user.avgSessionDuration,
         }))
-        .sort((a, b) => b.activeDays - a.activeDays || b.events - a.events)
+        .sort(
+          (a, b) =>
+            b.activeDays - a.activeDays ||
+            b.sessionsTotal - a.sessionsTotal ||
+            b.events - a.events,
+        )
         .slice(0, 20),
     };
   },
 
-  async getHeatmap({ range = "30d", eventTypes, hideExcluded } = {}) {
-    const start = getRangeStart(range);
-    const excludedUsernames =
-      hideExcluded === "true" || hideExcluded === true
-        ? await getExcludedUsernames()
-        : [];
-    const events = await getEventsSince(
-      start,
-      "user_username, event_type, created_at",
-      { eventTypes, hideExcluded, excludedUsernames },
+  async getSessions({ range, eventTypes, hideExcluded, username, group, module, page, pageSize, sort } = {}) {
+    const pagination = parsePagination({ page, pageSize });
+    const parsedSort = parseSort(
+      sort,
+      ["startedAt", "endedAt", "eventCount", "durationMinutes", "moduleCount", "userUsername"],
+      "startedAt.desc",
     );
-    const weekdays = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+    const sessions = await buildGlobalSessions({
+      range,
+      eventTypes,
+      hideExcluded,
+      username,
+      group,
+      module,
+    });
+
+    const sorted = sortItems(sessions, parsedSort, "id");
+    const paginated = paginateRows(sorted, pagination, parsedSort.value);
+    const totalDuration = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+    const totalEvents = sessions.reduce((sum, session) => sum + session.eventCount, 0);
+    const uniqueUsersCount = new Set(sessions.map((session) => session.userUsername)).size;
+
+    return {
+      sessions: paginated.rows,
+      pagination: paginated.pagination,
+      summary: {
+        sessionsTotal: sessions.length,
+        activeUsers: uniqueUsersCount,
+        avgSessionDuration: sessions.length ? round(totalDuration / sessions.length, 1) : 0,
+        avgEventsPerSession: sessions.length ? round(totalEvents / sessions.length, 1) : 0,
+      },
+    };
+  },
+
+  async getHeatmap({ range = "30d", eventTypes, hideExcluded } = {}) {
+    const events = await fetchEvents(
+      { range, eventTypes, hideExcluded },
+      "user_username, event_type, created_at",
+    );
     const cells = new Map();
 
-    weekdays.forEach((weekday) => {
+    WEEKDAYS.forEach((weekday) => {
       for (let hour = 0; hour < 24; hour += 1) {
         cells.set(`${weekday}-${hour}`, { weekday, hour, count: 0 });
       }
     });
 
     events.forEach((event) => {
-      const parsed = new Date(event.created_at);
+      const parsed = safeDateValue(event.created_at);
+      if (!parsed) return;
       const weekday = parsed.toLocaleDateString("fr-FR", { weekday: "long" });
-      const hour = parsed.getHours();
+      const hour = parsed.getUTCHours();
       const key = `${weekday}-${hour}`;
       if (cells.has(key)) cells.get(key).count += 1;
     });
 
     return {
       range: VALID_RANGES[range] ? range : "30d",
-      weekdays,
+      weekdays: WEEKDAYS,
       hours: [...Array(24)].map((_, hour) => hour),
       cells: [...cells.values()],
     };

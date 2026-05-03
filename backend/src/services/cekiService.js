@@ -5,16 +5,20 @@ const crypto = require("crypto");
 const axios = require("axios");
 const FormData = require("form-data");
 
+const MAX_FREE_COMPETITIVE_GAMES_WITHOUT_PHOTO = 2;
+
 /**
  * Vérifie si un utilisateur a une photo de profil
  * @param {string} username - Nom d'utilisateur
- * @returns {Promise<{hasPhoto: boolean, photoName: string|null, isBanned: boolean, isAdmin: boolean}>}
+ * @returns {Promise<{hasPhoto: boolean, photoName: string|null, isBanned: boolean, isAdmin: boolean, noPhotoCompetitiveGamesPlayed: number, remainingFreeCompetitiveGames: number, canPlayCompetitiveWithoutPhoto: boolean}>}
  */
 async function checkUserPhoto(username) {
   try {
     const { data, error } = await supabase
       .from("users")
-      .select("hasPhoto, photoName, photo_banned_until, is_admin")
+      .select(
+        "hasPhoto, photoName, photo_banned_until, is_admin, ceki_no_photo_games_played"
+      )
       .eq("username", username)
       .single();
 
@@ -25,18 +29,30 @@ async function checkUserPhoto(username) {
         photoName: null,
         isBanned: false,
         isAdmin: false,
+        noPhotoCompetitiveGamesPlayed: 0,
+        remainingFreeCompetitiveGames: MAX_FREE_COMPETITIVE_GAMES_WITHOUT_PHOTO,
+        canPlayCompetitiveWithoutPhoto: true,
       };
     }
 
     const isBanned = data.photo_banned_until
       ? new Date(data.photo_banned_until) > new Date()
       : false;
+    const noPhotoCompetitiveGamesPlayed =
+      data.ceki_no_photo_games_played || 0;
+    const remainingFreeCompetitiveGames = Math.max(
+      0,
+      MAX_FREE_COMPETITIVE_GAMES_WITHOUT_PHOTO - noPhotoCompetitiveGamesPlayed
+    );
 
     return {
       hasPhoto: data.hasPhoto || false,
       photoName: data.photoName || null,
       isBanned: isBanned,
       isAdmin: data.is_admin || false,
+      noPhotoCompetitiveGamesPlayed,
+      remainingFreeCompetitiveGames,
+      canPlayCompetitiveWithoutPhoto: remainingFreeCompetitiveGames > 0,
     };
   } catch (error) {
     console.error("Erreur lors de la vérification de la photo:", error);
@@ -45,7 +61,46 @@ async function checkUserPhoto(username) {
       photoName: null,
       isBanned: false,
       isAdmin: false,
+      noPhotoCompetitiveGamesPlayed: 0,
+      remainingFreeCompetitiveGames: MAX_FREE_COMPETITIVE_GAMES_WITHOUT_PHOTO,
+      canPlayCompetitiveWithoutPhoto: true,
     };
+  }
+}
+
+async function incrementNoPhotoCompetitiveGamesPlayed(username) {
+  try {
+    const photoStatus = await checkUserPhoto(username);
+    const nextCount = photoStatus.noPhotoCompetitiveGamesPlayed + 1;
+
+    const { error } = await supabase
+      .from("users")
+      .update({
+        ceki_no_photo_games_played: nextCount,
+      })
+      .eq("username", username);
+
+    if (error) {
+      console.error(
+        "Erreur lors de l'incrémentation des parties sans photo:",
+        error
+      );
+      return null;
+    }
+
+    return {
+      noPhotoCompetitiveGamesPlayed: nextCount,
+      remainingFreeCompetitiveGames: Math.max(
+        0,
+        MAX_FREE_COMPETITIVE_GAMES_WITHOUT_PHOTO - nextCount
+      ),
+    };
+  } catch (error) {
+    console.error(
+      "Erreur lors de l'incrémentation des parties sans photo:",
+      error
+    );
+    return null;
   }
 }
 
@@ -361,7 +416,7 @@ function shuffleArray(array) {
  * @param {Array<string>} selectedGroups - Les groupes de promotions sélectionnés pour cette partie.
  * @returns {string} Le gameId de la session créée.
  */
-function createCompetitiveGameSession(userId, selectedGroups) {
+function createCompetitiveGameSession(userId, selectedGroups, options = {}) {
   const gameId = crypto.randomBytes(16).toString("hex");
   activeCompetitiveGameSessions.set(gameId, {
     userId: userId,
@@ -372,8 +427,14 @@ function createCompetitiveGameSession(userId, selectedGroups) {
     roundDataMap: new Map(), // Pour stocker les roundData pour chaque tour
     timerStartTime: null, // Timestamp de début du chrono pour le round actuel
     usedUsernames: new Set(), // Pour garantir l'unicité des questions
+    isNoPhotoTrial: options.isNoPhotoTrial === true,
   });
   return gameId;
+}
+
+async function getAllPlayablePromoGroups() {
+  const promosStats = await getPromosStats();
+  return promosStats.map((promo) => promo.group);
 }
 
 /**
@@ -979,6 +1040,7 @@ async function getUserByPhotoName(photoName) {
 
 module.exports = {
   checkUserPhoto,
+  incrementNoPhotoCompetitiveGamesPlayed,
   updateUserPhoto,
   removeUserPhoto,
   generateRandomFileName,
@@ -986,6 +1048,7 @@ module.exports = {
   getUsersWithPhotos,
   getAllUsers,
   getPromosStats,
+  getAllPlayablePromoGroups,
   getUsersWithPhotosByGroups,
   createCompetitiveGameSession,
   createEndlessGameSession, // Ajout de la nouvelle fonction
@@ -1001,4 +1064,5 @@ module.exports = {
   banUserPhotoUpload,
   resolveReportsForPhoto,
   getUserByPhotoName,
+  MAX_FREE_COMPETITIVE_GAMES_WITHOUT_PHOTO,
 };

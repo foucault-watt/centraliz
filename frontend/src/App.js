@@ -25,6 +25,7 @@ const Bdi = lazy(() => import("./components/Bdi"));
 const Links = lazy(() => import("./components/Links"));
 const Bibli = lazy(() => import("./components/Bibli"));
 const Cekilui = lazy(() => import("./components/Cekilui.js"));
+const Pokemon = lazy(() => import("./components/Pokemon.js"));
 const HelpPage = lazy(() => import("./components/HelpPage.js"));
 const FeedbackPage = lazy(() => import("./components/FeedbackPage.js"));
 const LegalPage = lazy(() => import("./components/LegalPage.js"));
@@ -239,6 +240,14 @@ const App = () => {
                   element={
                     <PageLayout>
                       <Cekilui />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/pokemon"
+                  element={
+                    <PageLayout>
+                      <Pokemon />
                     </PageLayout>
                   }
                 />

@@ -10,6 +10,7 @@ const routeModules = [
   { pattern: /^\/events\/create/, module: "events", route: "/events/create" },
   { pattern: /^\/events/, module: "events", route: "/events" },
   { pattern: /^\/cekilui/, module: "cekilui", route: "/cekilui" },
+  { pattern: /^\/pokemon/, module: "pokemon", route: "/pokemon" },
   { pattern: /^\/feedback/, module: "feedback", route: "/feedback" },
   { pattern: /^\/help/, module: "help", route: "/help" },
   { pattern: /^\/bibli/, module: "bibli", route: "/bibli" },

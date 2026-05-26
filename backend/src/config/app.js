@@ -21,6 +21,7 @@ const bibliRoutes = require("../routes/bibli");
 const bdsRoutes = require("../routes/bds");
 const eventsRoutes = require("../routes/events");
 const analyticsRoutes = require("../routes/analytics");
+const pokemonRoutes = require("../routes/pokemon");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -86,6 +87,7 @@ app.use("/api/bibli", bibliRoutes);
 app.use("/api/bds", bdsRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/pokemon", pokemonRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {

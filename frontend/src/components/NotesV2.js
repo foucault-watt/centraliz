@@ -4,6 +4,7 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  MessageCircle,
   PencilLine,
   PlusCircle,
   RefreshCw,
@@ -14,6 +15,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "../App";
+import InlineFeedbackModal from "./InlineFeedbackModal";
 import { fetchApi } from "../utils/api";
 
 const pageVariants = {
@@ -720,6 +722,8 @@ const NotesV2 = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [showRefreshForm, setShowRefreshForm] = useState(false);
   const [refreshMode, setRefreshMode] = useState("http");
+  const [showHttpFallbackHint, setShowHttpFallbackHint] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const [simOverrides, setSimOverrides] = useState({});
   const [simulatedEntries, setSimulatedEntries] = useState([]);
@@ -827,6 +831,7 @@ const NotesV2 = () => {
     setError(null);
     setCooldownRetryAfterMs(null);
     setLastRefreshReport(null);
+    setShowHttpFallbackHint(false);
     setIsRefreshing(true);
     const requestBody = {
       ...body,
@@ -844,9 +849,11 @@ const NotesV2 = () => {
         if (response.status === 429) {
           const retryAfterMs = Number(payload?.details?.retryAfterMs || 0);
           setCooldownRetryAfterMs(retryAfterMs);
-          throw new Error(
+          const refreshError = new Error(
             `Rafraichissement trop frequent. Reessaie dans ${formatRetryAfter(retryAfterMs)}.`,
           );
+          refreshError.skipFallbackHint = true;
+          throw refreshError;
         }
 
         if (isCredentialFailure(response, payload)) {
@@ -865,14 +872,18 @@ const NotesV2 = () => {
           }
           setPassword("");
           setShowRefreshForm(true);
-          throw new Error(
+          const refreshError = new Error(
             "Tes identifiants ENT ne sont plus valides. Merci de les ressaisir.",
           );
+          refreshError.skipFallbackHint = true;
+          throw refreshError;
         }
 
-        throw new Error(
+        const refreshError = new Error(
           payload.error || "Impossible de mettre a jour les notes",
         );
+        refreshError.suggestFallback = requestBody.strategy === "http";
+        throw refreshError;
       }
 
       setRefreshProgress(100);
@@ -881,6 +892,13 @@ const NotesV2 = () => {
       setPassword("");
       setShowRefreshForm(false);
     } catch (refreshError) {
+      if (
+        requestBody.strategy === "http" &&
+        !refreshError.skipFallbackHint &&
+        (refreshError.suggestFallback || !refreshError.message)
+      ) {
+        setShowHttpFallbackHint(true);
+      }
       setError(refreshError.message || "Impossible de mettre a jour les notes");
     } finally {
       setTimeout(() => {
@@ -1143,6 +1161,14 @@ const NotesV2 = () => {
   }
 
   const refreshLabel = getRefreshText(refreshProgress);
+  const feedbackPrefill = [
+    "Erreur sur la page Notes",
+    `Message affiche: ${error || "Aucun message precise"}`,
+    `Mode de recuperation: ${REFRESH_MODES[refreshMode]?.label || refreshMode} (${refreshMode})`,
+    `Derniere mise a jour: ${snapshot?.createdAt ? formatDateTime(snapshot.createdAt) : "aucune"}`,
+    "",
+    "Ce que je faisais / details a ajouter:",
+  ].join("\n");
 
   return (
     <motion.div
@@ -1179,18 +1205,27 @@ const NotesV2 = () => {
             <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1">
               {Object.entries(REFRESH_MODES).map(([mode, config]) => {
                 const isActive = refreshMode === mode;
+                const isSuggestedFallback =
+                  showHttpFallbackHint && mode === "csv" && !isActive;
 
                 return (
                   <button
                     key={mode}
                     type="button"
-                    onClick={() => setRefreshMode(mode)}
+                    onClick={() => {
+                      setRefreshMode(mode);
+                      if (mode === "csv") {
+                        setShowHttpFallbackHint(false);
+                      }
+                    }}
                     disabled={isRefreshing}
                     title={config.description}
                     className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
                       isActive
                         ? "bg-primary text-white shadow-sm"
-                        : "text-gray-600 hover:bg-gray-50"
+                        : isSuggestedFallback
+                          ? "bg-amber-50 text-amber-800 ring-2 ring-amber-300 shadow-sm"
+                          : "text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     {config.label}
@@ -1337,19 +1372,66 @@ const NotesV2 = () => {
               {...panelMotion}
               className="rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3"
             >
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span>{error}</span>
-              {cooldownRetryAfterMs !== null && (
-                <button
-                  type="button"
-                  onClick={handleForceRefresh}
-                  disabled={isRefreshing}
-                  className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-md border border-red-300 text-red-700 text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-60"
-                >
-                  Forcer maintenant
-                </button>
-              )}
-            </div>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span>{error}</span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsFeedbackModalOpen(true)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-700"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Prevenir l'admin
+                    </button>
+                    {cooldownRetryAfterMs !== null && (
+                      <button
+                        type="button"
+                        onClick={handleForceRefresh}
+                        disabled={isRefreshing}
+                        className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-md border border-red-300 text-red-700 text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-60"
+                      >
+                        Forcer maintenant
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {showHttpFallbackHint && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-amber-900"
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex gap-2">
+                        <Sparkles className="mt-0.5 h-4 w-4 flex-none text-amber-600" />
+                        <div>
+                          <p className="text-sm font-semibold">
+                            Le mode rapide a echoue.
+                          </p>
+                          <p className="mt-0.5 text-xs text-amber-800">
+                            Tu peux prevenir l'admin du probleme. En attendant,
+                            le mode Secours peut aussi aider : il est plus lent,
+                            mais ouvre le portail comme un navigateur complet.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRefreshMode("csv");
+                          setShowHttpFallbackHint(false);
+                        }}
+                        disabled={isRefreshing}
+                        className="inline-flex items-center justify-center rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-60"
+                      >
+                        Essayer Secours
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1655,6 +1737,17 @@ const NotesV2 = () => {
           </motion.section>
         )}
       </motion.div>
+
+      <InlineFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        type="bug"
+        area="notes"
+        priority="important"
+        title="Signaler le probleme"
+        description="Le message est pre-rempli avec le contexte de l'erreur. Tu peux juste ajouter ce que tu faisais."
+        prefill={feedbackPrefill}
+      />
 
       <AnimatePresence>
         {hasSimulation && (

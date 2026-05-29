@@ -14,6 +14,5 @@ export const pagesConfig = [
   { id: "calendars", label: "Calendriers", icon: Calendar1 },
   { id: "communication", label: "Mails", icon: Mail },
   { id: "cekilui", label: "Cékilui", icon: Users },
-  { id: "pokemon", label: "Pokémon", icon: Gamepad2 },
   // { id: "bibli", label: "Bibli", icon: LibraryBig },
 ];

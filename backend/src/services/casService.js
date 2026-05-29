@@ -67,6 +67,7 @@ exports.callback = async (req, res) => {
       userName: user.username, // Rétablir l'ancien format pour la compatibilité
       displayName: user.display_name,
       icalLink: user.ical_link,
+      group: user.group,
       is_admin: user.is_admin,
       is_bibli_admin: user.is_bibli_admin // Le champ crucial !
     };

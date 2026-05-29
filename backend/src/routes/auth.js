@@ -99,6 +99,7 @@ router.get("/status", async (req, res) => {
       userName: fullUser.username,
       displayName: fullUser.display_name,
       icalLink: fullUser.ical_link,
+      group: fullUser.group,
       is_admin: fullUser.is_admin,
       is_bibli_admin: fullUser.is_bibli_admin,
       ent_username: fullUser.ent_username,

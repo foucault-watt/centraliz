@@ -5,6 +5,7 @@ import Header from "./components/Header"; // Import Header
 import LoginPage from "./components/LoginPage.js";
 import Onboarding from "./components/Onboarding.js";
 import PageLayout from "./components/PageLayout";
+import CampaignRuntime from "./components/CampaignRuntime";
 import ProductRouteTracker from "./components/ProductRouteTracker";
 import SlideMenu from "./components/SlideMenu"; // Import SlideMenu
 import { getSupportBdsInfo } from "./config/supportBds";
@@ -31,6 +32,7 @@ const FeedbackPage = lazy(() => import("./components/FeedbackPage.js"));
 const LegalPage = lazy(() => import("./components/LegalPage.js"));
 const BdsLanding = lazy(() => import("./components/BdsLanding.js"));
 const AnalyticsAdminPage = lazy(() => import("./components/AnalyticsAdminPage.js"));
+const CampaignsAdminPage = lazy(() => import("./components/CampaignsAdminPage.js"));
 
 export const UserContext = createContext();
 
@@ -149,6 +151,7 @@ const App = () => {
             />{" "}
             {/* Pass state and toggle to SlideMenu */}
             <ProductRouteTracker />
+            <CampaignRuntime />
             <Suspense fallback={<div></div>}>
               <Routes>
                 <Route
@@ -289,6 +292,14 @@ const App = () => {
                   element={
                     <PageLayout>
                       <AnalyticsAdminPage user={user} />
+                    </PageLayout>
+                  }
+                />
+                <Route
+                  path="/campaigns/admin"
+                  element={
+                    <PageLayout fullWidth>
+                      <CampaignsAdminPage user={user} />
                     </PageLayout>
                   }
                 />

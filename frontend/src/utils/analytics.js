@@ -14,6 +14,7 @@ const routeModules = [
   { pattern: /^\/feedback/, module: "feedback", route: "/feedback" },
   { pattern: /^\/help/, module: "help", route: "/help" },
   { pattern: /^\/bibli/, module: "bibli", route: "/bibli" },
+  { pattern: /^\/campaigns\/admin/, module: "campaigns", route: "/campaigns/admin" },
   { pattern: /^\/analytics\/admin/, module: "analytics", route: "/analytics/admin" },
 ];
 

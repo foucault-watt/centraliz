@@ -168,6 +168,7 @@
 }
 
 .ui-field,
+.ui-input,
 .ui-select,
 .ui-textarea {
   width: 100%;
@@ -177,10 +178,14 @@
   color: $second;
   padding: 0.7rem 0.85rem;
   font-size: 0.95rem;
+  line-height: 1.35;
+  min-height: 44px;
   transition:
     border-color 0.16s ease,
     box-shadow 0.16s ease,
-    background-color 0.16s ease;
+    background-color 0.16s ease,
+    transform 0.16s ease;
+  appearance: none;
 
   &::placeholder {
     color: rgba($second, 0.45);
@@ -194,9 +199,27 @@
   }
 }
 
+.ui-input[type="datetime-local"],
+.ui-input[type="number"] {
+  padding-right: 0.95rem;
+}
+
+.ui-select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba($second, 0.5) 50%),
+    linear-gradient(135deg, rgba($second, 0.5) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2.4rem;
+}
+
 .ui-textarea {
   min-height: 120px;
   resize: vertical;
+  padding-top: 0.82rem;
 }
 
 // Cekilui utilise maintenant Tailwind CSS exclusivement

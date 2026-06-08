@@ -1,4 +1,12 @@
-import { Calendar1, ExternalLink, FileText, Mail, LibraryBig, Users } from "lucide-react";
+import {
+  Calendar1,
+  ExternalLink,
+  FileText,
+  Gamepad2,
+  Mail,
+  LibraryBig,
+  Users,
+} from "lucide-react";
 
 export const pagesConfig = [
   { id: "notes", label: "Notes", icon: FileText },

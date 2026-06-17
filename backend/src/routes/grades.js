@@ -2,6 +2,7 @@ const express = require("express");
 const authMiddleware = require("../middlewares/auth");
 const gradesService = require("../services/gradesService");
 const analyticsService = require("../services/analyticsService");
+const { attachUserKey } = require("../middlewares/userKey");
 
 const router = express.Router();
 
@@ -10,6 +11,14 @@ const handleError = (res, error) => {
   const payload = {
     error: error.message || "Erreur serveur",
   };
+
+  if (error.details?.code || error.code) {
+    payload.code = error.code || error.details.code;
+  }
+
+  if (error.details?.action || error.action) {
+    payload.action = error.action || error.details.action;
+  }
 
   if (error.details) {
     payload.details = error.details;
@@ -37,11 +46,14 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.post("/refresh", authMiddleware, async (req, res) => {
+router.post("/refresh", authMiddleware, attachUserKey, async (req, res) => {
   try {
     const response = await gradesService.refreshGrades(
       req.session.user.userName,
-      req.body || {},
+      {
+        ...(req.body || {}),
+        userKey: req.userKey || req.headers["x-user-key"],
+      },
     );
     analyticsService.trackEvent({
       req,

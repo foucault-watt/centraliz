@@ -5,6 +5,7 @@ const tokenService = require("./tokenService");
 const loginService = require("./loginService");
 const bdsWhitelist = require("../config/bdsWhitelist");
 const analyticsService = require("./analyticsService");
+const { createUserSecretSalt } = require("../utils/userSecret");
 
 // Remplacez par vos variables d'environnement
 const claAuthHost = process.env.CLA_AUTH_HOST;
@@ -214,6 +215,7 @@ exports.callback = async (req, res) => {
       support_bds: user.support_bds,
       has_association_role: associationData.has_association_role,
       association_roles: associationData.association_roles,
+      userSecretSalt: createUserSecretSalt(user.username),
     };
 
     // Gérer le "Remember Me"

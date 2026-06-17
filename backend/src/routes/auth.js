@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const supabase = require("../utils/supabaseClient");
 const bdsWhitelist = require("../config/bdsWhitelist");
 const analyticsService = require("../services/analyticsService");
+const { createUserSecretSalt } = require("../utils/userSecret");
 
 const getUserAssociations = async (username) => {
   const { data, error } = await supabase
@@ -106,6 +107,7 @@ router.get("/status", async (req, res) => {
       support_bds: fullUser.support_bds,
       has_association_role: Boolean(fullUser.has_association_role),
       association_roles: associationRoles,
+      userSecretSalt: createUserSecretSalt(fullUser.username),
     };
     return res.json({ authenticated: true, user: req.session.user });
   }

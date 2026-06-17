@@ -220,6 +220,7 @@ const resolveCredentials = async (username, providedCredentials = {}) => {
   const userRecord = await getUserRecord(username);
   let entUsername = providedCredentials.ent_username || userRecord.ent_username;
   let password = providedCredentials.password || null;
+  const userKey = providedCredentials.userKey || null;
 
   if (!entUsername) {
     entUsername = await ZimbraService.getEntUsername(username);
@@ -236,8 +237,25 @@ const resolveCredentials = async (username, providedCredentials = {}) => {
     try {
       const encryptedPassword =
         await ZimbraService.getStoredPassword(entUsername);
-      password = ZimbraService.decryptPassword(entUsername, encryptedPassword);
+      password = ZimbraService.decryptPassword({
+        entUsername,
+        encryptedPassword,
+        userKey,
+      });
     } catch (error) {
+      if (error.statusCode) {
+        throw createHttpError(
+          error.statusCode,
+          error.message,
+          {
+            code: error.code,
+            action: error.action,
+            entUsername,
+            ...(error.details || {}),
+          },
+        );
+      }
+
       throw createHttpError(
         400,
         "Mot de passe ENT manquant et aucun mot de passe stocké disponible",
@@ -249,10 +267,19 @@ const resolveCredentials = async (username, providedCredentials = {}) => {
     throw createHttpError(400, "Identifiants ENT incomplets");
   }
 
+  if (providedCredentials.rememberMe && !userKey) {
+    throw createHttpError(428, "Cle utilisateur manquante", {
+      code: "USER_KEY_MISSING",
+      action: "retry_with_local_key",
+      entUsername,
+    });
+  }
+
   return {
     entUsername,
     password,
     rememberMe: Boolean(providedCredentials.rememberMe),
+    userKey,
     userRecord,
   };
 };
@@ -452,7 +479,7 @@ const refreshGrades = async (username, options = {}) => {
     requestedStrategy === "http" || requestedStrategy === "aurion_http";
   const tryHttpFirst = forceHttpOnly || HTTP_FIRST_ENABLED;
 
-  const { entUsername, password, rememberMe, userRecord } =
+  const { entUsername, password, rememberMe, userKey, userRecord } =
     await resolveCredentials(username, options);
 
   const lockKey = `grades-refresh:${String(entUsername).toLowerCase()}`;
@@ -759,7 +786,7 @@ const refreshGrades = async (username, options = {}) => {
 
     if (rememberMe) {
       try {
-        await ZimbraService.storeEncryptedPassword(entUsername, password);
+        await ZimbraService.storeEncryptedPassword(entUsername, password, userKey);
       } catch (error) {
         console.warn(
           "[GradesService] Sauvegarde du mot de passe impossible:",
@@ -828,6 +855,14 @@ const refreshGrades = async (username, options = {}) => {
         code: "ENT_AUTH_FAILED",
         entUsername,
         originalMessage: error.message,
+      });
+    }
+
+    if (error.statusCode && error.code) {
+      throw createHttpError(error.statusCode, error.message, {
+        code: error.code,
+        action: error.action,
+        ...(error.details || {}),
       });
     }
 

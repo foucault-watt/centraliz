@@ -4,6 +4,25 @@ const router = express.Router();
 const ZimbraService = require("../services/zimbraService");
 const authMiddleware = require("../middlewares/auth");
 const analyticsService = require("../services/analyticsService");
+const {
+  attachUserKey,
+  buildUserKeyMissingError,
+  readUserKey,
+  requireUserKey,
+} = require("../middlewares/userKey");
+
+const handleEntError = (res, error, fallbackMessage) => {
+  const statusCode = error.statusCode || 500;
+  const payload = ZimbraService.buildErrorPayload(
+    error.statusCode
+      ? error
+      : ZimbraService.createServiceError(fallbackMessage, {
+          statusCode: 500,
+        })
+  );
+
+  return res.status(statusCode).json(payload);
+};
 
 /**
  * Route pour vérifier si un mot de passe est stocké pour l'utilisateur.
@@ -29,15 +48,17 @@ router.get("/check", authMiddleware, async (req, res) => {
  * Route pour authentifier l'utilisateur en utilisant le mot de passe stocké.
  * POST /api/zimbra/auto-auth
  */
-router.post("/auto-auth", authMiddleware, async (req, res) => {
+router.post("/auto-auth", authMiddleware, requireUserKey, async (req, res) => {
   const username = req.session.user.userName;
   try {
     const jsonData = await ZimbraService.authenticateWithStoredPassword(
-      username
+      username,
+      req.userKey
     );
     const mails = await ZimbraService.parseMails(jsonData);
     req.session.zimbraToken = await ZimbraService.getTokenFromUsername(
-      username
+      username,
+      req.userKey
     );
     analyticsService.trackEvent({
       req,
@@ -53,7 +74,7 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
       `[Zimbra Route] Échec de l'authentification automatique pour ${username}:`,
       error.message
     );
-    res.status(401).json({ error: "Authentification automatique échouée" });
+    handleEntError(res, error, "Authentification automatique échouée");
   }
 });
 
@@ -61,7 +82,7 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
  * Route pour authentifier l'utilisateur Zimbra et récupérer les mails.
  * POST /api/zimbra
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, attachUserKey, async (req, res) => {
   const { ent_username, password, rememberMe } = req.body;
   const username = req.session.user.userName;
   if (!ent_username || !password) {
@@ -74,6 +95,11 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 
   try {
+    if (rememberMe && !req.userKey) {
+      const userKeyError = buildUserKeyMissingError();
+      return res.status(userKeyError.statusCode).json(userKeyError.payload);
+    }
+
     const jsonData = await ZimbraService.authenticate(ent_username, password);
     const mails = await ZimbraService.parseMails(jsonData);
     req.session.zimbraToken = Buffer.from(
@@ -84,7 +110,11 @@ router.post("/", authMiddleware, async (req, res) => {
     await ZimbraService.linkEntUsername(username, ent_username);
 
     if (rememberMe) {
-      await ZimbraService.storeEncryptedPassword(ent_username, password);
+      await ZimbraService.storeEncryptedPassword(
+        ent_username,
+        password,
+        readUserKey(req)
+      );
     }
 
     analyticsService.trackEvent({
@@ -101,7 +131,7 @@ router.post("/", authMiddleware, async (req, res) => {
       `[Zimbra Route] Échec de l'authentification Zimbra pour ${username} (ENT: ${ent_username}):`,
       error.message
     );
-    res.status(401).json({ error: "Authentification Zimbra échouée" });
+    handleEntError(res, error, "Authentification Zimbra échouée");
   }
 });
 
@@ -139,7 +169,7 @@ router.get("/mails", authMiddleware, async (req, res) => {
       `[Zimbra Route] Erreur lors de la récupération des mails pour ${username}:`,
       error.message
     );
-    res.status(500).json({ error: "Erreur lors de la récupération des mails" });
+    handleEntError(res, error, "Erreur lors de la récupération des mails");
   }
 });
 
@@ -171,7 +201,7 @@ router.get("/mail/:id", authMiddleware, async (req, res) => {
       `[Zimbra Route] Erreur lors de la récupération du mail ${mailId}:`,
       error.message
     );
-    res.status(500).json({ error: "Erreur lors de la récupération du mail" });
+    handleEntError(res, error, "Erreur lors de la récupération du mail");
   }
 });
 

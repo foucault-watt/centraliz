@@ -2,6 +2,7 @@ import DOMPurify from "dompurify";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { UserContext } from "../App";
+import { fetchApi } from "../utils/api";
 import Loader from "./Loader";
 import ZimbraAuth from "./mail/zimbraAuth";
 import MailModal from "./MailModal";
@@ -30,13 +31,9 @@ function Mail() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/zimbra/mails`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+      const response = await fetchApi("/api/zimbra/mails", {
+        method: "GET",
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -64,12 +61,7 @@ function Mail() {
       if (mailContents[mailId]) return mailContents[mailId];
 
       try {
-        const response = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/zimbra/mail/${mailId}`,
-          {
-            credentials: "include",
-          }
-        );
+        const response = await fetchApi(`/api/zimbra/mail/${mailId}`);
         if (response.ok) {
           const data = await response.json();
           setMailContents((prev) => ({
@@ -137,18 +129,23 @@ function Mail() {
   useEffect(() => {
     const autoAuthenticate = async () => {
       try {
-        const authResponse = await fetch(
-          `${process.env.REACT_APP_URL_BACK}/api/zimbra/auto-auth`,
-          {
-            method: "POST",
-            credentials: "include",
-          }
-        );
+        const authResponse = await fetchApi("/api/zimbra/auto-auth", {
+          method: "POST",
+        });
         const authData = await authResponse.json();
         if (authResponse.ok && authData.success) {
           setIsAuthenticated(true);
           setAuthStatus("success");
           setStatus("");
+        } else if (authData.code === "ENT_CREDENTIALS_INVALID") {
+          setStatus("Ton mot de passe ENT a change. Merci de le ressaisir.");
+          setAuthStatus("failure");
+        } else if (
+          authData.code === "USER_KEY_MISSING" ||
+          authData.code === "USER_KEY_INVALID"
+        ) {
+          setStatus("Ta session locale doit etre resynchronisee. Recharge la page ou reconnecte-toi.");
+          setAuthStatus("failure");
         } else {
           setAuthStatus("failure");
         }

@@ -11,6 +11,10 @@ exports.downloadCSV = async (req, res) => {
   }
   const username = req.session.user.userName;
   let { ent_username, password, rememberMe } = req.body || {};
+  const userKey =
+    typeof req.userKey === "string" && req.userKey.trim()
+      ? req.userKey.trim()
+      : "";
 
   try {
     // If ent_username not provided, try to get linked ent_username
@@ -30,17 +34,45 @@ exports.downloadCSV = async (req, res) => {
         const encryptedPassword = await ZimbraService.getStoredPassword(
           ent_username
         );
-        password = ZimbraService.decryptPassword(
-          ent_username,
-          encryptedPassword
-        );
+        password = ZimbraService.decryptPassword({
+          entUsername: ent_username,
+          encryptedPassword,
+          userKey,
+        });
       } catch (err) {
         // No stored password
-        return res.status(400).json({
+        const payload = ZimbraService.buildErrorPayload(
+          err.statusCode
+            ? err
+            : ZimbraService.createServiceError(
+                "Mot de passe ENT non fourni et aucun mot de passe stocké",
+                {
+                  statusCode: 404,
+                  code: "STORED_PASSWORD_NOT_FOUND",
+                  action: "prompt_ent_password",
+                }
+              )
+        );
+        return res.status(err.statusCode || 404).json({
           success: false,
-          error: "Mot de passe ENT non fourni et aucun mot de passe stocké",
+          ...payload,
         });
       }
+    }
+
+    if (rememberMe && !userKey) {
+      const error = ZimbraService.createServiceError(
+        "Cle utilisateur manquante",
+        {
+          statusCode: 428,
+          code: "USER_KEY_MISSING",
+          action: "retry_with_local_key",
+        }
+      );
+      return res.status(error.statusCode).json({
+        success: false,
+        ...ZimbraService.buildErrorPayload(error),
+      });
     }
     // Use ENT username for puppeteer login (Aurion)
     const csvPath = await puppeteer.downloadCSV(ent_username, password);
@@ -82,7 +114,7 @@ exports.downloadCSV = async (req, res) => {
     // If rememberMe is true, save the encrypted password for this ent_username
     if (rememberMe && ent_username) {
       try {
-        await ZimbraService.storeEncryptedPassword(ent_username, password);
+        await ZimbraService.storeEncryptedPassword(ent_username, password, userKey);
       } catch (storeErr) {
         console.warn("Failed to store encrypted password:", storeErr.message);
       }
@@ -90,7 +122,12 @@ exports.downloadCSV = async (req, res) => {
 
     res.json({ success: true, filePath: csvPath });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    const payload = ZimbraService.buildErrorPayload(
+      error.statusCode
+        ? error
+        : ZimbraService.createServiceError(error.message || "Erreur serveur")
+    );
+    res.status(error.statusCode || 500).json({ success: false, ...payload });
   }
 };
 

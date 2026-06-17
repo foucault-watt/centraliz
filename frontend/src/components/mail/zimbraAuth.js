@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useContext, useState } from "react";
 import { UserContext } from "../../App";
+import { fetchApi } from "../../utils/api";
 import Loader from "../Loader";
 
 const ZimbraAuth = ({ setIsAuthenticated, authStatus }) => {
   const { user } = useContext(UserContext);
-  const userName = user?.userName;
-  const [entUsername, setEntUsername] = useState("");
+  const [entUsername, setEntUsername] = useState(user?.ent_username || "");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -16,27 +16,24 @@ const ZimbraAuth = ({ setIsAuthenticated, authStatus }) => {
     setStatus("Traitement...");
 
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_URL_BACK}/api/zimbra`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            ent_username: entUsername,
-            password,
-            rememberMe,
-          }),
-        }
-      );
+      const response = await fetchApi("/api/zimbra", {
+        method: "POST",
+        body: JSON.stringify({
+          ent_username: entUsername,
+          password,
+          rememberMe,
+        }),
+      });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         setStatus("Authentification réussie !");
         setIsAuthenticated(true);
+      } else if (data.code === "USER_KEY_MISSING") {
+        setStatus("Session locale incomplete. Recharge la page puis reessaie.");
+      } else if (data.code === "USER_KEY_INVALID") {
+        setStatus("Ta cle locale a expire. Reconnecte-toi pour resynchroniser l'acces ENT.");
       } else {
         setStatus(data.error || "Échec de l'authentification.");
       }

@@ -183,11 +183,12 @@ const REFRESH_MODES = {
 
 const isCredentialFailure = (response, payload) => {
   const message = payload?.error || "";
-  const code = payload?.details?.code || "";
+  const code = payload?.code || payload?.details?.code || "";
 
   return (
     response?.status === 401 ||
     code === "ENT_AUTH_FAILED" ||
+    code === "ENT_CREDENTIALS_INVALID" ||
     /mot de passe|identifiant|auth/i.test(message)
   );
 };
@@ -874,6 +875,17 @@ const NotesV2 = () => {
           setShowRefreshForm(true);
           const refreshError = new Error(
             "Tes identifiants ENT ne sont plus valides. Merci de les ressaisir.",
+          );
+          refreshError.skipFallbackHint = true;
+          throw refreshError;
+        }
+
+        if (
+          payload?.code === "USER_KEY_MISSING" ||
+          payload?.code === "USER_KEY_INVALID"
+        ) {
+          const refreshError = new Error(
+            "Ta cle locale ENT n'est plus disponible. Recharge la page ou reconnecte-toi pour resynchroniser l'acces.",
           );
           refreshError.skipFallbackHint = true;
           throw refreshError;

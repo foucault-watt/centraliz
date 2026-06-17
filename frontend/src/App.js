@@ -9,7 +9,11 @@ import CampaignRuntime from "./components/CampaignRuntime";
 import ProductRouteTracker from "./components/ProductRouteTracker";
 import SlideMenu from "./components/SlideMenu"; // Import SlideMenu
 import { getSupportBdsInfo } from "./config/supportBds";
-import { fetchApi } from "./utils/api";
+import {
+  clearStoredUserSecretSalt,
+  fetchApi,
+  storeUserSecretSalt,
+} from "./utils/api";
 import { applyBDSTheme } from "./utils/bdsTheme";
 
 // Lazy load page components
@@ -55,6 +59,7 @@ const App = () => {
       setIsAuthenticated(data.authenticated);
 
       if (data.authenticated) {
+        storeUserSecretSalt(data.user?.userSecretSalt || "");
         console.log("[App] User authenticated:", data.user);
         // Appliquer le thème BDS si l'utilisateur en soutient un
         if (data.user && data.user.support_bds) {
@@ -66,10 +71,7 @@ const App = () => {
 
         // Vérifier si un mot de passe Zimbra est stocké
         try {
-          const zimbraResponse = await fetch(
-            `${process.env.REACT_APP_URL_BACK}/api/zimbra/check`,
-            { credentials: "include" },
-          );
+          const zimbraResponse = await fetchApi("/api/zimbra/check");
           const zimbraData = await zimbraResponse.json();
           setUser({ ...data.user, hasPassword: zimbraData.hasPassword });
         } catch (zimbraError) {
@@ -77,9 +79,12 @@ const App = () => {
           setUser({ ...data.user, hasPassword: false });
         }
         setNeedsOnboarding(!data.user.icalLink);
+      } else {
+        clearStoredUserSecretSalt();
       }
     } catch (error) {
       console.error("Error checking auth status:", error);
+      clearStoredUserSecretSalt();
     } finally {
       setIsLoading(false);
     }

@@ -4,19 +4,25 @@ const path = require("path");
 
 class LogService {
   constructor() {
-    this.filePath = path.join(__dirname, "../data/backend.log");
+    this.logDirectory = path.join(__dirname, "../data");
     this.recentLogs = new Set();
     this.dedupeWindow = 100; // ms
-    this.ensureFileExists();
+    this.ensureLogDirectoryExists();
     this.setupConsoleOverride();
   }
 
-  ensureFileExists() {
-    if (!fs.existsSync(path.dirname(this.filePath))) {
-      fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-    }
-    if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, "", "utf8");
+  getLogFilePath() {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    const fileName = `backend-${day}-${month}-${year}.log`;
+    return path.join(this.logDirectory, fileName);
+  }
+
+  ensureLogDirectoryExists() {
+    if (!fs.existsSync(this.logDirectory)) {
+      fs.mkdirSync(this.logDirectory, { recursive: true });
     }
   }
 
@@ -36,15 +42,15 @@ class LogService {
 
     const timestamp = new Date().toISOString();
     const logEntry = `${timestamp} - ${message}\n`;
-    const currentContent = fs.readFileSync(this.filePath, 'utf8');
-    fs.writeFileSync(this.filePath, logEntry + currentContent);
+    const filePath = this.getLogFilePath();
+    fs.appendFileSync(filePath, logEntry, "utf8");
   }
 
   logError(message) {
     const timestamp = new Date().toISOString();
     const logEntry = `${timestamp} - ERROR: ${message}\n`;
-    const currentContent = fs.readFileSync(this.filePath, 'utf8');
-    fs.writeFileSync(this.filePath, logEntry + currentContent);
+    const filePath = this.getLogFilePath();
+    fs.appendFileSync(filePath, logEntry, "utf8");
   }
 
   setupConsoleOverride() {
@@ -81,25 +87,6 @@ class LogService {
       originalConsole.error(...args);
     };
 
-    // Capture stdout/stderr
-    const writeStream = fs.createWriteStream(this.filePath, { flags: "a" });
-    process.stdout.write = process.stdout.write.bind(process.stdout);
-    process.stderr.write = process.stderr.write.bind(process.stderr);
-
-    const oldStdoutWrite = process.stdout.write;
-    const oldStderrWrite = process.stderr.write;
-
-    process.stdout.write = function (chunk, encoding, callback) {
-      const currentContent = fs.readFileSync(logService.filePath, 'utf8');
-      fs.writeFileSync(logService.filePath, chunk + currentContent);
-      return oldStdoutWrite.apply(process.stdout, arguments);
-    };
-
-    process.stderr.write = function (chunk, encoding, callback) {
-      const currentContent = fs.readFileSync(logService.filePath, 'utf8');
-      fs.writeFileSync(logService.filePath, chunk + currentContent);
-      return oldStderrWrite.apply(process.stderr, arguments);
-    };
   }
 }
 

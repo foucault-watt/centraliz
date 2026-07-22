@@ -3,6 +3,7 @@ const router = express.Router();
 const hpService = require("../services/hpService");
 const fs = require("fs");
 const path = require("path");
+const analyticsService = require("../services/analyticsService");
 
 router.get("/hp-data", async (req, res) => {
   try {
@@ -11,6 +12,17 @@ router.get("/hp-data", async (req, res) => {
       return res.status(400).json({ error: "UserId requis" });
     }
     const hpData = await hpService.fetchHpData(userId);
+    analyticsService.trackEvent({
+      req,
+      userUsername: req.session?.user?.userName || null,
+      eventName: "calendar_loaded",
+      module: "calendars",
+      eventType: "load",
+      isAutomatic: true,
+      properties: {
+        scope: req.session?.user?.userName === userId ? "own" : "user",
+      },
+    });
     res.send(hpData);
   } catch (error) {
     res
@@ -19,10 +31,20 @@ router.get("/hp-data", async (req, res) => {
   }
 });
 
-router.get("/check-user/", async (req, res) => {
+const authMiddleware = require("../middlewares/auth");
+
+router.get("/check-user/", authMiddleware, async (req, res) => {
   try {
     const userId = req.session.user.userName;
-    const result = hpService.checkUser(userId);
+    const result = await hpService.checkUser(userId);
+    analyticsService.trackEvent({
+      req,
+      eventName: "calendar_loaded",
+      module: "calendars",
+      eventType: "load",
+      isAutomatic: true,
+      properties: { scope: "own_check" },
+    });
     res.json(result);
   } catch (error) {
     res
@@ -102,6 +124,14 @@ router.get("/external-calendar", async (req, res) => {
   try {
     const { icalLink } = req.query;
     const data = await hpService.fetchExternalCalendar(icalLink);
+    analyticsService.trackEvent({
+      req,
+      eventName: "calendar_loaded",
+      module: "calendars",
+      eventType: "load",
+      isAutomatic: true,
+      properties: { scope: "external" },
+    });
     res.send(data);
   } catch (error) {
     res
@@ -115,56 +145,75 @@ router.get("/calendar/:type/:name", async (req, res) => {
     const { type, name } = req.params;
     let data;
     const decodedName = decodeURIComponent(name);
-    
-    if (type === 'prof') {
+
+    if (type === "prof") {
       const profData = JSON.parse(
         fs.readFileSync(path.join(__dirname, "../data/ical-prof.json"), "utf-8")
       );
-      const prof = profData.find(p => p.prof === decodedName);
+      const prof = profData.find((p) => p.prof === decodedName);
       if (!prof || !prof.ical_link) {
-        return res.status(404).json({ error: "Calendrier du professeur non trouvé" });
+        return res
+          .status(404)
+          .json({ error: "Calendrier du professeur non trouvé" });
       }
       data = await hpService.fetchExternalCalendar(prof.ical_link);
-    } 
-    else if (type === 'salle') {
+      analyticsService.trackEvent({
+        req,
+        eventName: "calendar_loaded",
+        module: "calendars",
+        eventType: "load",
+        isAutomatic: true,
+        properties: { scope: "prof" },
+      });
+    } else if (type === "salle") {
       const roomData = JSON.parse(
-        fs.readFileSync(path.join(__dirname, "../data/ical-salle.json"), "utf-8")
+        fs.readFileSync(
+          path.join(__dirname, "../data/ical-salle.json"),
+          "utf-8"
+        )
       );
-      
+
       // Normaliser le nom de la salle pour la recherche
-      const normalizedSearchName = decodedName.toUpperCase()
-        .replace(/\s+/g, ' ')
+      const normalizedSearchName = decodedName
+        .toUpperCase()
+        .replace(/\s+/g, " ")
         .trim();
 
-      const room = roomData.find(r => {
+      const room = roomData.find((r) => {
         if (!r.salle) return false;
-        const normalizedRoomName = r.salle.toUpperCase()
-          .replace(/\s+/g, ' ')
+        const normalizedRoomName = r.salle
+          .toUpperCase()
+          .replace(/\s+/g, " ")
           .trim();
         return normalizedRoomName === normalizedSearchName;
       });
 
       if (!room || !room.ical_link) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: "Calendrier de la salle non trouvé",
           searchedName: normalizedSearchName,
-          availableRooms: roomData
-            .filter(r => r.salle)
-            .map(r => r.salle)
+          availableRooms: roomData.filter((r) => r.salle).map((r) => r.salle),
         });
       }
       data = await hpService.fetchExternalCalendar(room.ical_link);
-    }
-    else {
+      analyticsService.trackEvent({
+        req,
+        eventName: "calendar_loaded",
+        module: "calendars",
+        eventType: "load",
+        isAutomatic: true,
+        properties: { scope: "room" },
+      });
+    } else {
       return res.status(400).json({ error: "Type de calendrier invalide" });
     }
 
     res.send(data);
   } catch (error) {
     console.error("Erreur lors de la récupération du calendrier:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Erreur lors de la récupération du calendrier",
-      details: error.message 
+      details: error.message,
     });
   }
 });

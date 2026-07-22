@@ -1,6 +1,6 @@
 import axios from "axios";
 import Papa from "papaparse";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { UserContext } from "../App";
 import ModuleDisplay from "./notes/ModuleDisplay";
 
@@ -9,8 +9,18 @@ const Notes = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [password, setPassword] = useState("");
+  const [entUsername, setEntUsername] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { userName } = useContext(UserContext);
+  const [showManualLogin, setShowManualLogin] = useState(false);
+  const { user, setUser } = useContext(UserContext);
+  const userName = user?.userName;
+
+  useEffect(() => {
+    if (user?.ent_username && !entUsername) {
+      setEntUsername(user.ent_username);
+    }
+  }, [user?.ent_username]);
   const [coefficients, setCoefficients] = useState(null);
   const [organizedModules, setOrganizedModules] = useState({});
   const [userGroup, setUserGroup] = useState(null); // Ajouter cet état
@@ -172,70 +182,91 @@ const Notes = () => {
     [coefficients, userGroup]
   );
 
-  const fetchCSVData = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const downloadResponse = await axios.post(
-        "/api/download-csv",
-        {
-          password,
-        },
-        {
-          credentials: true,
-        }
-      );
+  const fetchCSVData = useCallback(
+    async (opts = {}) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const body = {};
+        // If entUsername provided via form or user has one in context
+        if (opts.entUsername) body.ent_username = opts.entUsername;
+        if (entUsername) body.ent_username = entUsername;
+        if (password) body.password = password;
+        if (opts.rememberMe !== undefined) body.rememberMe = opts.rememberMe;
+        if (rememberMe !== undefined) body.rememberMe = rememberMe;
 
-      if (downloadResponse.data.success) {
-        const csvDataResponse = await axios.get(
-          `/api/csv-data?path=${downloadResponse.data.filePath}`
-        );
-        Papa.parse(csvDataResponse.data, {
-          header: true,
-          complete: (results) => {
-            processGrades(results.data);
-            setIsLoading(false);
-          },
+        const downloadResponse = await axios.post("/api/download-csv", body, {
+          withCredentials: true,
         });
-      } else {
-        throw new Error("Échec du téléchargement du CSV");
+
+        if (downloadResponse.data.success) {
+          const csvDataResponse = await axios.get(
+            `/api/csv-data?path=${downloadResponse.data.filePath}`
+          );
+          Papa.parse(csvDataResponse.data, {
+            header: true,
+            complete: (results) => {
+              processGrades(results.data);
+              setIsLoading(false);
+              hasLoadedDataRef.current = true;
+            },
+          });
+          return true;
+        } else {
+          throw new Error("Échec du téléchargement du CSV");
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des données CSV:", error);
+        setError(
+          "Erreur de chargement des notes. Veuillez réessayer plus tard."
+        );
+        setIsLoading(false);
+        return false;
       }
-    } catch (error) {
-      console.error("Erreur lors du chargement des données CSV:", error);
-      setError("Erreur de chargement des notes. Veuillez réessayer plus tard.");
-      setIsLoading(false);
-    }
-  }, [password, processGrades]);
+    },
+    [password, entUsername, rememberMe, processGrades]
+  );
+
+  const hasLoadedDataRef = useRef(false);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && !hasLoadedDataRef.current) {
       fetchCSVData();
     }
   }, [isLoggedIn, fetchCSVData]);
 
+  // Reset loaded ref when logged out to allow re-fetching if needed
   useEffect(() => {
-    const fetchCoefficients = async () => {
-      try {
-        const response = await fetch(`/api/coef/`, {
-          credentials: "include",
-        });
-        const data = await response.json();
-        setCoefficients(data);
-        // Récupérer le groupe depuis la réponse
-        const userGroupFromResponse = Object.keys(data.groups)[0];
-        setUserGroup(userGroupFromResponse);
-      } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des coefficients:",
-          error
-        );
-      }
-    };
-
-    if (userName) {
-      fetchCoefficients();
+    if (!isLoggedIn) {
+      hasLoadedDataRef.current = false;
     }
-  }, [userName]);
+  }, [isLoggedIn]);
+
+  const handleFetchWithStoredPassword = async () => {
+    setError(null);
+    const ok = await fetchCSVData({});
+    if (ok) {
+      hasLoadedDataRef.current = true;
+      setIsLoggedIn(true);
+      if (setUser) setUser((prev) => ({ ...(prev || {}), hasPassword: true }));
+    }
+  };
+
+  const handleSubmitCredentials = async (e) => {
+    e.preventDefault();
+    setError(null);
+    const ok = await fetchCSVData({ entUsername: entUsername, rememberMe });
+    if (ok) {
+      hasLoadedDataRef.current = true;
+      setIsLoggedIn(true);
+      if (setUser)
+        setUser((prev) => ({
+          ...(prev || {}),
+          hasPassword: true,
+          ent_username: entUsername,
+        }));
+    }
+  };
 
   const recalculateAllUEAverages = useCallback(() => {
     if (!coefficients || !userGroup) {
@@ -284,7 +315,7 @@ const Notes = () => {
         // Recalculer la moyenne du module depuis zéro
         let basePoints = 0;
         let baseCoeff = 0;
-        moduleData.epreuves.forEach((epreuve) => {
+        moduleData.epreves.forEach((epreuve) => {
           const note = parseFloat(epreuve["Notes"].replace(",", ".")) || 0;
           const coeff =
             parseFloat(epreuve["Coefficient de l'Épreuve dans le Module"]) || 0;
@@ -504,50 +535,97 @@ const Notes = () => {
         Consultez et simulez vos notes en temps réel
       </p>
 
-      {!isLoggedIn && (
+      {!isLoggedIn && !isLoading && (
         <div className="login-container">
-          <form className="login-form" onSubmit={handleLogin}>
-            <div className="input-group">
-              <input type="hidden" value={userName} />
-              <input
-                type="password"
-                placeholder=" "
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                // Ajout : stopper la propagation des touches pour éviter que l'écouteur global ne bloque la saisie
-                required
-              />
-              <label>Mot de passe ENT</label>
-              <span className="input-line"></span>
+          {user?.hasPassword && !showManualLogin ? (
+            <div className="stored-login">
+              <button
+                className="big-button"
+                onClick={handleFetchWithStoredPassword}
+              >
+                Afficher mes notes
+              </button>
+              <button
+                className="link-button"
+                onClick={() => setShowManualLogin(true)}
+              >
+                Me connecter avec un autre compte
+              </button>
             </div>
-            <button type="submit" className="submit-button">
-              <span>Se connecter</span>
-              <div className="button-loader"></div>
-            </button>
-          </form>
+          ) : (
+            <form className="login-form" onSubmit={handleSubmitCredentials}>
+              <div className="input-group">
+                <input type="hidden" value={userName} />
+                <input
+                  type="text"
+                  placeholder="Identifiant ENT (ex: pnom)"
+                  value={entUsername}
+                  onChange={(e) => setEntUsername(e.target.value)}
+                />
+                <label>Identifiant ENT</label>
+                <span className="input-line"></span>
+              </div>
+              <div className="input-group">
+                <input
+                  type="password"
+                  placeholder="Mot de passe ENT"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <label>Mot de passe ENT</label>
+                <span className="input-line"></span>
+              </div>
+              <div className="remember-me">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  Se souvenir du mot de passe
+                </label>
+              </div>
+              <div className="login-actions">
+                <button type="submit" className="submit-button">
+                  <span>Afficher mes notes</span>
+                </button>
+                {user?.hasPassword && (
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => setShowManualLogin(false)}
+                  >
+                    Utiliser le mot de passe stocké
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
         </div>
       )}
 
-      {isLoggedIn && (
-        <>
-          {isLoading && (
-            <div className="loading-container-notes">
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div className="progress-fill"></div>
-                </div>
-                <div className="loading-status">
-                  <div className="loading-status-dot"></div>
-                  <div className="loading-status-text">
-                    Récupération des notes en cours
-                  </div>
-                </div>
+      {isLoading && (
+        <div className="loading-container-notes">
+          <div className="progress-container">
+            <div className="progress-bar">
+              <div className="progress-fill"></div>
+            </div>
+            <div className="loading-status">
+              <div className="loading-status-dot"></div>
+              <div className="loading-status-text">
+                Récupération des notes en cours
               </div>
             </div>
-          )}
+          </div>
+        </div>
+      )}
+
+      {isLoggedIn && !isLoading && (
+        <>
           {error && <p className="error">{error}</p>}
-          {!isLoading && !error && (
-            <>
+          {!error && (
+            <div className="notes-frame">
               {unlistedModules.length > 0 && (
                 <div className="warning-message">
                   ⚠️ Certains modules ne sont pas correctement référencés dans
@@ -632,7 +710,7 @@ const Notes = () => {
                       </div>
                     ))}
               </div>
-            </>
+            </div>
           )}
         </>
       )}

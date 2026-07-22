@@ -1,17 +1,14 @@
 @import "_settings.scss";
-@import "Header.scss";
 @import "HpCalendar.scss";
 @import "Main.scss";
-@import "PageContainer.scss";
-@import "PageSection.scss";
 @import "ClaCalendar.scss";
 @import "Links.scss";
 @import "Notes.scss";
 @import "Mail.scss";
+@import "MailModern.scss";
 @import "Onboarding.scss";
-@import "LoginPage.scss";
-@import "SlideMenu.scss";
 @import "Bdi.scss";
+@import "Bibli.scss";
 
 .loading-container {
   display: flex;
@@ -43,5 +40,24 @@
   }
   50% {
     transform: scale(1.2);
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .animate-countdown {
+    animation: countdown 3s linear forwards;
+  }
+
+  @keyframes countdown {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
   }
 }

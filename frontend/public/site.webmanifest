@@ -1,5 +1,5 @@
 {
-  "name": "Centraliz : Simplifie ta vie à Centrale Lille",
+  "name": "Centraliz",
   "short_name": "Centraliz",
   "icons": [
     {
@@ -15,7 +15,6 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "https://centraliz.rezoelo.fr",
   "theme_color": "#4267cf",
   "background_color": "#4267cf",
   "display": "standalone"

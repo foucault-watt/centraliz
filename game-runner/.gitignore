@@ -1,0 +1,8 @@
+config/game-runner.env
+logs/
+roms/
+state/
+tools/mgba-http/mgba-http
+*.sav
+*.gba
+*.state

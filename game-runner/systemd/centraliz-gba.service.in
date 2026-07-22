@@ -1,0 +1,18 @@
+[Unit]
+Description=Centraliz Pokemon mGBA
+Requires=centraliz-openbox.service
+After=centraliz-openbox.service
+
+[Service]
+Type=simple
+User=@RUN_USER@
+Environment=HOME=@RUN_HOME@
+Environment=GAME_RUNNER_DIR=@GAME_RUNNER_DIR@
+ExecStart=@GAME_RUNNER_DIR@/bin/start-mgba.sh
+ExecStartPost=@GAME_RUNNER_DIR@/bin/load-lua.sh
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=75
+
+[Install]
+WantedBy=multi-user.target

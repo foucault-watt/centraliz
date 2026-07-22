@@ -1,0 +1,112 @@
+.support-highlight {
+  animation: support-pop 0.55s ease-out;
+}
+
+.support-highlight {
+  position: relative;
+  overflow: hidden; /* clip glow to rounded corners */
+}
+
+.support-overlay {
+  z-index: 3; /* overlay above image to tint, but keep border-radius */
+  opacity: 0.6; /* slightly transparent so image stays visible */
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.support-badge-flag {
+  animation: badge-drift 1.8s ease-in-out infinite,
+    badge-float 4s ease-in-out infinite;
+}
+
+.support-footer {
+  animation: footer-rise 0.45s ease-out, badge-float 4s ease-in-out infinite;
+}
+
+/* Big soft glow behind the image */
+.support-highlight::before {
+  content: "";
+  position: absolute;
+  left: -6%;
+  top: -6%;
+  right: -6%;
+  bottom: -6%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--support-glow) 0%,
+    rgba(0, 0, 0, 0) 45%
+  );
+  filter: blur(36px) saturate(1.25);
+  opacity: 0.95;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease, transform 100ms ease;
+}
+
+/* ensure the image sits above the glow but under the overlay */
+.support-highlight img {
+  position: relative;
+  z-index: 2;
+  border-radius: inherit; /* keep same rounding as the container */
+}
+
+/* float animation for badge and footer */
+@keyframes badge-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes support-pop {
+  0% {
+    transform: scale(0.94) rotate(-1deg);
+  }
+  55% {
+    transform: scale(1.02) rotate(1deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes badge-drift {
+  0% {
+    transform: translateY(-2px);
+    opacity: 0.92;
+  }
+  50% {
+    transform: translateY(2px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-2px);
+    opacity: 0.92;
+  }
+}
+
+@keyframes footer-rise {
+  0% {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .support-highlight,
+  .support-badge-flag,
+  .support-footer {
+    animation: none;
+  }
+}

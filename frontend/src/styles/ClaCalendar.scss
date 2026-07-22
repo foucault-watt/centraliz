@@ -8,29 +8,33 @@
 .calendar-tabs {
   display: flex;
   justify-content: center;
-  margin: 10px;
-  gap: 10px;
+  margin: 0.75rem 0 1rem;
+  gap: 0.45rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: rgba(white, 0.72);
+  border: 1px solid rgba($second, 0.08);
+  box-shadow: 0 8px 18px rgba($second, 0.05);
 
   .tab-button {
-    padding: 10px 20px;
-    background-color: #f0f0f0;
+    padding: 0.6rem 1rem;
+    background-color: transparent;
     border: none;
     cursor: pointer;
-    font-weight: 600;
-    border-radius: 20px;
+    font-weight: 800;
+    border-radius: 999px;
+    color: $second;
     @include transition();
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 
     &.active {
-      background-color: $main;
+      background-color: var(--color-primary);
       color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 18px rgba($main, 0.22);
     }
 
     &:hover:not(.active) {
-      background-color: darken(#f0f0f0, 5%);
-      transform: translateY(-1px);
+      background-color: rgba($main, 0.08);
+      color: var(--color-primary);
     }
   }
 }
@@ -55,7 +59,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $main;
+    background: var(--color-primary);
     border-radius: 4px;
 
     &:hover {
@@ -75,10 +79,11 @@
 .cla-calendar {
   height: 500px;
   overflow-y: auto;
-  border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: $radius-card;
+  border: 1px solid rgba($second, 0.08);
+  background-color: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(10px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: $shadow-card;
   padding: 15px;
 
   &::-webkit-scrollbar {
@@ -91,7 +96,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $main;
+    background: var(--color-primary);
     border-radius: 4px;
 
     &:hover {
@@ -125,12 +130,12 @@
   }
 
   &.ongoing {
-    border: 3px solid $main;
+    border: 3px solid var(--color-primary);
     background-color: rgba($main, 0.03);
     box-shadow: 0 4px 15px rgba($main, 0.15);
 
     .event-title {
-      color: $main;
+      color: var(--color-primary);
     }
 
     .event-time {
@@ -153,7 +158,7 @@
     }
 
     .event-time {
-      color: $main !important;
+      color: var(--color-primary) !important;
       font-weight: 600;
 
       .event-recurring {
@@ -167,7 +172,7 @@
 
   // Style pour les événements récurrents
   &.recurring {
-    border-left: 3px solid $main;
+    border-left: 3px solid var(--color-primary);
   }
 
   .event-title {
@@ -192,19 +197,19 @@
     }
 
     &::-webkit-scrollbar-thumb {
-      background: $main;
+      background: var(--color-primary);
       border-radius: 4px;
     }
   }
 }
 
 .torch-tot {
-  color: $green;
+  color: var(--color-green);
   font-weight: bold;
 }
 
 .torcho {
-  color: $red;
+  color: var(--color-red);
   font-weight: bold;
 }
 
@@ -221,7 +226,7 @@
     height: 50px;
     border: 5px solid rgba($main, 0.1);
     border-radius: 50%;
-    border-top-color: $main;
+    border-top-color: var(--color-primary);
     animation: spin 1s ease-in-out infinite;
     margin-bottom: 20px;
   }
@@ -256,7 +261,7 @@
   }
 
   h3 {
-    color: $red;
+    color: var(--color-red);
     margin-bottom: 10px;
     font-weight: 600;
   }
@@ -281,7 +286,7 @@
 // Style pour "chargement plus"
 .loading-more {
   text-align: center;
-  color: $main;
+  color: var(--color-primary);
   padding: 10px;
   font-size: 0.9em;
   font-style: italic;

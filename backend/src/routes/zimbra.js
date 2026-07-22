@@ -3,6 +3,26 @@ const express = require("express");
 const router = express.Router();
 const ZimbraService = require("../services/zimbraService");
 const authMiddleware = require("../middlewares/auth");
+const analyticsService = require("../services/analyticsService");
+const {
+  attachUserKey,
+  buildUserKeyMissingError,
+  readUserKey,
+  requireUserKey,
+} = require("../middlewares/userKey");
+
+const handleEntError = (res, error, fallbackMessage) => {
+  const statusCode = error.statusCode || 500;
+  const payload = ZimbraService.buildErrorPayload(
+    error.statusCode
+      ? error
+      : ZimbraService.createServiceError(fallbackMessage, {
+          statusCode: 500,
+        })
+  );
+
+  return res.status(statusCode).json(payload);
+};
 
 /**
  * Route pour vérifier si un mot de passe est stocké pour l'utilisateur.
@@ -14,8 +34,13 @@ router.get("/check", authMiddleware, async (req, res) => {
     const hasPassword = await ZimbraService.hasStoredPassword(username);
     res.json({ hasPassword });
   } catch (error) {
-    console.error(`[Zimbra Route] Erreur lors de la vérification du mot de passe stocké pour ${username}:`, error.message);
-    res.status(500).json({ error: "Erreur lors de la vérification du mot de passe stocké" });
+    console.error(
+      `[Zimbra Route] Erreur lors de la vérification du mot de passe stocké pour ${username}:`,
+      error.message
+    );
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la vérification du mot de passe stocké" });
   }
 });
 
@@ -23,16 +48,33 @@ router.get("/check", authMiddleware, async (req, res) => {
  * Route pour authentifier l'utilisateur en utilisant le mot de passe stocké.
  * POST /api/zimbra/auto-auth
  */
-router.post("/auto-auth", authMiddleware, async (req, res) => {
+router.post("/auto-auth", authMiddleware, requireUserKey, async (req, res) => {
   const username = req.session.user.userName;
   try {
-    const jsonData = await ZimbraService.authenticateWithStoredPassword(username);
+    const jsonData = await ZimbraService.authenticateWithStoredPassword(
+      username,
+      req.userKey
+    );
     const mails = await ZimbraService.parseMails(jsonData);
-    req.session.zimbraToken = ZimbraService.getTokenFromUsername(username);
+    req.session.zimbraToken = await ZimbraService.getTokenFromUsername(
+      username,
+      req.userKey
+    );
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_authenticated",
+      module: "communication",
+      eventType: "load",
+      isAutomatic: true,
+      properties: { method: "stored_password", mail_count: mails.length },
+    });
     res.json({ success: true, mails });
   } catch (error) {
-    console.error(`[Zimbra Route] Échec de l'authentification automatique pour ${username}:`, error.message);
-    res.status(401).json({ error: "Authentification automatique échouée" });
+    console.error(
+      `[Zimbra Route] Échec de l'authentification automatique pour ${username}:`,
+      error.message
+    );
+    handleEntError(res, error, "Authentification automatique échouée");
   }
 });
 
@@ -40,27 +82,56 @@ router.post("/auto-auth", authMiddleware, async (req, res) => {
  * Route pour authentifier l'utilisateur Zimbra et récupérer les mails.
  * POST /api/zimbra
  */
-router.post("/", authMiddleware, async (req, res) => {
-  const { username, password, rememberMe } = req.body;
-  
-  if (!username || !password) {
-    console.warn("[Zimbra Route] Nom d'utilisateur ou mot de passe manquant");
-    return res.status(400).json({ error: "Nom d'utilisateur et mot de passe requis" });
+router.post("/", authMiddleware, attachUserKey, async (req, res) => {
+  const { ent_username, password, rememberMe } = req.body;
+  const username = req.session.user.userName;
+  if (!ent_username || !password) {
+    console.warn(
+      "[Zimbra Route] Nom d'utilisateur ENT ou mot de passe manquant"
+    );
+    return res
+      .status(400)
+      .json({ error: "Nom d'utilisateur ENT et mot de passe requis" });
   }
 
   try {
-    const jsonData = await ZimbraService.authenticate(username, password);
-    const mails = await ZimbraService.parseMails(jsonData);
-    req.session.zimbraToken = Buffer.from(`${username}:${password}`).toString("base64");
-
-    if (rememberMe) {
-      await ZimbraService.storeEncryptedPassword(username, password);
+    if (rememberMe && !req.userKey) {
+      const userKeyError = buildUserKeyMissingError();
+      return res.status(userKeyError.statusCode).json(userKeyError.payload);
     }
 
+    const jsonData = await ZimbraService.authenticate(ent_username, password);
+    const mails = await ZimbraService.parseMails(jsonData);
+    req.session.zimbraToken = Buffer.from(
+      `${ent_username}:${password}`
+    ).toString("base64");
+
+    // Link ent_username to user
+    await ZimbraService.linkEntUsername(username, ent_username);
+
+    if (rememberMe) {
+      await ZimbraService.storeEncryptedPassword(
+        ent_username,
+        password,
+        readUserKey(req)
+      );
+    }
+
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_authenticated",
+      module: "communication",
+      eventType: "interaction",
+      isAutomatic: false,
+      properties: { method: "manual", remember_me: Boolean(rememberMe), mail_count: mails.length },
+    });
     res.json({ success: true, mails });
   } catch (error) {
-    console.error(`[Zimbra Route] Échec de l'authentification Zimbra pour ${username}:`, error.message);
-    res.status(401).json({ error: "Authentification Zimbra échouée" });
+    console.error(
+      `[Zimbra Route] Échec de l'authentification Zimbra pour ${username} (ENT: ${ent_username}):`,
+      error.message
+    );
+    handleEntError(res, error, "Authentification Zimbra échouée");
   }
 });
 
@@ -73,17 +144,32 @@ router.get("/mails", authMiddleware, async (req, res) => {
   const username = req.session.user.userName;
 
   if (!zimbraToken) {
-    console.warn(`[Zimbra Route] Token Zimbra manquant pour l'utilisateur: ${username}`);
+    console.warn(
+      `[Zimbra Route] Token Zimbra manquant pour l'utilisateur: ${username}`
+    );
     return res.status(401).json({ error: "Accès aux mails non autorisé" });
   }
 
   try {
     const mails = await ZimbraService.getMailsFromToken(zimbraToken);
-    console.log(`[Zimbra Route] Mails récupérés pour ${username}: ${mails.length} emails`);
+    console.log(
+      `[Zimbra Route] Mails récupérés pour ${username}: ${mails.length} emails`
+    );
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_list_loaded",
+      module: "communication",
+      eventType: "load",
+      isAutomatic: true,
+      properties: { mail_count: mails.length },
+    });
     res.json({ mails });
   } catch (error) {
-    console.error(`[Zimbra Route] Erreur lors de la récupération des mails pour ${username}:`, error.message);
-    res.status(500).json({ error: "Erreur lors de la récupération des mails" });
+    console.error(
+      `[Zimbra Route] Erreur lors de la récupération des mails pour ${username}:`,
+      error.message
+    );
+    handleEntError(res, error, "Erreur lors de la récupération des mails");
   }
 });
 
@@ -102,10 +188,20 @@ router.get("/mail/:id", authMiddleware, async (req, res) => {
 
   try {
     const content = await ZimbraService.getRawMailContent(zimbraToken, mailId);
+    analyticsService.trackEvent({
+      req,
+      eventName: "mail_detail_opened",
+      module: "communication",
+      eventType: "interaction",
+      isAutomatic: false,
+    });
     res.json({ content });
   } catch (error) {
-    console.error(`[Zimbra Route] Erreur lors de la récupération du mail ${mailId}:`, error.message);
-    res.status(500).json({ error: "Erreur lors de la récupération du mail" });
+    console.error(
+      `[Zimbra Route] Erreur lors de la récupération du mail ${mailId}:`,
+      error.message
+    );
+    handleEntError(res, error, "Erreur lors de la récupération du mail");
   }
 });
 

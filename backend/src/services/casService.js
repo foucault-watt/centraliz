@@ -1,12 +1,11 @@
 // backend/src/services/casService.js
 const axios = require("axios");
 const loginService = require('./loginService');
-const fs = require('fs');
-const path = require('path');
+const supabase = require('../utils/supabaseClient');
+const tokenService = require('./tokenService');
 
 const casBaseURL = "https://cas.centralelille.fr";
 const serviceURL = `${process.env.URL_BACK}/api/auth/callback`;
-const USER_DATA_FILE = path.join(__dirname, '../data/users.json');
 
 exports.login = (req, res) => {
   const loginUrl = `${casBaseURL}/login?service=${encodeURIComponent(serviceURL)}`;
@@ -37,25 +36,55 @@ exports.callback = async (req, res) => {
       return res.status(401).send("Échec de l'authentification CAS.");
     }
 
-    // Sauvegarde ou mise à jour des informations utilisateur
-    const users = JSON.parse(fs.readFileSync(USER_DATA_FILE, 'utf-8'));
-    if (!users[userName]) {
-      // Nouvel utilisateur
-      users[userName] = {
-        userName: userName,
-        displayName: displayName || null,
-        icalLink: null
-      };
-    } else {
-      // Mise à jour du displayName pour un utilisateur existant
-      users[userName].displayName = displayName || users[userName].displayName;
-    }
-    
-    fs.writeFileSync(USER_DATA_FILE, JSON.stringify(users, null, 2));
-    console.log("[CAS Service] Utilisateur mis à jour:", users[userName]);
+    // Sauvegarde ou mise à jour des informations utilisateur dans Supabase
+    const { data, error } = await supabase
+      .from('users')
+      .upsert({
+        username: userName,
+        display_name: displayName || null
+      }, { onConflict: 'username' });
 
-    req.session.user = { userName, casTicket: ticket, displayName };
-    loginService.addLogin(displayName);
+    if (error) {
+      console.error("[CAS Service] Erreur lors de la mise à jour de l'utilisateur:", error);
+    } else {
+      console.log("[CAS Service] Utilisateur mis à jour:", data);
+    }
+
+    // Récupérer l'enregistrement utilisateur complet depuis Supabase
+    const { data: user, error: fetchError } = await supabase
+      .from('users')
+      .select('*') // On sélectionne tout !
+      .eq('username', userName)
+      .single();
+
+    if (fetchError || !user) {
+      console.error("[CAS Service] Erreur lors de la récupération de l'utilisateur complet:", fetchError);
+      return res.status(500).send("Erreur lors de la récupération des informations utilisateur.");
+    }
+
+    // Créer la session avec les données complètes de la BDD
+    req.session.user = {
+      userName: user.username, // Rétablir l'ancien format pour la compatibilité
+      displayName: user.display_name,
+      icalLink: user.ical_link,
+      group: user.group,
+      is_admin: user.is_admin,
+      is_bibli_admin: user.is_bibli_admin // Le champ crucial !
+    };
+
+    if (req.session.rememberMe) {
+      const token = await tokenService.generateToken(userName);
+      if (token) {
+        res.cookie('remember_me', token, {
+          httpOnly: true,
+          secure: process.env.SECURE === 'true',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        });
+      }
+    }
+
+    loginService.addLogin(userName);
     res.redirect(process.env.URL_FRONT);
 
   } catch (error) {

@@ -16,7 +16,7 @@ export const links = [
   },
   {
     name: "Moodle",
-    link: "https://moodle2425.centralelille.fr/login/index.php?authCAS=CAS",
+    link: "https://moodle.centralelille.fr/login/index.php?authCAS=CAS",
     image: process.env.PUBLIC_URL + "/links/moodle.png",
   },
   {
@@ -40,18 +40,18 @@ export const links = [
     image: process.env.PUBLIC_URL + "/links/cla.png",
   },
   {
-    name: "Promo 2027",
-    link: "https://www.facebook.com/groups/admis2024centralelille/",
+    name: "Promo 2028",
+    link: "https://www.facebook.com/groups/1434666387651299/",
     image: process.env.PUBLIC_URL + "/links/facebook.png",
   },
   {
-    name: "Sans Trash 2027",
-    link: "https://www.facebook.com/groups/1931896207233319/",
+    name: "Sans Trash 2028",
+    link: "https://www.facebook.com/groups/2070254817114298/",
     image: process.env.PUBLIC_URL + "/links/sans-trash.png",
   },
   {
-    name: "Black-Out 2027",
-    link: "https://www.facebook.com/groups/536028622198593/",
+    name: "Black-Out 2028",
+    link: "https://www.facebook.com/groups/677452737985961/",
     image: process.env.PUBLIC_URL + "/links/black-out.png",
   },
   {

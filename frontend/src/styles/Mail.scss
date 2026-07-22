@@ -23,10 +23,12 @@ $spacing-lg: 20px;
 .zimbra-auth-container {
   margin: 0 auto;
   padding: $spacing-lg;
-  background-color: lighten($day, 10%);
-  border-radius: $border-radius;
-  border: 1px solid $day-border;
-  @include box-shadow(0, 4px, 12px, rgba(0, 0, 0, 0.1));
+  background:
+    linear-gradient(180deg, rgba(white, 0.96), rgba(white, 0.88)),
+    $background-module;
+  border-radius: $radius-card;
+  border: 1px solid rgba($second, 0.08);
+  box-shadow: $shadow-card;
 
   h2 {
     color: $second;
@@ -42,32 +44,46 @@ $spacing-lg: 20px;
 
     input {
       padding: 12px;
-      border: 1px solid $day-border;
-      border-radius: 6px;
+      border: 1px solid rgba($second, 0.12);
+      border-radius: $radius-control;
       font-size: 1em;
-      background-color: white;
-      @include transition(border-color);
+      background-color: rgba(white, 0.9);
+      transition:
+        border-color 0.16s ease,
+        box-shadow 0.16s ease,
+        background-color 0.16s ease;
 
       &:focus {
         outline: none;
-        border-color: $main;
-        @include box-shadow(0, 0, 0, rgba($main, 0.2));
+        border-color: rgba($main, 0.5);
+        background: white;
+        box-shadow: 0 0 0 4px rgba($main, 0.12);
       }
     }
 
     button {
       margin-top: $spacing-sm;
       padding: 12px;
-      background-color: $main;
+      background-color: var(--color-primary);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: $radius-control;
       font-size: 1em;
+      font-weight: 800;
       cursor: pointer;
-      @include transition(background-color);
+      box-shadow: 0 9px 20px rgba($main, 0.2);
+      transition:
+        background-color 0.16s ease,
+        box-shadow 0.16s ease,
+        transform 0.16s ease;
 
       &:hover {
-        background-color: darken($main, 10%);
+        background-color: var(--color-primary-dark);
+        box-shadow: 0 12px 26px rgba($main, 0.26);
+      }
+
+      &:active {
+        transform: scale(0.985);
       }
     }
   }
@@ -89,10 +105,10 @@ $spacing-lg: 20px;
     color: $second;
 
     &.error {
-      color: $red;
+      color: var(--color-red);
     }
     &.success {
-      color: $green;
+      color: var(--color-green);
     }
   }
 }
@@ -100,11 +116,16 @@ $spacing-lg: 20px;
 // Conteneur de la liste de mails
 .mail-container {
   position: relative;
+  height: calc(
+    100vh - 100px
+  ); // Ajustez 100px en fonction de la hauteur de l'en-tête
+  display: flex;
+  flex-direction: column;
 }
 
 // Liste des mails
 .mail-list {
-  height: 915px;
+  flex: 1;
   overflow-y: auto;
   padding: 0 $spacing-sm 0 0;
   list-style: none;
@@ -121,11 +142,433 @@ $spacing-lg: 20px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $main;
+    background: var(--color-primary);
     border-radius: 4px;
 
     &:hover {
       background: darken($main, 10%);
+    }
+  }
+}
+
+// Split view pour les mails
+.mail-split-view {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  height: 915px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.mail-content-view {
+  overflow-y: auto;
+  padding: $spacing-md;
+  border-left: 1px solid rgba($second, 0.08);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.mail-content {
+  &-title {
+    color: $second;
+    margin: 0 0 12px 0;
+    font-size: 1.2em;
+  }
+
+  &-meta {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid $day-border;
+    font-size: 0.85em;
+    color: lighten($second, 20%);
+  }
+
+  &-author {
+    font-weight: 500;
+  }
+
+  &-body {
+    line-height: 1.5;
+    color: $second;
+    margin-bottom: $spacing-md;
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: underline;
+    }
+  }
+
+  &-action {
+    text-decoration: none !important;
+    margin-top: 12px;
+    padding: 8px 15px;
+    background-color: var(--color-primary);
+    color: white !important;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    display: inline-block;
+    @include transition(background-color);
+
+    &:hover {
+      background-color: darken($main, 10%);
+    }
+  }
+}
+
+.mail-content-empty {
+  color: lighten($second, 20%);
+  font-style: italic;
+  padding: $spacing-lg;
+  text-align: center;
+}
+
+// Modal pour les mails sur mobile
+.mail-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.36);
+  backdrop-filter: blur(10px);
+  z-index: $shell-menu-z;
+}
+
+.mail-modal {
+  width: min(760px, 100%);
+  max-height: min(780px, calc(100dvh - 36px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba($second, 0.1);
+  border-radius: $radius-card;
+  background:
+    linear-gradient(180deg, rgba(white, 0.98), rgba(white, 0.92)),
+    $background-module;
+  box-shadow: $shadow-shell-strong;
+}
+
+.mail-modal-header {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba($second, 0.08);
+  background: rgba(white, 0.74);
+}
+
+.mail-modal-close {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba($second, 0.08);
+  border-radius: 999px;
+  background: rgba(white, 0.86);
+  color: rgba($second, 0.72);
+  cursor: pointer;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+
+  &:hover {
+    border-color: rgba($main, 0.18);
+    background: white;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba($main, 0.14);
+  }
+}
+
+.mail-modal-title {
+  color: $second;
+  margin: 0;
+  font-size: clamp(1.08rem, 4vw, 1.35rem);
+  font-weight: 900;
+  line-height: 1.22;
+  overflow-wrap: anywhere;
+}
+
+.mail-modal-meta {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba($second, 0.08);
+  color: rgba($second, 0.58);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.mail-modal-author {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mail-modal-date {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.mail-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 18px;
+  line-height: 1.62;
+  color: $second;
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+  }
+
+  table {
+    max-width: 100%;
+    border-collapse: collapse;
+  }
+
+  td,
+  th {
+    border: 1px solid rgba($second, 0.12);
+    padding: 8px;
+  }
+}
+
+.mail-modal-loading {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+}
+
+.mail-modal-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+
+.mail-modal-action {
+  min-width: 0;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid rgba($second, 0.1);
+  border-radius: $radius-control;
+  background: rgba(white, 0.88);
+  color: rgba($second, 0.74) !important;
+  font-size: 0.94rem;
+  font-weight: 850;
+  font-family: inherit;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+
+  &:hover {
+    border-color: rgba($main, 0.18);
+    background: white;
+    color: $second !important;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba($main, 0.14);
+  }
+}
+
+.mail-modal-action-close {
+  margin-left: auto;
+  background: rgba($second, 0.08);
+  border-color: rgba($second, 0.1);
+  color: rgba($second, 0.74) !important;
+  box-shadow: none;
+
+  &:hover {
+    background: rgba($second, 0.12);
+    border-color: rgba($second, 0.16);
+    color: $second !important;
+  }
+}
+
+.mail-modal-action-zimbra {
+  flex: 0 1 auto;
+}
+
+@media (max-width: 768px) {
+  .mail-modal-overlay {
+    align-items: stretch;
+    padding: 0;
+    background: #f4f6fb;
+    backdrop-filter: none;
+  }
+
+  .mail-modal {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    background: #f4f6fb;
+    box-shadow: none;
+  }
+
+  .mail-modal-header {
+    flex: 0 0 auto;
+    margin: 10px 10px 0;
+    padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+    border: 1px solid rgba($second, 0.07);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    background: white;
+    backdrop-filter: none;
+  }
+
+  .mail-modal-eyebrow {
+    margin-bottom: 2px;
+    font-size: 0.62rem;
+  }
+
+  .mail-modal-title {
+    display: -webkit-box;
+    overflow: hidden;
+    color: $second;
+    font-size: 1.02rem;
+    line-height: 1.15;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .mail-modal-close {
+    width: 34px;
+    height: 34px;
+    border-color: rgba($second, 0.08);
+    background: #f7f8fb;
+    font-size: 1.2rem;
+  }
+
+  .mail-modal-meta {
+    flex-direction: column;
+    gap: 3px;
+    margin: 0 10px;
+    padding: 9px 14px 10px;
+    border: 1px solid rgba($second, 0.07);
+    border-top: 1px solid rgba($second, 0.05);
+    border-bottom: 0;
+    background: white;
+    font-size: 0.76rem;
+  }
+
+  .mail-modal-date {
+    white-space: normal;
+  }
+
+  .mail-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0 10px;
+    padding: 14px;
+    border: 1px solid rgba($second, 0.07);
+    border-top: 0;
+    border-radius: 0 0 18px 18px;
+    background: white;
+    color: rgba($second, 0.92);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .mail-modal-actions {
+    flex: 0 0 auto;
+    justify-content: stretch;
+    gap: 8px;
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    background: #f4f6fb;
+    box-shadow: none;
+  }
+
+  .mail-modal-action {
+    min-height: 46px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 0.84rem;
+    box-shadow: none;
+  }
+
+  .mail-modal-action-close {
+    flex: 0 0 auto;
+    min-width: 96px;
+    margin-left: auto;
+    background: #e8ebf0;
+    border-color: #dfe3ea;
+  }
+
+  .mail-modal-action-zimbra {
+    flex: 0 1 auto;
+    background: transparent;
+    border-color: rgba($second, 0.1);
+    color: rgba($second, 0.62) !important;
+    font-size: 0.78rem;
+    font-weight: 800;
+
+    &:hover {
+      background: rgba(white, 0.62);
+      color: rgba($second, 0.78) !important;
+      transform: none;
     }
   }
 }
@@ -205,7 +648,7 @@ $spacing-lg: 20px;
     }
 
     a {
-      color: $main;
+      color: var(--color-primary);
       text-decoration: underline;
     }
   }
@@ -214,7 +657,7 @@ $spacing-lg: 20px;
     text-decoration: none !important;
     margin-top: 12px;
     padding: 8px 15px;
-    background-color: $main;
+    background-color: var(--color-primary);
     color: white !important;
     border: none;
     border-radius: 6px;
@@ -239,7 +682,7 @@ $spacing-lg: 20px;
       content: "";
       width: 20px;
       height: 20px;
-      border: 2px solid $main;
+      border: 2px solid var(--color-primary);
       border-radius: 50%;
       border-top-color: transparent;
       animation: spin 0.6s linear infinite;
@@ -247,7 +690,7 @@ $spacing-lg: 20px;
   }
 
   &__error {
-    color: $red;
+    color: var(--color-red);
     font-style: italic;
   }
 }

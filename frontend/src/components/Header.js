@@ -1,96 +1,87 @@
-import { Info, Menu } from "lucide-react";
-import React, { useContext, useEffect, useState } from "react";
-import { UserContext } from "../App";
-import SlideMenu from "./SlideMenu";
+import { Menu } from "lucide-react";
+import { motion } from "framer-motion";
+// import { useContext } from "react";
+// import { UserContext } from "../App";
 
 /**
  * Composant Header - Barre de navigation principale de l'application
  * Affiche le logo, le menu et les informations de classement de l'utilisateur
  */
-export default function Header() {
-  // États locaux
-  const [scrolled, setScrolled] = useState(false); // État de défilement de la page
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // État d'ouverture du menu
-  const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
+export default function Header({ onMenuToggle }) {
+  // Classement temporairement masque.
+  // const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
 
   // Récupération du nom d'utilisateur depuis le contexte
-  const { displayName } = useContext(UserContext);
+  // const { user } = useContext(UserContext);
+  // const displayName = user?.displayName || user?.userName;
 
-  /**
-   * Récupère les informations de classement depuis l'API
-   * @returns {Promise<Object|null>} Données de classement ou null en cas d'erreur
-   */
-  const getRankingInfo = async () => {
-    try {
-      const response = await fetch(`/api/ranking/`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Erreur réseau");
-      return await response.json();
-    } catch (error) {
-      console.error("Erreur lors de la récupération du classement:", error);
-      return null;
-    }
-  };
+  // /**
+  //  * Récupère les informations de classement depuis l'API
+  //  * @returns {Promise<Object|null>} Données de classement ou null en cas d'erreur
+  //  */
+  // const getRankingInfo = async () => {
+  //   try {
+  //     const response = await fetch(`/api/ranking/`, {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+  //     if (!response.ok) throw new Error("Erreur réseau");
+  //     return await response.json();
+  //   } catch (error) {
+  //     console.error("Erreur lors de la récupération du classement:", error);
+  //     return null;
+  //   }
+  // };
 
-  // Effet pour gérer le scroll de la page
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 0);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Effet pour récupérer les informations de classement
-  useEffect(() => {
-    const fetchRanking = async () => {
-      if (displayName) {
-        const info = await getRankingInfo();
-        setRankingInfo(info);
-      }
-    };
-    fetchRanking();
-  }, [displayName]);
-
-  // Gestion de l'ouverture/fermeture du menu
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  // // Effet pour récupérer les informations de classement
+  // useEffect(() => {
+  //   const fetchRanking = async () => {
+  //     if (displayName) {
+  //       const info = await getRankingInfo();
+  //       setRankingInfo(info);
+  //     }
+  //   };
+  //   fetchRanking();
+  // }, [displayName]);
 
   return (
-    <>
-      <header
-        className={`header ${scrolled ? "scrolled" : ""}`}
-        onClick={toggleMenu}
-        style={{ cursor: "pointer" }}
-      >
-        {/* Bouton du menu hamburger */}
-        <button
-          className="header__menu-button"
-          onClick={(e) => {
-            e.stopPropagation(); // Empêcher la propagation du clic au header
-            toggleMenu();
-          }}
-          aria-label="Menu"
+    <motion.header
+      className="app-header"
+      initial={{ opacity: 0, y: -14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.26, ease: "easeOut" }}
+    >
+      <div className="app-header-inner">
+        <motion.button
+          type="button"
+          className="app-header-menu"
+          onClick={onMenuToggle}
+          aria-label="Ouvrir le menu"
+          whileTap={{ scale: 0.94 }}
         >
-          <Menu />
-        </button>
+          <Menu size={22} />
+        </motion.button>
 
-        {/* Logo et titre */}
-        <div className="header-link">
-          <img src={"logo-title.png"} className="header-logo" alt="logo" />
-          <h1 className="header-title">Centraliz</h1>
-          <span className="header-domain-suffix">.it</span>
+        <div className="app-header-brand" aria-label="Centraliz.it">
+          <span className="app-header-logo-frame">
+            <img src={"/logo-title.png"} className="app-header-logo" alt="" />
+          </span>
+          <div className="app-header-wordmark">
+            <span>Centraliz</span>
+            <small>.it</small>
+          </div>
         </div>
 
-        {/* Affichage du classement si disponible */}
-        {rankingInfo && (
+        {/* {rankingInfo && (
           <div
-            className="header-ranking"
-            onClick={(e) => e.stopPropagation()} // Empêcher la fermeture du menu quand on clique sur les infos de classement
+            className="app-header-ranking"
+            onClick={(e) => e.stopPropagation()}
           >
-            <span className="ranking-text">{rankingInfo.message}</span>
-            <div className="info-icon">
-              <Info size={18} />
-              <div className="info-tooltip">
+            <span className="ranking-short">Top {rankingInfo.rank}</span>
+            <span className="ranking-message">{rankingInfo.message}</span>
+            <div className="ranking-info">
+              <Info size={16} />
+              <div className="ranking-tooltip">
                 <p>Calculé sur le nombre de jours de connexion uniques</p>
                 <p>
                   Votre score : <strong>{rankingInfo.userScore}</strong> jours
@@ -99,11 +90,8 @@ export default function Header() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Menu latéral - toujours présent dans le DOM mais contrôlé par isOpen */}
-        <SlideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-      </header>
-    </>
+        )} */}
+      </div>
+    </motion.header>
   );
 }

@@ -1,8 +1,131 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
-exports.downloadCSV = async (username, password) => {
+const AURION_HOST = "webaurion.centralelille.fr";
+const PUPPETEER_NETWORK_DEBUG = /^true$/i.test(
+  process.env.PUPPETEER_NETWORK_DEBUG || "",
+);
+
+const maskSensitiveValue = (value) => {
+  const raw = String(value || "");
+  if (raw.length <= 8) {
+    return `${raw.slice(0, 2)}***`;
+  }
+
+  return `${raw.slice(0, 4)}***${raw.slice(-2)}`;
+};
+
+const sanitizePostData = (postData) => {
+  if (!postData) {
+    return null;
+  }
+
+  return String(postData)
+    .replace(/(password=)([^&]+)/gi, (_, prefix) => `${prefix}***`)
+    .replace(/(username=)([^&]+)/gi, (_, prefix, value) => {
+      try {
+        return `${prefix}${maskSensitiveValue(decodeURIComponent(value))}`;
+      } catch (error) {
+        return `${prefix}***`;
+      }
+    });
+};
+
+const summarizeHeaders = (headers = {}) => {
+  const keysToKeep = [
+    "content-type",
+    "content-disposition",
+    "location",
+    "faces-request",
+    "x-requested-with",
+  ];
+
+  return Object.fromEntries(
+    Object.entries(headers).filter(([key]) =>
+      keysToKeep.includes(String(key).toLowerCase()),
+    ),
+  );
+};
+
+const shouldLogRequest = (url, headers = {}) => {
+  return (
+    String(url || "").includes(AURION_HOST) ||
+    Boolean(headers["content-disposition"]) ||
+    Boolean(headers["Content-Disposition"])
+  );
+};
+
+const attachNetworkDebug = async (page) => {
+  if (!PUPPETEER_NETWORK_DEBUG) {
+    return page.target().createCDPSession();
+  }
+
+  const cdp = await page.target().createCDPSession();
+  await cdp.send("Network.enable");
+
+  page.on("request", (request) => {
+    const url = request.url();
+    if (!shouldLogRequest(url)) {
+      return;
+    }
+
+    console.log("[Puppeteer][request]", {
+      method: request.method(),
+      resourceType: request.resourceType(),
+      url,
+      postData: sanitizePostData(request.postData()),
+      headers: summarizeHeaders(request.headers()),
+    });
+  });
+
+  page.on("response", async (response) => {
+    const url = response.url();
+    const headers = response.headers();
+    if (!shouldLogRequest(url, headers)) {
+      return;
+    }
+
+    console.log("[Puppeteer][response]", {
+      status: response.status(),
+      url,
+      headers: summarizeHeaders(headers),
+    });
+  });
+
+  page.on("requestfailed", (request) => {
+    const url = request.url();
+    if (!shouldLogRequest(url)) {
+      return;
+    }
+
+    console.warn("[Puppeteer][requestfailed]", {
+      method: request.method(),
+      url,
+      failure: request.failure()?.errorText || "unknown",
+    });
+  });
+
+  cdp.on("Page.downloadWillBegin", (event) => {
+    console.log("[Puppeteer][downloadWillBegin]", {
+      url: event.url,
+      suggestedFilename: event.suggestedFilename,
+    });
+  });
+
+  cdp.on("Page.downloadProgress", (event) => {
+    console.log("[Puppeteer][downloadProgress]", {
+      state: event.state,
+      receivedBytes: event.receivedBytes,
+      totalBytes: event.totalBytes,
+    });
+  });
+
+  return cdp;
+};
+
+exports.downloadCSV = async (username, password, options = {}) => {
   console.log("Launching soon...");
   const browser = await puppeteer.launch({
     headless: true,
@@ -12,16 +135,17 @@ exports.downloadCSV = async (username, password) => {
   console.log("Launching browser...");
 
   const page = await browser.newPage();
+  const requestId = options.requestId || Date.now().toString(36);
+  const downloadPath = fs.mkdtempSync(
+    path.join(os.tmpdir(), "centraliz-notes-"),
+  );
 
   console.log("Launching new page...");
 
   try {
     // Set up download behavior
-    const downloadPath = path.resolve(__dirname, "downloads");
-    if (!fs.existsSync(downloadPath)) {
-      fs.mkdirSync(downloadPath);
-    }
-    await page._client().send("Page.setDownloadBehavior", {
+    const cdp = await attachNetworkDebug(page);
+    await cdp.send("Page.setDownloadBehavior", {
       behavior: "allow",
       downloadPath: downloadPath,
     });
@@ -44,10 +168,22 @@ exports.downloadCSV = async (username, password) => {
     console.log("Logged in successfully");
 
     // Wait for sidebar and click through to export the CSV
-    await page.waitForSelector("#form\\:sidebar", {
-      visible: true,
-      timeout: 10000,
-    });
+    try {
+      await page.waitForSelector("#form\\:sidebar", {
+        visible: true,
+        timeout: 10000,
+      });
+    } catch (error) {
+      const authError = new Error(
+        "Impossible de se connecter a WebAurion avec ces identifiants",
+      );
+      authError.code = "ENT_AUTH_FAILED";
+      authError.details = {
+        step: "wait_sidebar_after_login",
+        originalMessage: error.message,
+      };
+      throw authError;
+    }
     console.log("Sidebar loaded");
 
     const resultSelector =
@@ -89,19 +225,22 @@ exports.downloadCSV = async (username, password) => {
     await page.waitForSelector(csvSelector, { visible: true, timeout: 10000 });
     await page.click(csvSelector);
     console.log("Clicked on the csv element");
+    if (PUPPETEER_NETWORK_DEBUG) {
+      console.log("[Puppeteer] Current page after CSV click:", page.url());
+    }
 
     // Wait for the file to be downloaded
-    const waitForFileDownload = async (downloadPath, fileName) => {
+    const waitForFileDownload = async (downloadPath) => {
       return new Promise((resolve, reject) => {
-        const checkInterval = 1000; // Check every 1 second
+        const checkInterval = 500;
         const timeout = 30000; // Timeout after 30 seconds
         let timeElapsed = 0;
 
         const intervalId = setInterval(() => {
-          const files = fs.readdirSync(downloadPath);
-          const foundFile = files.find(
-            (file) => file.startsWith(fileName) && file.endsWith(".csv")
-          );
+          const files = fs
+            .readdirSync(downloadPath)
+            .filter((file) => file.endsWith(".csv"));
+          const foundFile = files[0];
 
           if (foundFile) {
             clearInterval(intervalId);
@@ -117,15 +256,15 @@ exports.downloadCSV = async (username, password) => {
       });
     };
 
-    const csvFile = await waitForFileDownload(
-      downloadPath,
-      "Mes Notes aux épreuves"
-    );
+    const csvFile = await waitForFileDownload(downloadPath);
 
     if (csvFile) {
       console.log("CSV downloaded:", csvFile);
       const oldPath = csvFile;
-      const newFileName = `${username}_notes.csv`;
+      const safeUsername = String(username || "unknown")
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]+/g, "_");
+      const newFileName = `${safeUsername}_notes_${requestId}.csv`;
       const newPath = path.resolve(downloadPath, newFileName);
 
       // Remove existing file if it exists

@@ -1,23 +1,82 @@
-$main: #597ee5;
-$main-dark: #4267ce;
-$first: #000;
-$second: #2c3e50;
-$day: #f7f7f7;
-$day-border: #ddd;
-$green: #49c16b;
-$orange: #ff9800;
-$red: #e65656;
-$background: #efece6;
-$background-module: #fafafa;
+:root {
+  --color-primary: #597ee5;
+  --color-primary-dark: #4267ce;
+  --color-first: #000;
+  --color-second: #2c3e50;
+  --color-day: #f7f7f7;
+  --color-day-border: #ddd;
+  --color-green: #49c16b;
+  --color-orange: #ff9800;
+  --color-red: #e65656;
+  --color-background: #efece6;
+  --color-background-module: #fafafa;
+}
+
+// Variables SCSS avec les valeurs réelles (pour les fonctions SCSS comme darken/lighten)
+$main-hex: #597ee5;
+$main-dark-hex: #4267ce;
+$first-hex: #000;
+$second-hex: #2c3e50;
+$day-hex: #f7f7f7;
+$day-border-hex: #ddd;
+$green-hex: #49c16b;
+$orange-hex: #ff9800;
+$red-hex: #e65656;
+$background-hex: #efece6;
+$background-module-hex: #fafafa;
+
+// Variables SCSS pour utilisation directe dans les fonctions darken/lighten
+// Ces variables utilisent les valeurs hex pour que SCSS puisse les traiter
+$main: $main-hex;
+$main-dark: $main-dark-hex;
+$first: $first-hex;
+$second: $second-hex;
+$day: $day-hex;
+$day-border: $day-border-hex;
+$green: $green-hex;
+$orange: $orange-hex;
+$red: $red-hex;
+$background: $background-hex;
+$background-module: $background-module-hex;
+
+// Variables CSS dynamiques pour utilisation directe (pas dans les fonctions SCSS)
+$main-dynamic: var(--color-primary);
+$main-dark-dynamic: var(--color-primary-dark);
+$green-dynamic: var(--color-green);
+$orange-dynamic: var(--color-orange);
+$red-dynamic: var(--color-red);
+
+// Mixin pour utiliser les CSS variables comme fallback
+@mixin use-dynamic-color($property, $css-var, $hex-var) {
+  #{$property}: $hex-var; // Fallback pour les anciens navigateurs
+  #{$property}: var(#{$css-var});
+}
+
+// Fonction pour obtenir une couleur dynamique avec fallback
+@function dynamic-color($css-var, $fallback) {
+  @return var(#{$css-var}, #{$fallback});
+}
 
 // Variables communes pour les composants
-$border-radius: 25px;
-$gap: 20px;
+$border-radius: 16px;
+$gap: 16px;
 $transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 $transition-duration: 0.4s;
 $transition: all $transition-duration $transition-timing;
-$shadow-default: 0 8px 20px rgba(0, 0, 0, 0.08);
-$shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
+$shadow-default: 0 10px 26px rgba($second, 0.08);
+$shadow-hover: 0 16px 36px rgba($second, 0.13);
+$shell-header-z: 90;
+$shell-menu-z: 120;
+$shell-nav-z: 80;
+$radius-shell: 18px;
+$radius-control: 12px;
+$radius-card: 14px;
+$shadow-shell: 0 14px 34px rgba($second, 0.12);
+$shadow-shell-strong: 0 24px 60px rgba($second, 0.18);
+$shadow-card: 0 10px 28px rgba($second, 0.08);
+$shadow-card-hover: 0 16px 36px rgba($second, 0.12);
+$glass-white: rgba(255, 255, 255, 0.86);
+$glass-blue: rgba($main-dark, 0.88);
 
 * {
   padding: 0;
@@ -26,8 +85,11 @@ $shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.15);
 }
 
 body {
-  background: $day;
+  background:
+    radial-gradient(circle at 50% -12rem, rgba($main, 0.13), transparent 28rem),
+    linear-gradient(180deg, #f6f8ff 0%, $day 42%, #f8fafc 100%);
   font-family: sans-serif;
+  color: $second;
 }
 
 li {
@@ -35,12 +97,14 @@ li {
 }
 
 .module-title {
-  font-size: 1.5em;
+  font-size: 1.35rem;
   color: $second;
-  margin-bottom: 5px;
+  margin-bottom: 0.75rem;
   text-align: center;
-  border-bottom: 2px solid $second;
-  padding-bottom: 5px;
+  border-bottom: 1px solid rgba($second, 0.1);
+  padding-bottom: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
 // Mixin pour les wrappers flexibles
@@ -56,18 +120,16 @@ li {
 
 // Style de base pour les cartes
 %card {
-  border-radius: $border-radius;
-  padding: 15px;
-  box-shadow: $shadow-default;
-  transition: $transition;
+  border: 1px solid rgba($second, 0.08);
+  border-radius: $radius-card;
+  padding: 16px;
+  box-shadow: $shadow-card;
   position: relative;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: $shadow-hover;
-  }
+  background:
+    linear-gradient(180deg, rgba(white, 0.94), rgba(white, 0.86)),
+    $background-module;
 
   @media (max-width: 768px) {
-    padding: 15px;
+    padding: 12px;
   }
 }

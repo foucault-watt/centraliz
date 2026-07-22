@@ -2,10 +2,20 @@ const fs = require("fs");
 const path = require("path");
 const ExcelJS = require('exceljs');
 
-const getUserGroup = (userName) => {
-  const usersPath = path.join(__dirname, "../data/users.json");
-  const users = JSON.parse(fs.readFileSync(usersPath, "utf-8"));
-  return users[userName]?.group;
+const supabase = require('../utils/supabaseClient');
+
+const getUserGroup = async (userName) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('group')
+    .eq('username', userName)
+    .single();
+
+  if (error) {
+    console.error('Error fetching user group:', error);
+    return null;
+  }
+  return data?.group;
 };
 
 const getEvaluationConfig = (userGroup) => {

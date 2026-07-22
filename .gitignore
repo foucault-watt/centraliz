@@ -8,3 +8,22 @@ logins.json
 evaluations.json
 mdp.json
 backend/src/data/leaderboard.json
+.gradle
+
+# Configuration et données privées du serveur de jeu
+game-runner/config/game-runner.env
+game-runner/logs/
+game-runner/roms/
+game-runner/state/
+
+# Artifacts de build Android
+*.aab
+*.apk
+*.idsig
+
+# Keystores (ne jamais versionner un keystore)
+*.keystore
+
+profile-photos
+books.csv
+backend-*.log

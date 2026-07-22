@@ -1,0 +1,16 @@
+[Unit]
+Description=Centraliz game window manager
+Requires=centraliz-xvfb.service
+After=centraliz-xvfb.service
+
+[Service]
+Type=simple
+User=@RUN_USER@
+Environment=HOME=@RUN_HOME@
+Environment=GAME_RUNNER_DIR=@GAME_RUNNER_DIR@
+ExecStart=@GAME_RUNNER_DIR@/bin/start-openbox.sh
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

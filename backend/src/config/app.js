@@ -14,10 +14,21 @@ const publicRoutes = require("../routes/publicData");
 const evaRoutes = require("../routes/eva");
 const statsRoutes = require("../routes/stats");
 const rankRoutes = require("../routes/ranking");
-const coefRoutes = require('../routes/coef');
+const coefRoutes = require("../routes/coef");
+const gradesRoutes = require("../routes/grades");
+const cekiRoutes = require("../routes/ceki");
+const bibliRoutes = require("../routes/bibli");
+const bdsRoutes = require("../routes/bds");
+const eventsRoutes = require("../routes/events");
+const analyticsRoutes = require("../routes/analytics");
+const pokemonRoutes = require("../routes/pokemon");
+const campaignsRoutes = require("../routes/campaigns");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
+
+// Faire confiance au premier proxy (nécessaire pour ngrok et le déploiement)
+app.set("trust proxy", 1);
 
 // Utiliser Helmet pour sécuriser les en-têtes HTTP
 app.use(helmet());
@@ -34,14 +45,14 @@ app.use(
         logService.log(`HTTP: ${message.trim()}`);
       },
     },
-  })
+  }),
 );
 
 app.use(
   cors({
     origin: `${process.env.URL_FRONT}`, // Remplacez par l'URL de votre frontend
     credentials: true,
-  })
+  }),
 );
 
 app.use(
@@ -52,9 +63,9 @@ app.use(
     cookie: {
       secure: process.env.SECURE === "true", // Mettez à true en production avec HTTPS
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.COOKIE_SAMESITE || "lax", // 'lax' par défaut, 'none' pour ngrok
     },
-  })
+  }),
 );
 
 app.use(express.json());
@@ -70,11 +81,19 @@ app.use("/api", publicRoutes);
 app.use("/api/eva", evaRoutes);
 app.use("/api", statsRoutes);
 app.use("/api", rankRoutes);
-app.use('/api/coef', coefRoutes);
+app.use("/api/coef", coefRoutes);
+app.use("/api/grades", gradesRoutes);
+app.use("/api/ceki", cekiRoutes);
+app.use("/api/bibli", bibliRoutes);
+app.use("/api/bds", bdsRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/pokemon", pokemonRoutes);
+app.use("/api/campaigns", campaignsRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
-  res.send("CRASH");
+  res.send("Le serveur va planter maintenant, planter comme un navet.");
   process.exit(1);
 });
 

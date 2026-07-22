@@ -1,0 +1,15 @@
+[Unit]
+Description=Centraliz game virtual display
+After=network.target
+
+[Service]
+Type=simple
+User=@RUN_USER@
+Environment=HOME=@RUN_HOME@
+Environment=GAME_RUNNER_DIR=@GAME_RUNNER_DIR@
+ExecStart=@GAME_RUNNER_DIR@/bin/start-xvfb.sh
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

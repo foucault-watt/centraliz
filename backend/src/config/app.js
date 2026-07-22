@@ -55,18 +55,20 @@ app.use(
   }),
 );
 
-app.use(
-  session({
-    secret: "monfpizengpzeogn", // Remplacez par une clé secrète sécurisée
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.SECURE === "true", // Mettez à true en production avec HTTPS
-      httpOnly: true,
-      sameSite: process.env.COOKIE_SAMESITE || "lax", // 'lax' par défaut, 'none' pour ngrok
-    },
-  }),
-);
+// Extrait dans une variable pour que le serveur WebSocket puisse rejouer
+// exactement le même middleware (même secret, même store) sur les upgrades.
+const sessionMiddleware = session({
+  secret: "monfpizengpzeogn", // Remplacez par une clé secrète sécurisée
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.SECURE === "true", // Mettez à true en production avec HTTPS
+    httpOnly: true,
+    sameSite: process.env.COOKIE_SAMESITE || "lax", // 'lax' par défaut, 'none' pour ngrok
+  },
+});
+
+app.use(sessionMiddleware);
 
 app.use(express.json());
 
@@ -103,4 +105,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Une erreur est survenue" });
 });
 
-module.exports = app;
+module.exports = { app, sessionMiddleware };

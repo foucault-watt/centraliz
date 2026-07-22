@@ -9,6 +9,18 @@ router.get("/status", (req, res) => {
   });
 });
 
+const logout = (req, res) => {
+  req.session.destroy((error) => {
+    if (error) {
+      return res.status(500).json({ error: "Erreur lors de la déconnexion" });
+    }
+    res.clearCookie("connect.sid");
+    return res.status(204).send();
+  });
+};
+
 router.get("/login", casService.login);
 router.get("/callback", casService.callback);
+router.post("/logout", logout);
+router.get("/logout", logout);
 module.exports = router;

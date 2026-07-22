@@ -10,6 +10,12 @@ mdp.json
 backend/src/data/leaderboard.json
 .gradle
 
+# Configuration et données privées du serveur de jeu
+game-runner/config/game-runner.env
+game-runner/logs/
+game-runner/roms/
+game-runner/state/
+
 # Artifacts de build Android
 *.aab
 *.apk

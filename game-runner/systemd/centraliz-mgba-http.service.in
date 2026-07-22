@@ -1,0 +1,17 @@
+[Unit]
+Description=Centraliz mGBA HTTP bridge
+Requires=centraliz-gba.service
+After=centraliz-gba.service
+
+[Service]
+Type=simple
+User=@RUN_USER@
+Environment=HOME=@RUN_HOME@
+Environment=GAME_RUNNER_DIR=@GAME_RUNNER_DIR@
+ExecStartPre=@GAME_RUNNER_DIR@/bin/healthcheck.sh --lua
+ExecStart=@GAME_RUNNER_DIR@/bin/start-mgba-http.sh
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

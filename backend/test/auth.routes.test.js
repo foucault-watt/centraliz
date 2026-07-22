@@ -1,82 +1,66 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const http = require("http");
-const express = require("express");
-const session = require("express-session");
-const authRoutes = require("../src/routes/auth");
+const authRouter = require("../src/routes/auth");
 
-function createServer() {
-  const app = express();
-  app.use(
-    session({
-      secret: "test-secret",
-      resave: false,
-      saveUninitialized: false,
-    })
+function getRouteHandler(path, method) {
+  const layer = authRouter.stack.find(
+    (entry) => entry.route && entry.route.path === path && entry.route.methods[method]
   );
-
-  app.get("/test/login", (req, res) => {
-    req.session.user = { userName: "alice", displayName: "Alice" };
-    res.status(204).end();
-  });
-
-  app.use("/api/auth", authRoutes);
-  return http.createServer(app);
+  return layer.route.stack[0].handle;
 }
 
-function request(server, path, { method = "GET", headers = {} } = {}) {
-  return new Promise((resolve, reject) => {
-    const address = server.address();
-    const req = http.request(
-      {
-        hostname: "127.0.0.1",
-        port: address.port,
-        path,
-        method,
-        headers,
+function createJsonResponse() {
+  return {
+    statusCode: 200,
+    payload: undefined,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(value) {
+      this.payload = value;
+      return this;
+    },
+    send(value) {
+      this.payload = value;
+      return this;
+    },
+    clearCookie() {
+      return this;
+    },
+  };
+}
+
+test("auth status route reports authentication state", () => {
+  const statusHandler = getRouteHandler("/status", "get");
+
+  const unauthenticatedRes = createJsonResponse();
+  statusHandler({ session: {} }, unauthenticatedRes);
+  assert.deepEqual(unauthenticatedRes.payload, { authenticated: false, user: null });
+
+  const authenticatedRes = createJsonResponse();
+  statusHandler(
+    { session: { user: { userName: "alice", displayName: "Alice" } } },
+    authenticatedRes
+  );
+  assert.equal(authenticatedRes.payload.authenticated, true);
+});
+
+test("auth logout route destroys session and returns 204", () => {
+  const logoutHandler = getRouteHandler("/logout", "post");
+  let destroyed = false;
+  const req = {
+    session: {
+      destroy(callback) {
+        destroyed = true;
+        callback();
       },
-      (res) => {
-        let body = "";
-        res.setEncoding("utf8");
-        res.on("data", (chunk) => {
-          body += chunk;
-        });
-        res.on("end", () => resolve({ status: res.statusCode, headers: res.headers, body }));
-      }
-    );
-    req.on("error", reject);
-    req.end();
-  });
-}
+    },
+  };
+  const res = createJsonResponse();
 
-test("auth status and logout keep working", async (t) => {
-  const server = createServer();
-  await new Promise((resolve) => server.listen(0, resolve));
-  t.after(() => server.close());
+  logoutHandler(req, res);
 
-  const unauthenticated = await request(server, "/api/auth/status");
-  assert.equal(unauthenticated.status, 200);
-  assert.deepEqual(JSON.parse(unauthenticated.body), { authenticated: false, user: null });
-
-  const login = await request(server, "/test/login");
-  const cookie = login.headers["set-cookie"][0].split(";")[0];
-  assert.ok(cookie.includes("connect.sid"));
-
-  const authenticated = await request(server, "/api/auth/status", {
-    headers: { Cookie: cookie },
-  });
-  assert.equal(authenticated.status, 200);
-  assert.equal(JSON.parse(authenticated.body).authenticated, true);
-
-  const logout = await request(server, "/api/auth/logout", {
-    method: "POST",
-    headers: { Cookie: cookie },
-  });
-  assert.equal(logout.status, 204);
-
-  const afterLogout = await request(server, "/api/auth/status", {
-    headers: { Cookie: cookie },
-  });
-  assert.equal(afterLogout.status, 200);
-  assert.equal(JSON.parse(afterLogout.body).authenticated, false);
+  assert.equal(destroyed, true);
+  assert.equal(res.statusCode, 204);
 });

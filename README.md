@@ -17,6 +17,18 @@ Centraliz, le site indispensable pour que tu te concentres sur l’essentiel : a
 
 Centraliz est maintenant une Progressive Web App (PWA). Tu peux l'installer sur ton appareil pour un accès rapide et une expérience utilisateur améliorée.
 
+## ⚙️ Configuration backend (sessions)
+
+Les sessions backend utilisent Redis et nécessitent une configuration par variables d’environnement (ne pas versionner de secrets) :
+
+- `SESSION_SECRET` : secret de signature des sessions Express.
+- `REDIS_URL` : URL de connexion Redis (ex: `redis://host:6379`).
+- `URL_FRONT` : origine frontend autorisée en CORS.
+- `URL_BACK` : URL backend utilisée pour le callback CAS.
+- `SECURE` : `true` en HTTPS, sinon `false` (cookie de session).
+
+Le serveur backend refuse de démarrer si `SESSION_SECRET` ou `REDIS_URL` est absent/invalide, ou si Redis est inaccessible.
+
 ## 👤 Auteur
 
 - **Foucault Wattinne**  

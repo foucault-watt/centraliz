@@ -12,15 +12,9 @@ const allowedFiles = [
   "evaluations.json",
   "leaderboard.json",
   "coef.json",
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
   "jazz.json",
   "aprem.json",
   "cads-users.json",
->>>>>>> Stashed changes
 ];
 
 router.get(`/public-data/${process.env.SECRET_API}/last`, (req, res) => {

@@ -67,7 +67,7 @@ router.get("/frame", authMiddleware, async (req, res) => {
   try {
     const frame = pokemonService.getFrameBuffer();
 
-    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Content-Type", `image/${frame.format}`);
     res.setHeader(
       "Cache-Control",
       "no-store, no-cache, must-revalidate, proxy-revalidate"

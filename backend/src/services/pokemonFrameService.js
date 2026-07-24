@@ -1,37 +1,51 @@
 const fs = require("fs").promises;
 const path = require("path");
+const sharp = require("sharp");
 const mgbaClient = require("./mgbaClient");
 
-const DEFAULT_INTERVAL_MS = 250;
-const DEFAULT_FRAME_FORMAT = "png";
+const RAW_CAPTURE_FORMAT = "png";
+const OUTPUT_FORMAT = "webp";
+const DEFAULT_INTERVAL_MS = 100; // 10 FPS
 const DEFAULT_WIDTH = 240;
 const DEFAULT_HEIGHT = 160;
 const FILE_WAIT_TIMEOUT_MS = 1500;
 const FILE_WAIT_INTERVAL_MS = 75;
 
-const DEFAULT_OUTPUT_PATH = path.join(
+const DEFAULT_CAPTURE_PATH = path.join(
   __dirname,
   "..",
   "data",
   "pokemon-stream",
-  `latest.${DEFAULT_FRAME_FORMAT}`
+  `latest.${RAW_CAPTURE_FORMAT}`
 );
 
-const configuredOutputPath =
-  process.env.POKEMON_FRAME_OUTPUT_PATH || DEFAULT_OUTPUT_PATH;
-const configuredFrameFormat =
-  String(process.env.POKEMON_FRAME_FORMAT || DEFAULT_FRAME_FORMAT).toLowerCase() ||
-  DEFAULT_FRAME_FORMAT;
+// Chemin tel que Node lit le fichier de capture (toujours le disque local
+// de Node). En production, Node et mGBA-http tournent sur le même hôte
+// Linux, donc c'est aussi le chemin que voit mGBA-http. En dev (Node sous
+// Windows natif, mGBA-http dans WSL), ce chemin doit rester quelque part
+// sous le disque Windows monté (ex. dans le dépôt) : WSL y accède alors via
+// /mnt/c/... (drvfs, passthrough direct, sans cache), jamais via
+// \\wsl.localhost\... (chemin réseau mis en cache côté Windows, qui ne
+// reflète pas les réécritures fréquentes du fichier — testé et confirmé).
+const nodeFramePath =
+  process.env.POKEMON_NODE_FRAME_PATH || DEFAULT_CAPTURE_PATH;
+
+// Chemin tel que mGBA-http doit écrire ce même fichier, vu depuis là où il
+// tourne. Par défaut identique à nodeFramePath (hôte unique, prod). En dev,
+// pointer vers l'équivalent /mnt/c/... du chemin ci-dessus.
+const mgbaCapturePath =
+  process.env.POKEMON_MGBA_CAPTURE_PATH || nodeFramePath;
+
 const configuredIntervalMs = Math.max(
   parseInt(process.env.POKEMON_FRAME_INTERVAL_MS, 10) || DEFAULT_INTERVAL_MS,
-  250
+  100
 );
 
 const state = {
   status: "starting",
   lastFrameAt: null,
   intervalMs: configuredIntervalMs,
-  format: configuredFrameFormat,
+  format: OUTPUT_FORMAT,
   width: DEFAULT_WIDTH,
   height: DEFAULT_HEIGHT,
   error: "",
@@ -47,30 +61,8 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function toWslPathFromWindowsPath(filePath) {
-  const driveMatch = String(filePath).match(/^([A-Za-z]):\\(.*)$/);
-  if (!driveMatch) {
-    return String(filePath).replace(/\\/g, "/");
-  }
-
-  const [, driveLetter, rest] = driveMatch;
-  return `/mnt/${driveLetter.toLowerCase()}/${rest.replace(/\\/g, "/")}`;
-}
-
-function resolveCapturePath() {
-  if (process.env.POKEMON_FRAME_CAPTURE_PATH) {
-    return process.env.POKEMON_FRAME_CAPTURE_PATH;
-  }
-
-  if (process.platform === "win32") {
-    return toWslPathFromWindowsPath(configuredOutputPath);
-  }
-
-  return configuredOutputPath;
-}
-
 async function ensureOutputDirectory() {
-  await fs.mkdir(path.dirname(configuredOutputPath), { recursive: true });
+  await fs.mkdir(path.dirname(nodeFramePath), { recursive: true });
 }
 
 async function waitForFrameFile() {
@@ -78,7 +70,7 @@ async function waitForFrameFile() {
 
   while (Date.now() - startedAt <= FILE_WAIT_TIMEOUT_MS) {
     try {
-      const stats = await fs.stat(configuredOutputPath);
+      const stats = await fs.stat(nodeFramePath);
       if (stats.size > 0) {
         return stats;
       }
@@ -108,14 +100,18 @@ async function refreshFrame() {
     state.status = state.hasFrame ? "capturing" : "starting";
     state.error = "";
 
-    await mgbaClient.requestScreenshot(resolveCapturePath());
-    const stats = await waitForFrameFile();
-    latestFrameBuffer = await fs.readFile(configuredOutputPath);
+    await mgbaClient.requestScreenshot(mgbaCapturePath);
+    await waitForFrameFile();
+    const rawBuffer = await fs.readFile(nodeFramePath);
+    const webpBuffer = await sharp(rawBuffer)
+      .webp({ lossless: true })
+      .toBuffer();
 
+    latestFrameBuffer = webpBuffer;
     state.status = "ok";
     state.hasFrame = true;
     state.lastFrameAt = new Date().toISOString();
-    state.frameSizeBytes = stats.size;
+    state.frameSizeBytes = webpBuffer.length;
     state.error = "";
   } catch (error) {
     state.status = "error";

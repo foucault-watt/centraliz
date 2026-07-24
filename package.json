@@ -3,6 +3,9 @@
   "version": "1.1",
   "scripts": {
     "go": "concurrently \"npm --prefix frontend start\" \"npm --prefix backend run dev\"",
+    "pokemon:start": "wsl.exe --cd %cd% -e bash -lc \"GAME_RUNNER_DIR=$HOME/pokemon-cloud ./game-runner/bin/start-local.sh\"",
+    "pokemon:stop": "wsl.exe --cd %cd% -e bash -lc \"GAME_RUNNER_DIR=$HOME/pokemon-cloud ./game-runner/bin/stop-local.sh\"",
+    "pokemon:dev": "npm run pokemon:start && npm run go",
     "install-all": "concurrently \"npm --prefix frontend install\" \"npm --prefix backend install\"",
     "audit-fix": "concurrently \"npm --prefix frontend audit fix\" \"npm --prefix backend audit fix\"",
     "build": "npm --prefix frontend run build",

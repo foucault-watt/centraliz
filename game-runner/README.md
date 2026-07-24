@@ -75,6 +75,68 @@ Le chargeur Lua saisit le chemin complet de `mGBASocketServer.lua`. Il ne dépen
 
 Le serveur doit fournir au minimum : `xvfb`, `openbox`, `xdotool`, `ffmpeg`, `curl`, `x11-utils`, mGBA 0.10.5 et le binaire mGBA-http.
 
+## Développement local (WSL, sans systemd)
+
+Les scripts `bin/*.sh` sont paramétrés par variables d'environnement (voir
+`bin/common.sh`) et ne dépendent pas de systemd : `bin/start-local.sh` et
+`bin/stop-local.sh` les enchaînent directement, en arrière-plan, avec des
+fichiers PID dans `$STATE_DIR`.
+
+Prérequis dans le WSL de dev :
+
+```bash
+sudo apt install xvfb openbox xdotool ffmpeg x11-utils curl mgba-qt
+```
+
+Si la ROM, `mgba-http` et le script Lua vivent déjà ailleurs que dans ce
+dossier (ex. `~/pokemon-cloud/{roms,tools/mgba-http}`), il suffit de pointer
+`GAME_RUNNER_DIR` dessus — les chemins par défaut de `common.sh`
+(`$GAME_RUNNER_DIR/roms/game.gba`, `$GAME_RUNNER_DIR/tools/mgba-http/...`)
+correspondent déjà à cette arborescence :
+
+```bash
+GAME_RUNNER_DIR="$HOME/pokemon-cloud" ./bin/start-local.sh
+# ...
+GAME_RUNNER_DIR="$HOME/pokemon-cloud" ./bin/stop-local.sh
+```
+
+Logs et PID atterrissent alors dans `$GAME_RUNNER_DIR/logs` et
+`$GAME_RUNNER_DIR/state`. Le `DISPLAY_ID` par défaut (`:98`) convient aussi en
+local tant qu'aucune autre instance Xvfb ne l'utilise déjà.
+
+### Configuration du backend Node en dev (Node sous Windows, mGBA-http dans WSL)
+
+Node et mGBA-http ne partagent pas le même système de fichiers : il faut deux
+chemins explicites, sans conversion automatique — **mais le fichier de
+capture doit rester sur le disque Windows monté** (ex. dans le dépôt), jamais
+dans le filesystem natif de WSL (`~`, `/home/...`).
+
+Pourquoi : WSL accède au disque Windows via `/mnt/c/...` (montage `drvfs`,
+passthrough direct, sans cache). C'est la direction inverse — Windows qui lit
+un chemin natif WSL via `\\wsl.localhost\...` — qui est mise en cache côté
+Windows et ne reflète pas les réécritures fréquentes d'un même fichier
+(testé et confirmé : le fichier changeait bien côté WSL pendant que Windows
+relisait indéfiniment la même version en cache). En gardant le fichier côté
+Windows, les deux processus y accèdent chacun par leur chemin natif, sans
+jamais traverser cette route défaillante :
+
+```bash
+# .env du backend
+MGBA_HTTP_BASE_URL=http://localhost:5000
+
+# Chemin tel que mGBA-http (dans WSL) doit écrire le fichier de capture —
+# l'équivalent /mnt/c/... du chemin par défaut (backend/src/data/pokemon-stream/latest.png).
+POKEMON_MGBA_CAPTURE_PATH=/mnt/c/code/centraliz/backend/src/data/pokemon-stream/latest.png
+
+# POKEMON_NODE_FRAME_PATH n'a pas besoin d'être défini : Node lit par défaut
+# backend/src/data/pokemon-stream/latest.png, qui est déjà ce même fichier
+# vu depuis Windows.
+```
+
+En production, Node et mGBA-http tournent sur le même hôte Linux : seul
+`POKEMON_MGBA_CAPTURE_PATH` est nécessaire, `POKEMON_NODE_FRAME_PATH` retombe
+sur la même valeur par défaut.
+
 ## Diagnostic rapide
 
 ```bash

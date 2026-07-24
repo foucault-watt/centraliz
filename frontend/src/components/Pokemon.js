@@ -61,8 +61,8 @@ function Pokemon() {
     status: "starting",
     hasFrame: false,
     lastFrameAt: null,
-    intervalMs: 333,
-    format: "png",
+    intervalMs: 100,
+    format: "webp",
     width: 240,
     height: 160,
     error: "",
@@ -130,8 +130,8 @@ function Pokemon() {
         status: result.status || "starting",
         hasFrame: Boolean(result.hasFrame),
         lastFrameAt: result.lastFrameAt || null,
-        intervalMs: result.intervalMs || 333,
-        format: result.format || "png",
+        intervalMs: result.intervalMs || 100,
+        format: result.format || "webp",
         width: result.width || 240,
         height: result.height || 160,
         error: result.error || "",
@@ -186,7 +186,7 @@ function Pokemon() {
       }
     };
 
-    const frameIntervalMs = Math.max(stream.intervalMs || 333, 250);
+    const frameIntervalMs = Math.max(stream.intervalMs || 100, 100);
 
     refreshFrame();
     const frameInterval = setInterval(refreshFrame, frameIntervalMs);
@@ -399,7 +399,7 @@ function Pokemon() {
                 Live view
               </p>
               <h2 className="text-2xl font-bold text-slate-900">
-                Flux PNG natif
+                Flux WebP natif
               </h2>
             </div>
             <div
@@ -479,12 +479,12 @@ function Pokemon() {
               </button>
             </div>
 
-            <div className="mt-4 flex min-h-[280px] items-center justify-center rounded-[20px] bg-slate-900">
+            <div className="mt-4 mx-auto flex aspect-[3/2] w-full max-w-[720px] items-center justify-center overflow-hidden rounded-[20px] bg-slate-900">
               {stream.hasFrame && frameUrl ? (
                 <img
                   src={frameUrl}
                   alt="Flux en direct du jeu Pokémon"
-                  className="w-full max-w-[720px] rounded-[12px] border border-white/5 bg-black object-contain"
+                  className="h-full w-full rounded-[12px] border border-white/5 bg-black object-contain"
                   style={{ imageRendering: "pixelated" }}
                 />
               ) : (

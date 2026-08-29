@@ -95,7 +95,7 @@ router.get("/icon/:filename", authMiddleware, async (req, res) => {
  * GET /api/theme-palette/admin
  * Liste complète (actives et inactives), réservée aux admins.
  */
-router.get("/admin", adminMiddleware, async (req, res) => {
+router.get("/admin", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const entries = await themePaletteService.listAll();
     res.json({ success: true, entries });
@@ -111,7 +111,7 @@ router.get("/admin", adminMiddleware, async (req, res) => {
  * POST /api/theme-palette/admin
  * Crée une entrée de palette (association + couleur + icône optionnelle).
  */
-router.post("/admin", adminMiddleware, upload.single("icon"), async (req, res) => {
+router.post("/admin", authMiddleware, adminMiddleware, upload.single("icon"), async (req, res) => {
   try {
     const { name, colorPrimary, colorPrimaryDark, displayOrder, isActive } = req.body;
 
@@ -149,7 +149,7 @@ router.post("/admin", adminMiddleware, upload.single("icon"), async (req, res) =
  * PUT /api/theme-palette/admin/:id
  * Met à jour une entrée de palette (et son icône si fournie).
  */
-router.put("/admin/:id", adminMiddleware, upload.single("icon"), async (req, res) => {
+router.put("/admin/:id", authMiddleware, adminMiddleware, upload.single("icon"), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, colorPrimary, colorPrimaryDark, displayOrder, isActive, removeIcon } =
@@ -196,7 +196,7 @@ router.put("/admin/:id", adminMiddleware, upload.single("icon"), async (req, res
 /**
  * DELETE /api/theme-palette/admin/:id
  */
-router.delete("/admin/:id", adminMiddleware, async (req, res) => {
+router.delete("/admin/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await themePaletteService.remove(req.params.id);
     res.json({ success: true });

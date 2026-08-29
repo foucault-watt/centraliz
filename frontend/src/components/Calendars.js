@@ -1,9 +1,13 @@
 import EventCalendar from "./EventCalendar";
 import HpCalendar from "./HpCalendar";
+import IcalSetupCard from "./IcalSetupCard";
 
-const Calendars = ({ user }) => {
+const Calendars = ({ user, onIcalLinkSaved }) => {
   return (
     <div className="space-y-4">
+      {user && !user.icalLink && (
+        <IcalSetupCard userName={user.userName} onSaved={onIcalLinkSaved} />
+      )}
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-4 items-start">
         <div className="min-w-0 bg-white rounded-2xl border border-gray-200 shadow-sm p-2 md:p-3">
           <HpCalendar user={user} />

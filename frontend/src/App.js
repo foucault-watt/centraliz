@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import BdsFloatingButton from "./components/BdsFloatingButton";
 import Header from "./components/Header"; // Import Header
 import LoginPage from "./components/LoginPage.js";
-import Onboarding from "./components/Onboarding.js";
 import PageLayout from "./components/PageLayout";
 import CampaignRuntime from "./components/CampaignRuntime";
 import ProductRouteTracker from "./components/ProductRouteTracker";
@@ -44,7 +43,6 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [isSlideMenuOpen, setIsSlideMenuOpen] = useState(false); // State for SlideMenu
 
   const toggleSlideMenu = () => {
@@ -78,7 +76,6 @@ const App = () => {
           console.warn("Could not check Zimbra password:", zimbraError);
           setUser({ ...data.user, hasPassword: false });
         }
-        setNeedsOnboarding(!data.user.icalLink);
       } else {
         clearStoredUserSecretSalt();
       }
@@ -143,180 +140,174 @@ const App = () => {
   return (
     <UserContext.Provider value={{ user, setUser }}>
       <BrowserRouter>
-        {needsOnboarding ? (
-          <Onboarding userName={user.userName} onComplete={refreshAuthStatus} />
-        ) : (
-          <>
-            <Header onMenuToggle={toggleSlideMenu} />{" "}
-            {/* Pass toggle function to Header */}
-            <SlideMenu
-              isOpen={isSlideMenuOpen}
-              onClose={toggleSlideMenu}
-              user={user}
-            />{" "}
-            {/* Pass state and toggle to SlideMenu */}
-            <ProductRouteTracker />
-            <CampaignRuntime />
-            <Suspense fallback={<div></div>}>
-              <Routes>
-                <Route
-                  path="/"
-                  element={<Navigate to="/calendars" replace />}
-                />
-                <Route
-                  path="/notes"
-                  element={
-                    <PageLayout fullWidth>
-                      <Notes />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/calendars"
-                  element={
-                    <PageLayout>
-                      <Calendars user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/events"
-                  element={
-                    <PageLayout>
-                      <EventsHubPage user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/events/association/:associationSlug"
-                  element={
-                    <PageLayout>
-                      <AssociationEventsPage user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/events/admin"
-                  element={
-                    <PageLayout>
-                      <AdminEventsPage user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/events/create"
-                  element={
-                    <PageLayout>
-                      <EventCreatePage user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/communication"
-                  element={
-                    <PageLayout>
-                      <Communication />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/bdi"
-                  element={
-                    <PageLayout>
-                      <Bdi />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/links"
-                  element={
-                    <PageLayout>
-                      <Links />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/bibli"
-                  element={
-                    <PageLayout>
-                      <Bibli user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/cekilui"
-                  element={
-                    <PageLayout>
-                      <Cekilui />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/pokemon"
-                  element={
-                    <PageLayout>
-                      <Pokemon />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/help"
-                  element={
-                    <PageLayout>
-                      <HelpPage />
-                    </PageLayout>
-                  }
-                />
-                <Route path="/install" element={<Navigate to="/help" replace />} />
-                <Route
-                  path="/about"
-                  element={<Navigate to="/help" replace />}
-                />
-                <Route
-                  path="/feedback"
-                  element={
-                    <PageLayout>
-                      <FeedbackPage user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/contact"
-                  element={<Navigate to="/help" replace />}
-                />
-                <Route
-                  path="/legal"
-                  element={
-                    <PageLayout>
-                      <LegalPage />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/analytics/admin/*"
-                  element={
-                    <PageLayout>
-                      <AnalyticsAdminPage user={user} />
-                    </PageLayout>
-                  }
-                />
-                <Route
-                  path="/campaigns/admin"
-                  element={
-                    <PageLayout fullWidth>
-                      <CampaignsAdminPage user={user} />
-                    </PageLayout>
-                  }
-                />
-              </Routes>
-            </Suspense>
-            {/* Bouton flottant BDS si l'utilisateur soutient une liste */}
-            {user && user.support_bds && (
-              <BdsFloatingButton
-                bdsInfo={getSupportBdsInfo(user.support_bds)}
-              />
-            )}
-          </>
+        <Header onMenuToggle={toggleSlideMenu} />{" "}
+        {/* Pass toggle function to Header */}
+        <SlideMenu
+          isOpen={isSlideMenuOpen}
+          onClose={toggleSlideMenu}
+          user={user}
+        />{" "}
+        {/* Pass state and toggle to SlideMenu */}
+        <ProductRouteTracker />
+        <CampaignRuntime />
+        <Suspense fallback={<div></div>}>
+          <Routes>
+            <Route
+              path="/"
+              element={<Navigate to="/calendars" replace />}
+            />
+            <Route
+              path="/notes"
+              element={
+                <PageLayout fullWidth>
+                  <Notes />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/calendars"
+              element={
+                <PageLayout>
+                  <Calendars user={user} onIcalLinkSaved={refreshAuthStatus} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <PageLayout>
+                  <EventsHubPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/events/association/:associationSlug"
+              element={
+                <PageLayout>
+                  <AssociationEventsPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/events/admin"
+              element={
+                <PageLayout>
+                  <AdminEventsPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/events/create"
+              element={
+                <PageLayout>
+                  <EventCreatePage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/communication"
+              element={
+                <PageLayout>
+                  <Communication />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/bdi"
+              element={
+                <PageLayout>
+                  <Bdi />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/links"
+              element={
+                <PageLayout>
+                  <Links />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/bibli"
+              element={
+                <PageLayout>
+                  <Bibli user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/cekilui"
+              element={
+                <PageLayout>
+                  <Cekilui />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/pokemon"
+              element={
+                <PageLayout>
+                  <Pokemon />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/help"
+              element={
+                <PageLayout>
+                  <HelpPage />
+                </PageLayout>
+              }
+            />
+            <Route path="/install" element={<Navigate to="/help" replace />} />
+            <Route
+              path="/about"
+              element={<Navigate to="/help" replace />}
+            />
+            <Route
+              path="/feedback"
+              element={
+                <PageLayout>
+                  <FeedbackPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/contact"
+              element={<Navigate to="/help" replace />}
+            />
+            <Route
+              path="/legal"
+              element={
+                <PageLayout>
+                  <LegalPage />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/analytics/admin/*"
+              element={
+                <PageLayout>
+                  <AnalyticsAdminPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/campaigns/admin"
+              element={
+                <PageLayout fullWidth>
+                  <CampaignsAdminPage user={user} />
+                </PageLayout>
+              }
+            />
+          </Routes>
+        </Suspense>
+        {/* Bouton flottant BDS si l'utilisateur soutient une liste */}
+        {user && user.support_bds && (
+          <BdsFloatingButton
+            bdsInfo={getSupportBdsInfo(user.support_bds)}
+          />
         )}
       </BrowserRouter>
     </UserContext.Provider>

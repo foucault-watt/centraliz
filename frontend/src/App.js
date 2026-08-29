@@ -14,6 +14,7 @@ import {
   storeUserSecretSalt,
 } from "./utils/api";
 import { applyBDSTheme } from "./utils/bdsTheme";
+import { applyUserTheme } from "./utils/userTheme";
 
 // Lazy load page components
 const Notes = lazy(() => import("./components/NotesV2"));
@@ -36,6 +37,7 @@ const LegalPage = lazy(() => import("./components/LegalPage.js"));
 const BdsLanding = lazy(() => import("./components/BdsLanding.js"));
 const AnalyticsAdminPage = lazy(() => import("./components/AnalyticsAdminPage.js"));
 const CampaignsAdminPage = lazy(() => import("./components/CampaignsAdminPage.js"));
+const ThemePaletteAdminPage = lazy(() => import("./components/ThemePaletteAdminPage.js"));
 
 export const UserContext = createContext();
 
@@ -59,12 +61,13 @@ const App = () => {
       if (data.authenticated) {
         storeUserSecretSalt(data.user?.userSecretSalt || "");
         console.log("[App] User authenticated:", data.user);
-        // Appliquer le thème BDS si l'utilisateur en soutient un
+        // Le thème BDS (campagne élection) reste prioritaire sur la couleur
+        // personnelle quand les deux sont présents.
         if (data.user && data.user.support_bds) {
           console.log("[App] Applying BDS theme:", data.user.support_bds);
           applyBDSTheme(data.user.support_bds);
-        } else {
-          console.log("[App] No support_bds found for user");
+        } else if (data.user && data.user.theme_color) {
+          applyUserTheme(data.user.theme_color, data.user.theme_color_dark);
         }
 
         // Vérifier si un mot de passe Zimbra est stocké
@@ -168,7 +171,11 @@ const App = () => {
               path="/calendars"
               element={
                 <PageLayout>
-                  <Calendars user={user} onIcalLinkSaved={refreshAuthStatus} />
+                  <Calendars
+                    user={user}
+                    onIcalLinkSaved={refreshAuthStatus}
+                    onThemeColorSaved={refreshAuthStatus}
+                  />
                 </PageLayout>
               }
             />
@@ -298,6 +305,14 @@ const App = () => {
               element={
                 <PageLayout fullWidth>
                   <CampaignsAdminPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/theme-palette/admin"
+              element={
+                <PageLayout fullWidth>
+                  <ThemePaletteAdminPage user={user} />
                 </PageLayout>
               }
             />

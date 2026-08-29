@@ -1,10 +1,14 @@
+import AccentColorCard from "./AccentColorCard";
 import EventCalendar from "./EventCalendar";
 import HpCalendar from "./HpCalendar";
 import IcalSetupCard from "./IcalSetupCard";
 
-const Calendars = ({ user, onIcalLinkSaved }) => {
+const Calendars = ({ user, onIcalLinkSaved, onThemeColorSaved }) => {
   return (
     <div className="space-y-4">
+      {user && !user.theme_color && (
+        <AccentColorCard onSaved={onThemeColorSaved} />
+      )}
       {user && !user.icalLink && (
         <IcalSetupCard userName={user.userName} onSaved={onIcalLinkSaved} />
       )}

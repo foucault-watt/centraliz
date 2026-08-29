@@ -105,6 +105,8 @@ router.get("/status", async (req, res) => {
       is_bibli_admin: fullUser.is_bibli_admin,
       ent_username: fullUser.ent_username,
       support_bds: fullUser.support_bds,
+      theme_color: fullUser.theme_color,
+      theme_color_dark: fullUser.theme_color_dark,
       has_association_role: Boolean(fullUser.has_association_role),
       association_roles: associationRoles,
       userSecretSalt: createUserSecretSalt(fullUser.username),

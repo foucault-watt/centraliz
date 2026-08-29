@@ -23,6 +23,8 @@ const eventsRoutes = require("../routes/events");
 const analyticsRoutes = require("../routes/analytics");
 const pokemonRoutes = require("../routes/pokemon");
 const campaignsRoutes = require("../routes/campaigns");
+const userRoutes = require("../routes/user");
+const themePaletteRoutes = require("../routes/themePalette");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -92,6 +94,8 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/pokemon", pokemonRoutes);
 app.use("/api/campaigns", campaignsRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/theme-palette", themePaletteRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {

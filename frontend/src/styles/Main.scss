@@ -271,8 +271,12 @@
   padding: 7px 12px;
   color: white;
   background:
-    linear-gradient(135deg, rgba($main-dark, 0.96), rgba($main, 0.9)),
-    $main-dark;
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary-dark) 96%, transparent),
+      color-mix(in srgb, var(--color-primary) 90%, transparent)
+    ),
+    var(--color-primary-dark); // Variable dynamique pour réagir au thème BDS/personnel
   border-bottom: 1px solid rgba(white, 0.14);
   box-shadow: 0 10px 28px rgba($second, 0.16);
   backdrop-filter: blur(14px);

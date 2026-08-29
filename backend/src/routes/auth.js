@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const supabase = require("../utils/supabaseClient");
 const bdsWhitelist = require("../config/bdsWhitelist");
 const analyticsService = require("../services/analyticsService");
+const ZimbraService = require("../services/zimbraService");
 const { createUserSecretSalt } = require("../utils/userSecret");
 
 const getUserAssociations = async (username) => {
@@ -80,7 +81,11 @@ router.get("/status", async (req, res) => {
   }
 
   if (fullUser) {
-    const associationRoles = await getUserAssociations(fullUser.username);
+    const [associationRoles, hasMailPassword, setupStepFlags] = await Promise.all([
+      getUserAssociations(fullUser.username),
+      ZimbraService.hasStoredPassword(fullUser.username),
+      analyticsService.getUserStepEventFlags(fullUser.username),
+    ]);
 
     // Check for BDS referral cookie
     const bdsReferral = req.cookies.bds_referral;
@@ -110,6 +115,12 @@ router.get("/status", async (req, res) => {
       has_association_role: Boolean(fullUser.has_association_role),
       association_roles: associationRoles,
       userSecretSalt: createUserSecretSalt(fullUser.username),
+      has_mail_password: hasMailPassword,
+      has_cekilui_photo: Boolean(fullUser.hasPhoto),
+      has_read_mail: setupStepFlags.hasReadMail,
+      has_used_links: setupStepFlags.hasUsedLinks,
+      has_viewed_calendar_event: setupStepFlags.hasViewedCalendarEvent,
+      has_played_ceki_round: setupStepFlags.hasPlayedCekiRound,
     };
     return res.json({ authenticated: true, user: req.session.user });
   }

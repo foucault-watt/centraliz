@@ -38,6 +38,7 @@ const BdsLanding = lazy(() => import("./components/BdsLanding.js"));
 const AnalyticsAdminPage = lazy(() => import("./components/AnalyticsAdminPage.js"));
 const CampaignsAdminPage = lazy(() => import("./components/CampaignsAdminPage.js"));
 const ThemePaletteAdminPage = lazy(() => import("./components/ThemePaletteAdminPage.js"));
+const ReglagesPage = lazy(() => import("./components/ReglagesPage.js"));
 
 export const UserContext = createContext();
 
@@ -70,15 +71,9 @@ const App = () => {
           applyUserTheme(data.user.theme_color, data.user.theme_color_dark);
         }
 
-        // Vérifier si un mot de passe Zimbra est stocké
-        try {
-          const zimbraResponse = await fetchApi("/api/zimbra/check");
-          const zimbraData = await zimbraResponse.json();
-          setUser({ ...data.user, hasPassword: zimbraData.hasPassword });
-        } catch (zimbraError) {
-          console.warn("Could not check Zimbra password:", zimbraError);
-          setUser({ ...data.user, hasPassword: false });
-        }
+        // has_mail_password vient directement de /api/auth/status, qui fait
+        // maintenant lui-même l'appel que /api/zimbra/check faisait avant.
+        setUser({ ...data.user, hasPassword: Boolean(data.user?.has_mail_password) });
       } else {
         clearStoredUserSecretSalt();
       }
@@ -313,6 +308,14 @@ const App = () => {
               element={
                 <PageLayout fullWidth>
                   <ThemePaletteAdminPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/reglages"
+              element={
+                <PageLayout>
+                  <ReglagesPage user={user} onUserRefresh={refreshAuthStatus} />
                 </PageLayout>
               }
             />

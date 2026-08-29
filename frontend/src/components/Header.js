@@ -1,48 +1,23 @@
 import { Menu } from "lucide-react";
 import { motion } from "framer-motion";
-// import { useContext } from "react";
-// import { UserContext } from "../App";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../App";
+import { getSetupStatus } from "../utils/getSetupStatus";
 
 /**
  * Composant Header - Barre de navigation principale de l'application
- * Affiche le logo, le menu et les informations de classement de l'utilisateur
+ * Affiche le logo, le menu, et la pastille d'accès aux Réglages.
  */
 export default function Header({ onMenuToggle }) {
-  // Classement temporairement masque.
-  // const [rankingInfo, setRankingInfo] = useState(null); // Informations de classement
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
-  // Récupération du nom d'utilisateur depuis le contexte
-  // const { user } = useContext(UserContext);
-  // const displayName = user?.displayName || user?.userName;
-
-  // /**
-  //  * Récupère les informations de classement depuis l'API
-  //  * @returns {Promise<Object|null>} Données de classement ou null en cas d'erreur
-  //  */
-  // const getRankingInfo = async () => {
-  //   try {
-  //     const response = await fetch(`/api/ranking/`, {
-  //       method: "GET",
-  //       credentials: "include",
-  //     });
-  //     if (!response.ok) throw new Error("Erreur réseau");
-  //     return await response.json();
-  //   } catch (error) {
-  //     console.error("Erreur lors de la récupération du classement:", error);
-  //     return null;
-  //   }
-  // };
-
-  // // Effet pour récupérer les informations de classement
-  // useEffect(() => {
-  //   const fetchRanking = async () => {
-  //     if (displayName) {
-  //       const info = await getRankingInfo();
-  //       setRankingInfo(info);
-  //     }
-  //   };
-  //   fetchRanking();
-  // }, [displayName]);
+  const setupStatus = getSetupStatus(user);
+  const progressPercent = Math.round(
+    (setupStatus.completedCount / setupStatus.totalCount) * 100,
+  );
+  const avatarColor = setupStatus.activeColor?.primary || "#ffffff";
 
   return (
     <motion.header
@@ -72,25 +47,28 @@ export default function Header({ onMenuToggle }) {
           </div>
         </div>
 
-        {/* {rankingInfo && (
-          <div
-            className="app-header-ranking"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span className="ranking-short">Top {rankingInfo.rank}</span>
-            <span className="ranking-message">{rankingInfo.message}</span>
-            <div className="ranking-info">
-              <Info size={16} />
-              <div className="ranking-tooltip">
-                <p>Calculé sur le nombre de jours de connexion uniques</p>
-                <p>
-                  Votre score : <strong>{rankingInfo.userScore}</strong> jours
-                  de connexion
-                </p>
-              </div>
-            </div>
-          </div>
-        )} */}
+        <motion.button
+          type="button"
+          className={`app-header-avatar${
+            setupStatus.isComplete ? " app-header-avatar-complete" : ""
+          }`}
+          style={{
+            "--avatar-color": avatarColor,
+            "--avatar-progress": `${progressPercent}%`,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/reglages");
+          }}
+          aria-label={
+            setupStatus.isComplete
+              ? "Ouvrir mes réglages"
+              : `Ouvrir mes réglages — configuration à ${progressPercent}%`
+          }
+          whileTap={{ scale: 0.94 }}
+        >
+          <span className="app-header-avatar-dot" />
+        </motion.button>
       </div>
     </motion.header>
   );

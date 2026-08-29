@@ -364,6 +364,45 @@
   }
 }
 
+.app-header-avatar {
+  justify-self: end;
+  width: 38px;
+  height: 38px;
+  padding: 3px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(
+    white var(--avatar-progress, 100%),
+    rgba(white, 0.25) 0
+  );
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &.app-header-avatar-complete {
+    background: none;
+    padding: 0;
+  }
+}
+
+.app-header-avatar-dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--avatar-color, white);
+  border: 2px solid rgba(white, 0.9);
+  box-shadow: inset 0 0 0 1px rgba($second, 0.08);
+}
+
 .app-header-ranking {
   justify-self: end;
   display: inline-flex;

@@ -17,8 +17,10 @@ const wasDismissedThisSession = () => {
   }
 };
 
-const AccentColorCard = ({ onSaved }) => {
-  const [dismissed, setDismissed] = useState(wasDismissedThisSession);
+const AccentColorCard = ({ onSaved, forceVisible = false }) => {
+  const [dismissed, setDismissed] = useState(
+    forceVisible ? false : wasDismissedThisSession
+  );
   const [entries, setEntries] = useState([]);
   const [savingId, setSavingId] = useState(null);
   const [error, setError] = useState("");
@@ -106,15 +108,17 @@ const AccentColorCard = ({ onSaved }) => {
             Un petit coup de couleur pour que Centraliz soit vraiment le tien.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors shrink-0"
-          aria-label="Fermer, je le ferai plus tard"
-          title="Plus tard"
-        >
-          <X size={16} />
-        </button>
+        {!forceVisible && (
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors shrink-0"
+            aria-label="Fermer, je le ferai plus tard"
+            title="Plus tard"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       <div className="mt-3 max-h-64 overflow-y-auto pr-1">
@@ -147,15 +151,17 @@ const AccentColorCard = ({ onSaved }) => {
         </div>
       </div>
 
-      <div className="mt-3 flex justify-end">
-        <button
-          type="button"
-          className="ui-button-secondary"
-          onClick={handleDismiss}
-        >
-          Plus tard
-        </button>
-      </div>
+      {!forceVisible && (
+        <div className="mt-3 flex justify-end">
+          <button
+            type="button"
+            className="ui-button-secondary"
+            onClick={handleDismiss}
+          >
+            Plus tard
+          </button>
+        </div>
+      )}
       {error && <p className="text-sm text-danger mt-2">{error}</p>}
     </div>
   );

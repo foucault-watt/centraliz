@@ -758,9 +758,76 @@ const buildGlobalSessions = async (filters = {}) => {
   return sessions;
 };
 
+const STEP_EVENT_NAMES = [
+  "mail_detail_opened",
+  "external_link_clicked",
+  "calendar_event_opened",
+  "calendar_course_opened",
+  "event_opened",
+  "ceki_round_answered",
+];
+
+const stepKeyForEvent = (eventName, moduleName) => {
+  if (eventName === "mail_detail_opened") return "mailRead";
+  if (eventName === "external_link_clicked") return "linksUsed";
+  if (eventName === "calendar_event_opened" || eventName === "calendar_course_opened") {
+    return "calendarViewed";
+  }
+  if (eventName === "event_opened" && moduleName === "events") return "calendarViewed";
+  if (eventName === "ceki_round_answered") return "cekiPlayed";
+  return null;
+};
+
 const analyticsService = {
   VALID_RANGES,
   sanitizeProperties,
+  stepKeyForEvent,
+  STEP_EVENT_NAMES,
+
+  // Dérive, à partir des événements déjà trackés, les booléens "l'utilisateur
+  // a déjà fait X" consommés par getSetupStatus côté frontend (via
+  // /api/auth/status). Existence uniquement : une requête bornée à 1 ligne
+  // par étape, pour qu'un utilisateur avec des centaines d'événements d'un
+  // seul type (ex: beaucoup de mails ouverts) ne masque pas la présence
+  // d'un autre type d'événement moins fréquent.
+  async getUserStepEventFlags(username) {
+    const emptyFlags = {
+      hasReadMail: false,
+      hasUsedLinks: false,
+      hasViewedCalendarEvent: false,
+      hasPlayedCekiRound: false,
+    };
+    if (!username) return emptyFlags;
+
+    const hasEvent = async (eventNames, moduleName = null) => {
+      let query = supabase
+        .from("analytics_events")
+        .select("id")
+        .eq("user_username", username)
+        .in("event_name", eventNames);
+      if (moduleName) query = query.eq("module", moduleName);
+
+      const { data, error } = await query.limit(1);
+
+      if (error) {
+        console.error("[Analytics] Erreur lors de la lecture d'une étape de configuration:", error);
+        return false;
+      }
+      return (data || []).length > 0;
+    };
+
+    const [hasReadMail, hasUsedLinks, hasViewedCalendarCourse, hasViewedEvent, hasPlayedCekiRound] =
+      await Promise.all([
+        hasEvent(["mail_detail_opened"]),
+        hasEvent(["external_link_clicked"]),
+        hasEvent(["calendar_event_opened", "calendar_course_opened"]),
+        hasEvent(["event_opened"], "events"),
+        hasEvent(["ceki_round_answered"]),
+      ]);
+    const hasViewedCalendarEvent = hasViewedCalendarCourse || hasViewedEvent;
+
+    return { hasReadMail, hasUsedLinks, hasViewedCalendarEvent, hasPlayedCekiRound };
+  },
 
   async trackEvent({
     req,

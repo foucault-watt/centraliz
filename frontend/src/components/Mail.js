@@ -6,6 +6,38 @@ import { fetchApi } from "../utils/api";
 import Loader from "./Loader";
 import ZimbraAuth from "./mail/zimbraAuth";
 import MailModal from "./MailModal";
+import PasswordGateModal from "./PasswordGateModal";
+
+const MAIL_SKELETON_ROWS = 6;
+
+const MailSkeleton = () => (
+  <div className="mail-split-modern" aria-hidden="true">
+    <div className="mail-list-container-modern">
+      <div className="mail-list-modern">
+        {Array.from({ length: MAIL_SKELETON_ROWS }).map((_, index) => (
+          <div key={index} className="mail-card-modern">
+            <div className="mail-card-info">
+              <div className="mail-card-author-row">
+                <span className="mail-card-author">Expéditeur</span>
+                <span className="mail-card-date">--:--</span>
+              </div>
+              <h3 className="mail-card-title">Objet du mail</h3>
+              <p className="mail-card-preview">
+                Aperçu du contenu du message...
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div className="mail-detail-container-modern">
+      <div className="mail-detail-empty">
+        <div className="mail-detail-empty-icon">M</div>
+        <p>Sélectionnez un mail pour le lire</p>
+      </div>
+    </div>
+  </div>
+);
 
 function Mail() {
   const { user } = useContext(UserContext);
@@ -236,10 +268,12 @@ function Mail() {
       </div>
 
       {!isAuthenticated ? (
-        <ZimbraAuth
-          setIsAuthenticated={setIsAuthenticated}
-          authStatus={authStatus}
-        />
+        <PasswordGateModal background={<MailSkeleton />}>
+          <ZimbraAuth
+            setIsAuthenticated={setIsAuthenticated}
+            authStatus={authStatus}
+          />
+        </PasswordGateModal>
       ) : (
         <div className="mail-layout-modern">
           {status && (

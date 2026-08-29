@@ -581,6 +581,15 @@ router.post("/game/answer", authMiddleware, async (req, res) => {
       });
     }
 
+    analyticsService.trackEvent({
+      req,
+      eventName: "ceki_round_answered",
+      module: "cekilui",
+      eventType: "interaction",
+      isAutomatic: false,
+      properties: { mode: gameId ? "competitive" : "endless" },
+    });
+
     if (result.isGameOver) {
       analyticsService.trackEvent({
         req,

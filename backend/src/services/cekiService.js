@@ -8,6 +8,15 @@ const FormData = require("form-data");
 const MAX_FREE_COMPETITIVE_GAMES_WITHOUT_PHOTO = 2;
 
 /**
+ * Réduit un groupe à sa promo de base (ex: "G2-CESURE-FEV" -> "G2")
+ * @param {string} group
+ * @returns {string}
+ */
+function getBaseGroup(group) {
+  return group ? group.split("-")[0] : group;
+}
+
+/**
  * Vérifie si un utilisateur a une photo de profil
  * @param {string} username - Nom d'utilisateur
  * @returns {Promise<{hasPhoto: boolean, photoName: string|null, isBanned: boolean, isAdmin: boolean, noPhotoCompetitiveGamesPlayed: number, remainingFreeCompetitiveGames: number, canPlayCompetitiveWithoutPhoto: boolean}>}
@@ -333,10 +342,10 @@ async function getPromosStats() {
       return [];
     }
 
-    // Compter le nombre de personnes par promo
+    // Compter le nombre de personnes par promo (regroupées par promo de base)
     const promosCount = {};
     data.forEach((user) => {
-      const group = user.group;
+      const group = getBaseGroup(user.group);
       if (group) {
         promosCount[group] = (promosCount[group] || 0) + 1;
       }
@@ -365,18 +374,11 @@ async function getPromosStats() {
  */
 async function getUsersWithPhotosByGroups(selectedGroups = []) {
   try {
-    let query = supabase
+    const { data, error } = await supabase
       .from("users")
       .select("username, display_name, photoName, group, support_bds")
       .eq("hasPhoto", true)
       .not("photoName", "is", null);
-
-    // Si des groupes sont spécifiés, filtrer par ces groupes
-    if (selectedGroups.length > 0) {
-      query = query.in("group", selectedGroups);
-    }
-
-    const { data, error } = await query;
 
     if (error) {
       console.error(
@@ -384,6 +386,14 @@ async function getUsersWithPhotosByGroups(selectedGroups = []) {
         error
       );
       return [];
+    }
+
+    // Si des groupes sont spécifiés, filtrer par leur promo de base
+    // (ex: un utilisateur "G2-CESURE-FEV" compte comme "G2")
+    if (selectedGroups.length > 0) {
+      return (data || []).filter((user) =>
+        selectedGroups.includes(getBaseGroup(user.group))
+      );
     }
 
     return data || [];

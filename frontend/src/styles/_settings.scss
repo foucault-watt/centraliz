@@ -118,6 +118,43 @@ li {
   }
 }
 
+// Gate bloquante (sans échappatoire) affichée par-dessus un aperçu flouté du
+// contenu réel, utilisée par PasswordGateModal pour le mot de passe mail et
+// le lien iCal : voir issue #55, où l'ancien comportement (formulaire qui
+// remplaçait tout le contenu) a été jugé moins engageant que l'aperçu flouté.
+.password-gate {
+  position: relative;
+  min-height: 320px;
+  overflow: hidden;
+  border-radius: $radius-card;
+}
+
+.password-gate-backdrop {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.password-gate-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(white, 0.55);
+}
+
+.password-gate-modal-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.password-gate-modal {
+  width: 100%;
+  max-width: 460px;
+}
+
 // Style de base pour les cartes
 %card {
   border: 1px solid rgba($second, 0.08);

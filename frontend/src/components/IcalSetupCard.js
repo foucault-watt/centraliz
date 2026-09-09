@@ -1,30 +1,29 @@
-import { CalendarPlus, ExternalLink, X } from "lucide-react";
-import { useState } from "react";
+import { CalendarPlus, ExternalLink, Maximize2 } from "lucide-react";
+import { useRef, useState } from "react";
 import { fetchApi } from "../utils/api";
 
-export const ICAL_CARD_DISMISS_STORAGE_KEY = "centraliz.edtCardDismissed";
-
-const wasDismissedThisSession = () => {
-  try {
-    return window.sessionStorage.getItem(ICAL_CARD_DISMISS_STORAGE_KEY) === "true";
-  } catch (error) {
-    return false;
-  }
-};
+const TUTORIAL_VIDEO_SRC = "/tutoriel-lien-ical-mobile.mp4";
 
 const IcalSetupCard = ({ userName, onSaved }) => {
-  const [dismissed, setDismissed] = useState(wasDismissedThisSession);
   const [icalLink, setIcalLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const videoRef = useRef(null);
 
-  const handleDismiss = () => {
-    try {
-      window.sessionStorage.setItem(ICAL_CARD_DISMISS_STORAGE_KEY, "true");
-    } catch (error) {
-      // Stockage indisponible (mode privé, etc.) : le dismiss reste local à ce montage.
+  const handleFullscreen = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.requestFullscreen) {
+      video.requestFullscreen().catch(() => {
+        window.open(TUTORIAL_VIDEO_SRC, "_blank", "noopener,noreferrer");
+      });
+    } else if (video.webkitEnterFullscreen) {
+      // Safari iOS n'implémente pas la Fullscreen API standard sur <video>.
+      video.webkitEnterFullscreen();
+    } else {
+      window.open(TUTORIAL_VIDEO_SRC, "_blank", "noopener,noreferrer");
     }
-    setDismissed(true);
   };
 
   const handleSubmit = async (e) => {
@@ -65,8 +64,6 @@ const IcalSetupCard = ({ userName, onSaved }) => {
     }
   };
 
-  if (dismissed) return null;
-
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 md:p-5">
       <div className="flex items-start gap-3">
@@ -84,15 +81,6 @@ const IcalSetupCard = ({ userName, onSaved }) => {
             Colle ton lien iCal Hyperplanning pour afficher ton planning ici.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors shrink-0"
-          aria-label="Fermer, je le ferai plus tard"
-          title="Plus tard"
-        >
-          <X size={16} />
-        </button>
       </div>
 
       <a
@@ -105,6 +93,29 @@ const IcalSetupCard = ({ userName, onSaved }) => {
         <ExternalLink size={14} />
       </a>
 
+      <div className="relative mt-3 rounded-xl overflow-hidden border border-gray-200 bg-black">
+        <video
+          ref={videoRef}
+          src={TUTORIAL_VIDEO_SRC}
+          className="w-full max-h-64 object-contain bg-black"
+          controls
+          playsInline
+          preload="metadata"
+        />
+        <button
+          type="button"
+          onClick={handleFullscreen}
+          className="absolute top-2 right-2 inline-flex items-center justify-center rounded-full bg-black/60 text-white p-1.5 hover:bg-black/80 transition-colors"
+          aria-label="Voir la vidéo en plein écran"
+          title="Plein écran"
+        >
+          <Maximize2 size={14} />
+        </button>
+      </div>
+      <p className="text-xs text-gray-500 mt-1">
+        Comment récupérer ton lien, en vidéo (marche sur mobile).
+      </p>
+
       <form onSubmit={handleSubmit} className="mt-3 flex flex-col sm:flex-row gap-2">
         <input
           type="text"
@@ -115,14 +126,13 @@ const IcalSetupCard = ({ userName, onSaved }) => {
           aria-label="Lien iCal"
           required
         />
-        <div className="flex gap-2 shrink-0">
-          <button type="submit" className="ui-button-primary" disabled={submitting}>
-            {submitting ? "Validation..." : "Valider"}
-          </button>
-          <button type="button" className="ui-button-secondary" onClick={handleDismiss}>
-            Plus tard
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="ui-button-primary shrink-0"
+          disabled={submitting}
+        >
+          {submitting ? "Validation..." : "Valider"}
+        </button>
       </form>
       {linkError && <p className="text-sm text-danger mt-2">{linkError}</p>}
     </div>

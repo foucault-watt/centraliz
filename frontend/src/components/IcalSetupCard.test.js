@@ -1,9 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { fetchApi } from "../utils/api";
-import IcalSetupCard, {
-  ICAL_CARD_DISMISS_STORAGE_KEY,
-} from "./IcalSetupCard";
+import IcalSetupCard from "./IcalSetupCard";
 
 jest.mock("../utils/api", () => ({
   fetchApi: jest.fn(),
@@ -11,33 +9,16 @@ jest.mock("../utils/api", () => ({
 
 describe("IcalSetupCard", () => {
   beforeEach(() => {
-    window.sessionStorage.clear();
     fetchApi.mockReset();
   });
 
-  it("shows the card and its call-to-action by default", () => {
+  it("shows the card and its call-to-action by default, with no way to dismiss it", () => {
     render(<IcalSetupCard userName="jdupont" onSaved={jest.fn()} />);
 
     expect(screen.getByText("Ajoute ton lien iCal")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Plus tard" })).toBeInTheDocument();
-  });
-
-  it("hides the card and remembers the dismissal for the session when 'Plus tard' is clicked", () => {
-    render(<IcalSetupCard userName="jdupont" onSaved={jest.fn()} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Plus tard" }));
-
-    expect(screen.queryByText("Ajoute ton lien iCal")).not.toBeInTheDocument();
     expect(
-      window.sessionStorage.getItem(ICAL_CARD_DISMISS_STORAGE_KEY)
-    ).toBe("true");
-
-    // A fresh mount within the same session (e.g. navigating to another page
-    // and back) must not bring the card back.
-    const { container } = render(
-      <IcalSetupCard userName="jdupont" onSaved={jest.fn()} />
-    );
-    expect(container).toBeEmptyDOMElement();
+      screen.queryByRole("button", { name: "Plus tard" })
+    ).not.toBeInTheDocument();
   });
 
   it("shows an error and keeps the card visible when the link is invalid", async () => {

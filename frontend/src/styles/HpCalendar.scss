@@ -497,6 +497,116 @@
     }
   }
 
+  // Bandeau d'alerte : événements hors grille (avant 8h, après 18h, week-end)
+  .hidden-events-banner {
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba($orange, 0.28);
+    border-radius: 12px;
+    background: rgba($orange, 0.08);
+    overflow: hidden;
+
+    .hidden-events-banner-summary {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.65rem 0.85rem;
+      background: none;
+      border: none;
+      border-radius: 0;
+      cursor: pointer;
+      text-align: left;
+      color: darken($orange, 18%);
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background: rgba($orange, 0.08);
+      }
+
+      .hidden-events-icon {
+        flex: none;
+        color: var(--color-orange);
+      }
+
+      .hidden-events-text {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.88rem;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .hidden-events-reason {
+        font-weight: 400;
+        opacity: 0.85;
+      }
+
+      .hidden-events-chevron {
+        flex: none;
+        transition: transform 0.2s ease;
+
+        &.is-open {
+          transform: rotate(180deg);
+        }
+      }
+    }
+
+    .hidden-events-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 0.85rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+
+      .hidden-event-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.65rem;
+        background: rgba(white, 0.72);
+        border: 1px solid rgba($orange, 0.2);
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: left;
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease;
+
+        &:hover {
+          background: white;
+          border-color: rgba($orange, 0.4);
+        }
+
+        .hidden-event-day {
+          flex: none;
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: $second;
+          text-transform: capitalize;
+        }
+
+        .hidden-event-time {
+          flex: none;
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: var(--color-orange);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .hidden-event-title {
+          min-width: 0;
+          font-size: 0.85rem;
+          color: $second;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+
   // Grille du calendrier
   .calendar-grid {
     display: flex;
@@ -595,7 +705,7 @@
     margin: 0;
     padding: 5px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #6385ea, var(--color-primary));
+    background: var(--color-primary);
     color: white;
     cursor: pointer;
     overflow: hidden;
@@ -725,11 +835,8 @@
     }
 
     &.tne-event {
-      background: linear-gradient(
-        135deg,
-        var(--color-green),
-        darken($green, 10%)
-      );
+      background: var(--color-green);
+      border: 2px solid darken($green, 22%);
       box-shadow: 0 7px 16px rgba($green, 0.18);
 
       &:hover {
@@ -738,7 +845,8 @@
     }
 
     &.cb-event {
-      background: linear-gradient(135deg, var(--color-red), darken($red, 10%));
+      background: var(--color-red);
+      border: 2px solid darken($red, 22%);
       box-shadow: 0 7px 16px rgba($red, 0.18);
 
       &:hover {
@@ -747,11 +855,7 @@
     }
 
     &.shared {
-      background: linear-gradient(
-        135deg,
-        var(--color-orange),
-        darken($orange, 10%)
-      );
+      background: var(--color-orange);
       border: 2px solid rgba(white, 0.3);
       opacity: 0.6;
       box-shadow: 0 7px 16px rgba($orange, 0.16);

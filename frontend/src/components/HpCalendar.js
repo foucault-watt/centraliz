@@ -5,11 +5,13 @@ import {
   BookOpen,
   Briefcase,
   CalendarDays,
+  ChevronDown,
   CircleChevronDown,
   DoorClosed,
   GraduationCap,
   MapPin,
   Search,
+  TriangleAlert,
   Users,
   X,
 } from "lucide-react";
@@ -17,7 +19,7 @@ import moment from "moment-timezone";
 import "moment/locale/fr";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { fetchApi } from "../utils/api";
 import { trackProductEvent } from "../utils/analytics";
 
@@ -26,6 +28,11 @@ moment.locale("fr");
 // Hyperplanning décrit toujours des horaires de Centrale Lille en heure française,
 // peu importe le fuseau horaire du navigateur qui affiche le planning.
 const SCHOOL_TIMEZONE = "Europe/Paris";
+
+// La grille n'affiche que 8h-18h en semaine (lun-ven) : tout ce qui tombe hors
+// de cette plage (tôt le matin, en soirée, ou le week-end) n'apparaît nulle part.
+const GRID_START_HOUR = 8;
+const GRID_END_HOUR = 18;
 
 // Fonction utilitaire pour formater l'heure
 const formatHour = (hour) => {
@@ -146,6 +153,7 @@ const HpCalendar = ({ user }) => {
   const [slideDirection, setSlideDirection] = useState(""); // 'left' ou 'right'
   const [isSelectorFocused, setIsSelectorFocused] = useState(false);
   const [associationEvents, setAssociationEvents] = useState([]);
+  const [showHiddenEventsList, setShowHiddenEventsList] = useState(false);
 
   const closeModal = () => {
     setShowModal(false);
@@ -192,6 +200,11 @@ const HpCalendar = ({ user }) => {
       checkExistingCalendar();
     }
   }, [userName, fetchCalendarData]);
+
+  // Replier le détail du bandeau d'événements masqués quand on change de semaine/jour
+  useEffect(() => {
+    setShowHiddenEventsList(false);
+  }, [currentDate]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -243,6 +256,28 @@ const HpCalendar = ({ user }) => {
     return parseICalData(icalData);
   }, [icalData]);
 
+  // Événements présents dans l'iCal mais que la grille (8h-18h, lun-ven)
+  // ne peut pas afficher : trop tôt/tard dans la journée, ou le week-end.
+  const hiddenEventsThisWeek = useMemo(() => {
+    const weekStart = moment(currentDate).startOf("week");
+    const weekEnd = moment(weekStart).add(6, "days").endOf("day");
+
+    return (events || [])
+      .filter((event) => {
+        const start = moment.tz(event.start, SCHOOL_TIMEZONE);
+        if (!start.isBetween(weekStart, weekEnd, null, "[]")) return false;
+
+        const dayOfWeek = start.day(); // 0 = dimanche, 6 = samedi
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const startHour = start.hour() + start.minute() / 60;
+        const isOutsideHours =
+          startHour < GRID_START_HOUR || startHour >= GRID_END_HOUR;
+
+        return isWeekend || isOutsideHours;
+      })
+      .sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf());
+  }, [events, currentDate]);
+
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
     setShowModal(true);
@@ -258,7 +293,14 @@ const HpCalendar = ({ user }) => {
   };
 
   // Mémoisation des heures et jours
-  const hours = useMemo(() => Array.from({ length: 10 }, (_, i) => i + 8), []);
+  const hours = useMemo(
+    () =>
+      Array.from(
+        { length: GRID_END_HOUR - GRID_START_HOUR },
+        (_, i) => i + GRID_START_HOUR,
+      ),
+    [],
+  );
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 5 }, (_, i) =>
@@ -848,68 +890,155 @@ const HpCalendar = ({ user }) => {
       );
     }
 
+    const accentVar =
+      selectedEvent?.className === "tne-event"
+        ? "var(--color-green)"
+        : selectedEvent?.className === "cb-event"
+          ? "var(--color-red)"
+          : "var(--color-primary)";
+    const accentLabel =
+      selectedEvent?.className === "tne-event"
+        ? "TNE"
+        : selectedEvent?.className === "cb-event"
+          ? "DS"
+          : "Cours";
+
     return ReactDOM.createPortal(
-      showModal && selectedEvent && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Détails de l'événement</h2>
-            <div className="event-details">
-              <div className="flex items-center">
-                <div className="event-main-title flex-1 min-w-0 truncate">
+      <AnimatePresence>
+        {showModal && selectedEvent && (
+          <motion.div
+            className="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-3 md:p-5"
+            onClick={closeModal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <motion.div
+              className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+            <div
+              className="p-4 md:p-5 flex items-start justify-between gap-4 text-white"
+              style={{ background: accentVar }}
+            >
+              <div className="min-w-0">
+                <span className="inline-block text-[11px] font-semibold uppercase tracking-wide bg-white/20 px-2 py-0.5 rounded-full mb-1.5">
+                  {accentLabel}
+                </span>
+                <h3 className="text-lg md:text-xl font-bold leading-tight break-words">
                   {selectedEvent.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="shrink-0 rounded-full p-2.5 text-white/90 hover:bg-white/20 hover:text-white transition-colors"
+                aria-label="Fermer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-4 md:p-5 space-y-3">
+              {selectedEvent.start && selectedEvent.end && (
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-secondary bg-gray-100 px-3 py-1.5 rounded-full">
+                  {moment
+                    .tz(selectedEvent.start, SCHOOL_TIMEZONE)
+                    .format("HH[h]mm")}{" "}
+                  –{" "}
+                  {moment
+                    .tz(selectedEvent.end, SCHOOL_TIMEZONE)
+                    .format("HH[h]mm")}
                 </div>
-                {selectedEvent.start && selectedEvent.end && (
-                  <div className="event-time flex-none text-xs text-gray-500 ml-2 whitespace-nowrap">
-                    {moment.tz(selectedEvent.start, SCHOOL_TIMEZONE).format(
-                      "HH[h]mm",
-                    )}{" "}
-                    -{" "}
-                    {moment.tz(selectedEvent.end, SCHOOL_TIMEZONE).format(
-                      "HH[h]mm",
-                    )}
+              )}
+
+              <div className="space-y-2">
+                {selectedEvent.courseType && (
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <div
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                      style={{
+                        background: `color-mix(in srgb, ${accentVar} 15%, white)`,
+                        color: accentVar,
+                      }}
+                    >
+                      <BookOpen size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] uppercase tracking-wide text-gray-500">
+                        Type de cours
+                      </div>
+                      <div className="text-sm font-medium text-secondary truncate">
+                        {selectedEvent.courseType}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedEvent.professor && (
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <div
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                      style={{
+                        background: `color-mix(in srgb, ${accentVar} 15%, white)`,
+                        color: accentVar,
+                      }}
+                    >
+                      <GraduationCap size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] uppercase tracking-wide text-gray-500">
+                        Professeur
+                      </div>
+                      <div className="text-sm font-medium text-secondary truncate">
+                        {selectedEvent.professor}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedEvent.location && (
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <div
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                      style={{
+                        background: `color-mix(in srgb, ${accentVar} 15%, white)`,
+                        color: accentVar,
+                      }}
+                    >
+                      <MapPin size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] uppercase tracking-wide text-gray-500">
+                        Salle
+                      </div>
+                      <div className="text-sm font-medium text-secondary truncate">
+                        {selectedEvent.location}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
-              <div className="detail-row type-detail">
-                <div className="icon-container">
-                  <BookOpen />
-                </div>
-                <div className="detail-content">
-                  <div className="label">Type de cours</div>
-                  <div className="value">{selectedEvent.courseType}</div>
-                </div>
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="inline-flex items-center justify-center rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-secondary/90 transition-colors"
+                >
+                  Fermer
+                </button>
               </div>
-
-              {selectedEvent.professor && (
-                <div className="detail-row professor-detail">
-                  <div className="icon-container">
-                    <GraduationCap />
-                  </div>
-                  <div className="detail-content">
-                    <div className="label">Professeur</div>
-                    <div className="value">{selectedEvent.professor}</div>
-                  </div>
-                </div>
-              )}
-
-              {selectedEvent.location && (
-                <div className="detail-row location-detail">
-                  <div className="icon-container">
-                    <MapPin />
-                  </div>
-                  <div className="detail-content">
-                    <div className="label">Salle</div>
-                    <div className="value">{selectedEvent.location}</div>
-                  </div>
-                </div>
-              )}
             </div>
-
-            <button onClick={closeModal}>Fermer</button>
-          </div>
-        </div>
-      ),
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>,
       document.body,
     );
   };
@@ -1208,6 +1337,75 @@ const HpCalendar = ({ user }) => {
           )}
         </div>
       </motion.div>
+
+      {hiddenEventsThisWeek.length > 0 && (
+        <motion.div
+          className="hidden-events-banner"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
+          <button
+            type="button"
+            className="hidden-events-banner-summary"
+            onClick={() => setShowHiddenEventsList((prev) => !prev)}
+            aria-expanded={showHiddenEventsList}
+          >
+            <TriangleAlert size={18} className="hidden-events-icon" />
+            <span className="hidden-events-text">
+              {hiddenEventsThisWeek.length === 1
+                ? "1 événement de cette semaine ne s'affiche pas ci-dessous"
+                : `${hiddenEventsThisWeek.length} événements de cette semaine ne s'affichent pas ci-dessous`}{" "}
+              <span className="hidden-events-reason">
+                (avant 8h, après 18h, ou le week-end)
+              </span>
+            </span>
+            <ChevronDown
+              size={18}
+              className={`hidden-events-chevron ${
+                showHiddenEventsList ? "is-open" : ""
+              }`}
+            />
+          </button>
+
+          <AnimatePresence>
+            {showHiddenEventsList && (
+              <motion.ul
+                className="hidden-events-list"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                {hiddenEventsThisWeek.map((event, index) => {
+                  const start = moment.tz(event.start, SCHOOL_TIMEZONE);
+                  const end = moment.tz(event.end, SCHOOL_TIMEZONE);
+                  return (
+                    <li key={index}>
+                      <button
+                        type="button"
+                        className="hidden-event-item"
+                        onClick={() => handleSelectEvent(event)}
+                      >
+                        <span className="hidden-event-day">
+                          {start.format("ddd DD/MM")}
+                        </span>
+                        <span className="hidden-event-time">
+                          {start.format("HH[h]mm")}–{end.format("HH[h]mm")}
+                        </span>
+                        <span className="hidden-event-title">
+                          {event.title}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
       <div className="calendar-grid">
         <div className="time-column">
           <div className="corner-header"></div>

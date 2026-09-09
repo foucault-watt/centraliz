@@ -13,6 +13,7 @@
     "ical.js": "^2.1.0",
     "lucide-react": "^0.453.0",
     "moment": "^2.30.1",
+    "moment-timezone": "^0.6.3",
     "node-cas-authentication": "^0.0.15",
     "papaparse": "^5.4.1",
     "react": "^18.3.1",

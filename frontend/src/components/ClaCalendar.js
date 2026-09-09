@@ -1,6 +1,6 @@
 // Importation des dépendances nécessaires
 import ICAL from "ical.js";
-import moment from "moment";
+import moment from "moment-timezone";
 import "moment/locale/fr";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { fetchApi } from "../utils/api";
@@ -8,6 +8,10 @@ import "../styles/ClaCalendar.scss";
 
 // Configuration de moment.js en français
 moment.locale("fr");
+
+// Ces calendriers décrivent des horaires en heure française, peu importe
+// le fuseau horaire du navigateur qui les affiche.
+const SCHOOL_TIMEZONE = "Europe/Paris";
 
 const ClaCalendar = () => {
   // États pour gérer les événements et l'infinite scroll
@@ -262,8 +266,8 @@ const ClaCalendar = () => {
   const getEventType = (start, end) => {
     if (!start || !end) return null;
 
-    const startHour = moment(start).hours();
-    const endHour = moment(end).hours();
+    const startHour = moment.tz(start, SCHOOL_TIMEZONE).hours();
+    const endHour = moment.tz(end, SCHOOL_TIMEZONE).hours();
 
     if (startHour === 20 && endHour === 0) {
       return { type: "Soirée 20H-Minuit", className: "torch-tot" };
@@ -361,17 +365,23 @@ const ClaCalendar = () => {
               }
             >
               <div className="event-date">
-                {moment(event.start).format("dddd").charAt(0).toUpperCase() +
-                  moment(event.start).format("dddd").slice(1)}{" "}
-                {moment(event.start).format("DD MMMM")}
+                {moment
+                  .tz(event.start, SCHOOL_TIMEZONE)
+                  .format("dddd")
+                  .charAt(0)
+                  .toUpperCase() +
+                  moment.tz(event.start, SCHOOL_TIMEZONE).format("dddd").slice(1)}{" "}
+                {moment.tz(event.start, SCHOOL_TIMEZONE).format("DD MMMM")}
                 <span className="event-time">
                   {eventType ? (
                     <span className={eventType.className}>
                       {eventType.type}
                     </span>
                   ) : (
-                    `${moment(event.start).format("HH:mm")} - ${
-                      event.end ? moment(event.end).format("HH:mm") : "NC"
+                    `${moment.tz(event.start, SCHOOL_TIMEZONE).format("HH:mm")} - ${
+                      event.end
+                        ? moment.tz(event.end, SCHOOL_TIMEZONE).format("HH:mm")
+                        : "NC"
                     }`
                   )}
                   {event.recurring && (

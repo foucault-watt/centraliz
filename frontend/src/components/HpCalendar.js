@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import moment from "moment";
+import moment from "moment-timezone";
 import "moment/locale/fr";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
@@ -22,6 +22,10 @@ import { fetchApi } from "../utils/api";
 import { trackProductEvent } from "../utils/analytics";
 
 moment.locale("fr");
+
+// Hyperplanning décrit toujours des horaires de Centrale Lille en heure française,
+// peu importe le fuseau horaire du navigateur qui affiche le planning.
+const SCHOOL_TIMEZONE = "Europe/Paris";
 
 // Fonction utilitaire pour formater l'heure
 const formatHour = (hour) => {
@@ -283,10 +287,13 @@ const HpCalendar = ({ user }) => {
       const allEvents = [...(events || []), ...sharedEvents];
       if (!allEvents?.length) return [];
 
-      const cellStart = moment(day).hour(hour).minute(0);
-      const cellEnd = moment(day)
-        .hour(hour + 1)
-        .minute(0);
+      const dayKey = moment(day).format("YYYY-MM-DD");
+      const cellStart = moment.tz(dayKey, "YYYY-MM-DD", SCHOOL_TIMEZONE).hour(
+        hour,
+      );
+      const cellEnd = moment.tz(dayKey, "YYYY-MM-DD", SCHOOL_TIMEZONE).hour(
+        hour + 1,
+      );
 
       // Filtrer d'abord tous les événements de cette cellule
       const cellEvents = allEvents
@@ -296,10 +303,10 @@ const HpCalendar = ({ user }) => {
           return eventStart.isBefore(cellEnd) && eventEnd.isAfter(cellStart);
         })
         .map((event) => {
-          const eventStart = moment(event.start);
+          const eventStart = moment.tz(event.start, SCHOOL_TIMEZONE);
+          const eventEnd = moment.tz(event.end, SCHOOL_TIMEZONE);
           const startHour = eventStart.hour() + eventStart.minute() / 60;
-          const endHour =
-            moment(event.end).hour() + moment(event.end).minute() / 60;
+          const endHour = eventEnd.hour() + eventEnd.minute() / 60;
 
           return {
             ...event,
@@ -853,8 +860,13 @@ const HpCalendar = ({ user }) => {
                 </div>
                 {selectedEvent.start && selectedEvent.end && (
                   <div className="event-time flex-none text-xs text-gray-500 ml-2 whitespace-nowrap">
-                    {moment(selectedEvent.start).format("HH[h]mm")} -{" "}
-                    {moment(selectedEvent.end).format("HH[h]mm")}
+                    {moment.tz(selectedEvent.start, SCHOOL_TIMEZONE).format(
+                      "HH[h]mm",
+                    )}{" "}
+                    -{" "}
+                    {moment.tz(selectedEvent.end, SCHOOL_TIMEZONE).format(
+                      "HH[h]mm",
+                    )}
                   </div>
                 )}
               </div>

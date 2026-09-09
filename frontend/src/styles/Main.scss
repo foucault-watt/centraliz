@@ -403,6 +403,17 @@
   box-shadow: inset 0 0 0 1px rgba($second, 0.08);
 }
 
+.app-header-avatar-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+  background: var(--avatar-color, white);
+  border: 2px solid rgba(white, 0.9);
+  box-shadow: inset 0 0 0 1px rgba($second, 0.08);
+}
+
 .app-header-ranking {
   justify-self: end;
   display: inline-flex;

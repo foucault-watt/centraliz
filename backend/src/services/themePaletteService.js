@@ -52,6 +52,11 @@ async function getById(id) {
   return data;
 }
 
+async function getPublicById(id) {
+  const row = await getById(id);
+  return row ? mapEntry(row) : null;
+}
+
 async function create({
   name,
   colorPrimary,
@@ -143,6 +148,7 @@ module.exports = {
   listActive,
   listAll,
   getById,
+  getPublicById,
   create,
   update,
   setIcon,

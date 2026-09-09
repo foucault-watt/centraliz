@@ -72,6 +72,7 @@ const AccentColorCard = ({ onSaved, forceVisible = false }) => {
         body: JSON.stringify({
           themeColor: entry.colorPrimary,
           themeColorDark: entry.colorPrimaryDark,
+          associationId: entry.id,
         }),
       });
 

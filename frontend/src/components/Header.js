@@ -18,6 +18,9 @@ export default function Header({ onMenuToggle }) {
     (setupStatus.completedCount / setupStatus.totalCount) * 100,
   );
   const avatarColor = setupStatus.activeColor?.primary || "#ffffff";
+  const avatarIconUrl = setupStatus.activeColor?.iconUrl
+    ? `${process.env.REACT_APP_URL_BACK}${setupStatus.activeColor.iconUrl}`
+    : null;
 
   return (
     <motion.header
@@ -67,7 +70,15 @@ export default function Header({ onMenuToggle }) {
           }
           whileTap={{ scale: 0.94 }}
         >
-          <span className="app-header-avatar-dot" />
+          {avatarIconUrl ? (
+            <img
+              src={avatarIconUrl}
+              alt=""
+              className="app-header-avatar-icon"
+            />
+          ) : (
+            <span className="app-header-avatar-dot" />
+          )}
         </motion.button>
       </div>
     </motion.header>

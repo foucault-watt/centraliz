@@ -53,6 +53,7 @@ const getActiveColor = (user) => {
       source: "personal",
       primary: user.theme_color,
       dark: user.theme_color_dark || null,
+      iconUrl: user.theme_association_icon_url || null,
     };
   }
   return null;

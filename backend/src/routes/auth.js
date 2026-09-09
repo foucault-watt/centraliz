@@ -8,6 +8,7 @@ const supabase = require("../utils/supabaseClient");
 const bdsWhitelist = require("../config/bdsWhitelist");
 const analyticsService = require("../services/analyticsService");
 const ZimbraService = require("../services/zimbraService");
+const themePaletteService = require("../services/themePaletteService");
 const { createUserSecretSalt } = require("../utils/userSecret");
 
 const getUserAssociations = async (username) => {
@@ -81,11 +82,15 @@ router.get("/status", async (req, res) => {
   }
 
   if (fullUser) {
-    const [associationRoles, hasMailPassword, setupStepFlags] = await Promise.all([
-      getUserAssociations(fullUser.username),
-      ZimbraService.hasStoredPassword(fullUser.username),
-      analyticsService.getUserStepEventFlags(fullUser.username),
-    ]);
+    const [associationRoles, hasMailPassword, setupStepFlags, themePaletteAssociation] =
+      await Promise.all([
+        getUserAssociations(fullUser.username),
+        ZimbraService.hasStoredPassword(fullUser.username),
+        analyticsService.getUserStepEventFlags(fullUser.username),
+        fullUser.theme_palette_association_id
+          ? themePaletteService.getPublicById(fullUser.theme_palette_association_id)
+          : Promise.resolve(null),
+      ]);
 
     // Check for BDS referral cookie
     const bdsReferral = req.cookies.bds_referral;
@@ -112,6 +117,8 @@ router.get("/status", async (req, res) => {
       support_bds: fullUser.support_bds,
       theme_color: fullUser.theme_color,
       theme_color_dark: fullUser.theme_color_dark,
+      theme_association_icon_url: themePaletteAssociation?.iconUrl || null,
+      theme_association_name: themePaletteAssociation?.name || null,
       has_association_role: Boolean(fullUser.has_association_role),
       association_roles: associationRoles,
       userSecretSalt: createUserSecretSalt(fullUser.username),

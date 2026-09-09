@@ -5,22 +5,29 @@ const authMiddleware = require("../middlewares/auth");
 const setupStatusService = require("../services/setupStatusService");
 
 const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * POST /api/user/theme-color
- * Sauvegarde la couleur d'accent personnelle de l'utilisateur connecté.
- * Champ entièrement séparé de support_bds (voir bds.js) : ne touche ni la
- * colonne, ni la route, ni le cookie de parrainage BDS.
+ * Sauvegarde la couleur d'accent personnelle de l'utilisateur connecté, et
+ * l'association du palette-picker dont elle provient (pour afficher son
+ * icône dans le header). Champ entièrement séparé de support_bds (voir
+ * bds.js) : ne touche ni la colonne, ni la route, ni le cookie de
+ * parrainage BDS.
  */
 router.post("/theme-color", authMiddleware, async (req, res) => {
   try {
-    const { themeColor, themeColorDark } = req.body;
+    const { themeColor, themeColorDark, associationId } = req.body;
 
     if (!themeColor || !HEX_COLOR_REGEX.test(themeColor)) {
       return res.status(400).json({ success: false, error: "Couleur invalide" });
     }
     if (themeColorDark && !HEX_COLOR_REGEX.test(themeColorDark)) {
       return res.status(400).json({ success: false, error: "Couleur foncée invalide" });
+    }
+    if (associationId && !UUID_REGEX.test(associationId)) {
+      return res.status(400).json({ success: false, error: "Association invalide" });
     }
 
     const { userName } = req.session.user;
@@ -29,6 +36,7 @@ router.post("/theme-color", authMiddleware, async (req, res) => {
       .update({
         theme_color: themeColor,
         theme_color_dark: themeColorDark || null,
+        theme_palette_association_id: associationId || null,
       })
       .eq("username", userName);
 

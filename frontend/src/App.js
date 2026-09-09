@@ -5,7 +5,6 @@ import Header from "./components/Header"; // Import Header
 import LoginPage from "./components/LoginPage.js";
 import PageLayout from "./components/PageLayout";
 import CampaignRuntime from "./components/CampaignRuntime";
-import ProductRouteTracker from "./components/ProductRouteTracker";
 import SlideMenu from "./components/SlideMenu"; // Import SlideMenu
 import { getSupportBdsInfo } from "./config/supportBds";
 import {
@@ -146,7 +145,6 @@ const App = () => {
           user={user}
         />{" "}
         {/* Pass state and toggle to SlideMenu */}
-        <ProductRouteTracker />
         <CampaignRuntime />
         <Suspense fallback={<div></div>}>
           <Routes>

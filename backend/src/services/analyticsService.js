@@ -868,144 +868,95 @@ const analyticsService = {
     }
   },
 
+  // Agrégation faite côté SQL (fonctions analytics_get_summary /
+  // analytics_get_timeseries, migration 015) plutôt qu'un scan complet de la
+  // table rapatrié en JS : c'est ce qui faisait mettre ~20s à charger l'onglet
+  // Overview du dashboard admin, et ça ne pouvait qu'empirer avec la table qui
+  // grossit.
   async getSummary({ range = "30d", eventTypes, hideExcluded } = {}) {
     const startDate = getRangeStart(range);
-    const events = await fetchEvents(
-      { range, eventTypes, hideExcluded },
-      "user_username, event_name, event_type, module, created_at",
-    );
-    const sessions = buildSessions(events);
-    const sessionMetrics = buildSessionMetrics(sessions);
-    const users = uniqueUsers(events);
-    const modules = new Map();
-    const eventNames = new Map();
-    const eventTypesMap = new Map();
-    const activeDaysByUser = new Map();
-    const totalEventsByUser = new Map();
-    const userGroups = new Map();
-    const usersByUsername = await getUsersByUsername([...users]);
+    const resolved = await resolveEventFilters({ range, eventTypes, hideExcluded });
 
-    events.forEach((event) => {
-      increment(modules, event.module);
-      increment(eventNames, event.event_name);
-      increment(eventTypesMap, event.event_type || "interaction");
-
-      const dayKey = getPeriodKey(event.created_at);
-      if (event.user_username) {
-        increment(totalEventsByUser, event.user_username);
-        if (!activeDaysByUser.has(event.user_username)) {
-          activeDaysByUser.set(event.user_username, new Set());
-        }
-        activeDaysByUser.get(event.user_username).add(dayKey);
-      }
+    const { data, error } = await supabase.rpc("analytics_get_summary", {
+      p_start_date: startDate.toISOString(),
+      p_event_types: resolved.eventTypes.length ? resolved.eventTypes : null,
+      p_excluded_usernames: resolved.excludedUsernames.length ? resolved.excludedUsernames : null,
+      p_allowed_usernames: resolved.allowedUsernames,
     });
+    if (error) throw error;
 
-    [...users].forEach((username) => {
-      increment(userGroups, usersByUsername.get(username)?.group || "Non renseigne");
+    const activityByHour = [...Array(24)].map((_, hour) => {
+      const found = (data.activityByHour || []).find((item) => item.hour === hour);
+      return { hour: String(hour).padStart(2, "0"), count: found?.count || 0 };
     });
-
-    const activeSince = (days) => {
-      const threshold = new Date();
-      threshold.setDate(threshold.getDate() - days);
-      return uniqueUsers(
-        events.filter((event) => new Date(event.created_at) >= threshold),
-      ).size;
-    };
-
-    const previousUsers = uniqueUsers(
-      await fetchEvents(
-        {
-          eventTypes,
-          hideExcluded,
-          beforeDate: startDate,
-        },
-        "user_username, created_at",
-      ),
-    );
-    const returningUsers = [...users].filter((username) => previousUsers.has(username)).length;
-    const newUsers = Math.max(users.size - returningUsers, 0);
-    const recurrentUsers = [...activeDaysByUser.values()].filter((days) => days.size > 1).length;
-    const firstSeenAt = events[0]?.created_at || null;
-    const lastSeenAt = events[events.length - 1]?.created_at || null;
-    const loginCount = events.filter((event) => event.event_name === "user_logged_in").length;
-    const sessionCountByUser = new Map();
-    sessions.forEach((session) => {
-      increment(sessionCountByUser, session.userUsername);
+    const activityByWeekday = WEEKDAYS.map((weekday, index) => {
+      const found = (data.activityByWeekday || []).find((item) => item.dow === index + 1);
+      return { name: weekday, count: found?.count || 0 };
     });
-    const returningUsersPreview = [...users]
-      .filter((username) => previousUsers.has(username))
-      .map((username) => ({
-        username,
-        displayName: usersByUsername.get(username)?.displayName || username,
-        group: usersByUsername.get(username)?.group || "Non renseigne",
-        totalEvents: totalEventsByUser.get(username) || 0,
-        activeDays: activeDaysByUser.get(username)?.size || 0,
-        sessionsTotal: sessionCountByUser.get(username) || 0,
-      }))
-      .sort(
-        (a, b) =>
-          b.sessionsTotal - a.sessionsTotal ||
-          b.activeDays - a.activeDays ||
-          b.totalEvents - a.totalEvents,
-      )
-      .slice(0, 6);
-    const activeHoursCount = buildActivityByHour(events).filter((item) => item.count > 0).length;
+    const activeHoursCount = activityByHour.filter((item) => item.count > 0).length;
+    const eventTypeCounts = data.eventTypeCounts || {};
 
     return {
       range: VALID_RANGES[range] ? range : "30d",
       totals: {
-        events: events.length,
-        activeUsers: users.size,
-        dau: activeSince(1),
-        wau: activeSince(7),
-        mau: activeSince(30),
-        recurrentUsers,
-        sessionsTotal: sessionMetrics.sessionsTotal,
-        avgEventsPerSession: sessionMetrics.avgEventsPerSession,
-        avgSessionDuration: sessionMetrics.avgSessionDuration,
-        loginCount,
-        firstSeenAt,
-        lastSeenAt,
+        events: data.totalEvents || 0,
+        activeUsers: data.activeUsers || 0,
+        dau: data.dau || 0,
+        wau: data.wau || 0,
+        mau: data.mau || 0,
+        recurrentUsers: data.recurrentUsers || 0,
+        sessionsTotal: data.sessionsTotal || 0,
+        avgEventsPerSession: data.avgEventsPerSession || 0,
+        avgSessionDuration: data.avgSessionDuration || 0,
+        loginCount: data.loginCount || 0,
+        firstSeenAt: data.firstSeenAt || null,
+        lastSeenAt: data.lastSeenAt || null,
         activeHoursCount,
       },
-      firstSeenAt,
-      lastSeenAt,
+      firstSeenAt: data.firstSeenAt || null,
+      lastSeenAt: data.lastSeenAt || null,
       activeHoursCount,
-      newVsReturning: { newUsers, returningUsers },
-      returningUsersPreview,
-      eventsByModule: toSortedArray(modules, 12),
-      topEvents: toSortedArray(eventNames, 12),
+      newVsReturning: { newUsers: data.newUsers || 0, returningUsers: data.returningUsers || 0 },
+      returningUsersPreview: data.returningUsersPreview || [],
+      eventsByModule: data.eventsByModule || [],
+      topEvents: data.topEvents || [],
       eventsByType: EVENT_TYPE_ORDER.map((eventType) => ({
         name: eventType,
-        count: eventTypesMap.get(eventType) || 0,
+        count: eventTypeCounts[eventType] || 0,
       })),
       eventTypeTotals: {
-        exposure: eventTypesMap.get("exposure") || 0,
-        load: eventTypesMap.get("load") || 0,
-        interaction: eventTypesMap.get("interaction") || 0,
-        conversion: eventTypesMap.get("conversion") || 0,
-        admin: eventTypesMap.get("admin") || 0,
-        system: eventTypesMap.get("system") || 0,
+        exposure: eventTypeCounts.exposure || 0,
+        load: eventTypeCounts.load || 0,
+        interaction: eventTypeCounts.interaction || 0,
+        conversion: eventTypeCounts.conversion || 0,
+        admin: eventTypeCounts.admin || 0,
+        system: eventTypeCounts.system || 0,
       },
-      activityByHour: buildActivityByHour(events),
-      activityByWeekday: buildActivityByWeekday(events),
-      usersByGroup: toSortedArray(userGroups, 12),
-      sessionsByDay: sessionMetrics.sessionsByDay,
+      activityByHour,
+      activityByWeekday,
+      usersByGroup: data.usersByGroup || [],
+      sessionsByDay: data.sessionsByDay || [],
     };
   },
 
   async getTimeseries({ range = "30d", groupBy = "day", eventTypes, hideExcluded } = {}) {
     const safeGroupBy = groupBy === "week" ? "week" : "day";
-    const events = await fetchEvents(
-      { range, eventTypes, hideExcluded },
-      "user_username, event_name, event_type, module, created_at",
-    );
-    const sessions = buildSessions(events);
+    const startDate = getRangeStart(range);
+    const resolved = await resolveEventFilters({ range, eventTypes, hideExcluded });
+
+    const { data, error } = await supabase.rpc("analytics_get_timeseries", {
+      p_start_date: startDate.toISOString(),
+      p_group_by: safeGroupBy,
+      p_event_types: resolved.eventTypes.length ? resolved.eventTypes : null,
+      p_excluded_usernames: resolved.excludedUsernames.length ? resolved.excludedUsernames : null,
+      p_allowed_usernames: resolved.allowedUsernames,
+    });
+    if (error) throw error;
 
     return {
       range: VALID_RANGES[range] ? range : "30d",
       groupBy: safeGroupBy,
-      points: buildTimeseriesPoints(events, sessions, safeGroupBy),
+      points: data || [],
     };
   },
 

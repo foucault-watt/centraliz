@@ -547,6 +547,25 @@ const OverviewTab = ({
       </div>
     </Card>
 
+    <Card className="p-5">
+      <SectionTitle
+        icon={Users}
+        title="Utilisateurs uniques par jour"
+        subtitle="Combien de personnes différentes ont utilisé Centraliz chaque jour (à ne pas confondre avec le nombre de sessions)."
+      />
+      <div className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={timeseries?.points || []}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+            <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+            <Tooltip />
+            <Bar dataKey="activeUsers" name="Utilisateurs uniques" fill="#2668d9" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       <Card className="p-5">
         <SectionTitle icon={Layers3} title="Modules les plus utilisés" />

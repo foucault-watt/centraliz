@@ -28,7 +28,7 @@ Cote frontend, utiliser uniquement le helper best-effort :
 ```js
 import { trackProductEvent } from "../utils/analytics";
 
-trackProductEvent("module_viewed", "notes", { route: "/notes" });
+trackProductEvent("external_link_clicked", "links", { link_id: link.id });
 ```
 
 ## Regles de minimisation
@@ -41,6 +41,8 @@ Ne jamais stocker dans `properties` :
 - donnees destinees a identifier une personne dans une presentation externe.
 
 Un evenement doit mesurer une action produit utile. S'il ne sert pas a une decision produit, ne pas l'ajouter.
+
+Eviter en particulier les evenements automatiques declenches a chaque chargement de page ou de route (`module_viewed`, `calendar_loaded` existaient et ont ete retires en 2026-09 : ils representaient ~47% des lignes de la table sans rien apprendre qu'on ne sache deja via les events metier plus precis comme `calendar_period_changed` ou `mail_list_loaded`).
 
 ## Dashboard admin
 

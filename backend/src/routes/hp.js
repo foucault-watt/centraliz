@@ -3,7 +3,6 @@ const router = express.Router();
 const hpService = require("../services/hpService");
 const fs = require("fs");
 const path = require("path");
-const analyticsService = require("../services/analyticsService");
 
 router.get("/hp-data", async (req, res) => {
   try {
@@ -12,17 +11,6 @@ router.get("/hp-data", async (req, res) => {
       return res.status(400).json({ error: "UserId requis" });
     }
     const hpData = await hpService.fetchHpData(userId);
-    analyticsService.trackEvent({
-      req,
-      userUsername: req.session?.user?.userName || null,
-      eventName: "calendar_loaded",
-      module: "calendars",
-      eventType: "load",
-      isAutomatic: true,
-      properties: {
-        scope: req.session?.user?.userName === userId ? "own" : "user",
-      },
-    });
     res.send(hpData);
   } catch (error) {
     res
@@ -37,14 +25,6 @@ router.get("/check-user/", authMiddleware, async (req, res) => {
   try {
     const userId = req.session.user.userName;
     const result = await hpService.checkUser(userId);
-    analyticsService.trackEvent({
-      req,
-      eventName: "calendar_loaded",
-      module: "calendars",
-      eventType: "load",
-      isAutomatic: true,
-      properties: { scope: "own_check" },
-    });
     res.json(result);
   } catch (error) {
     res
@@ -124,14 +104,6 @@ router.get("/external-calendar", async (req, res) => {
   try {
     const { icalLink } = req.query;
     const data = await hpService.fetchExternalCalendar(icalLink);
-    analyticsService.trackEvent({
-      req,
-      eventName: "calendar_loaded",
-      module: "calendars",
-      eventType: "load",
-      isAutomatic: true,
-      properties: { scope: "external" },
-    });
     res.send(data);
   } catch (error) {
     res
@@ -157,14 +129,6 @@ router.get("/calendar/:type/:name", async (req, res) => {
           .json({ error: "Calendrier du professeur non trouvé" });
       }
       data = await hpService.fetchExternalCalendar(prof.ical_link);
-      analyticsService.trackEvent({
-        req,
-        eventName: "calendar_loaded",
-        module: "calendars",
-        eventType: "load",
-        isAutomatic: true,
-        properties: { scope: "prof" },
-      });
     } else if (type === "salle") {
       const roomData = JSON.parse(
         fs.readFileSync(
@@ -196,14 +160,6 @@ router.get("/calendar/:type/:name", async (req, res) => {
         });
       }
       data = await hpService.fetchExternalCalendar(room.ical_link);
-      analyticsService.trackEvent({
-        req,
-        eventName: "calendar_loaded",
-        module: "calendars",
-        eventType: "load",
-        isAutomatic: true,
-        properties: { scope: "room" },
-      });
     } else {
       return res.status(400).json({ error: "Type de calendrier invalide" });
     }

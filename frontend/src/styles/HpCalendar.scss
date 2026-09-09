@@ -742,24 +742,11 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
       text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
       word-break: normal;
       overflow-wrap: anywhere;
-    }
-
-    .event-type {
-      font-size: 0.74rem;
-      line-height: 1.1;
-      padding: 0;
-      margin: 0;
-      max-width: 95%;
-      opacity: 0.88;
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .event-professor {
@@ -775,19 +762,45 @@
       white-space: nowrap;
     }
 
-    .event-location {
-      font-size: 0.62rem;
+    // Salle et type de cours : puces icône + valeur courte plutôt que des
+    // lignes de texte pleines, pour rester lisibles sur les créneaux d'1h.
+    // La salle garde le traitement "puce pleine" (repère principal) tandis
+    // que le type reste en texte simple pour ne pas rivaliser avec elle.
+    .event-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 3px;
+      max-width: 100%;
+    }
+
+    .event-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.6rem;
       line-height: 1;
-      background: rgba(255, 255, 255, 0.24);
-      padding: 3px 7px;
-      border-radius: 999px;
-      max-width: 95%;
-      font-weight: 600;
-      margin: 0;
-      letter-spacing: 0;
+      max-width: 100%;
       overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
+      text-overflow: ellipsis;
+
+      svg {
+        flex-shrink: 0;
+      }
+    }
+
+    .event-chip-location {
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+      padding: 2px 6px;
+    }
+
+    .event-chip-type {
+      font-weight: 500;
+      opacity: 0.82;
+      padding: 0 2px;
     }
 
     &.compact {
@@ -796,21 +809,18 @@
       padding: 3px 4px;
 
       .event-professor,
-      .event-type {
+      .event-chip-type {
         display: none;
       }
 
       .event-title {
         font-size: clamp(0.68rem, 0.78vw, 0.78rem);
         line-height: 1.06;
-        -webkit-line-clamp: 1;
-        line-clamp: 1;
       }
 
-      .event-location {
+      .event-chip-location {
         font-size: 0.56rem;
-        padding: 2px 6px;
-        max-width: 88%;
+        padding: 1px 5px;
       }
     }
 
@@ -819,18 +829,6 @@
 
       .event-professor {
         display: none;
-      }
-
-      .event-title {
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-      }
-    }
-
-    &.roomy {
-      .event-title {
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
       }
     }
 
@@ -891,16 +889,14 @@
         font-size: 0.72rem;
         line-height: 1.06;
         margin: 0;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
       }
 
-      .event-location {
+      .event-chip-location {
         font-size: 0.55rem;
         padding: 2px 5px;
       }
 
-      .event-type,
+      .event-chip-type,
       .event-professor {
         display: none;
       }
@@ -1447,23 +1443,31 @@
           }
         }
 
+        // Sur mobile, l'événement occupe toute la largeur de l'écran (vue
+        // jour) plutôt qu'une colonne étroite : on profite de la place au
+        // lieu de garder des tailles pensées pour du bureau.
+        padding: 6px 8px;
+
         .event-title {
-          font-size: 0.74rem;
-          line-height: 1.08;
-          -webkit-line-clamp: 2;
+          font-size: 0.92rem;
+          line-height: 1.15;
           margin: 0;
         }
 
-        .event-location {
-          padding: 1px 4px;
-          font-size: 0.55rem;
-          max-width: 90%;
+        .event-chip-row {
+          gap: 5px;
         }
 
-        .event-type,
+        .event-chip {
+          font-size: 0.76rem;
+        }
+
+        .event-chip-location {
+          padding: 3px 8px;
+        }
+
         .event-professor {
-          font-size: 0.64rem;
-          line-height: 1.05;
+          font-size: 0.78rem;
         }
       }
     }

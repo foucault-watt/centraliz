@@ -551,13 +551,23 @@ const HpCalendar = ({ user }) => {
         {/* N'afficher les détails supplémentaires que si on n'est pas en mode partagé */}
         {!isInSharedMode && (
           <>
-            {event.location && (
-              <div className="event-location">{event.location}</div>
+            {(event.location || event.courseType) && (
+              <div className="event-chip-row">
+                {event.location && (
+                  <span className="event-chip event-chip-location">
+                    <MapPin size={10} />
+                    {event.location}
+                  </span>
+                )}
+                {event.courseType && (
+                  <span className="event-chip event-chip-type">
+                    <BookOpen size={10} />
+                    {event.courseType}
+                  </span>
+                )}
+              </div>
             )}
-            {event.courseType && (
-              <div className="event-type">{event.courseType}</div>
-            )}
-            {event.professor && (
+            {event.professor && densityClass !== "compact" && (
               <div className="event-professor">{event.professor}</div>
             )}
           </>

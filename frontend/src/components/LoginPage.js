@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   Calendar,
+  FileText,
   GitBranch,
   Heart,
   LogIn,
   Mail,
-  Shield,
   Users,
   X,
 } from "lucide-react";
@@ -63,58 +63,59 @@ const LoginPage = () => {
   const features = [
     { icon: Calendar, text: "Calendriers" },
     { icon: Mail, text: "Mails" },
-    { icon: Users, text: "Vie étudiante" },
+    { icon: Users, text: "Jeu des photos" },
+    { icon: FileText, text: "Notes" },
   ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 14, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { type: "spring", stiffness: 170, damping: 20 },
-    },
-  };
 
   return (
     <div className="min-h-screen bg-background-light text-text-primary flex flex-col">
-      <main className="flex-1 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center w-full max-w-6xl mx-auto px-5 py-8 md:px-8 md:py-12">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-5 py-10 md:py-16 grid grid-cols-1 lg:grid-cols-2 lg:items-center gap-10 lg:gap-14">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.42, ease: "easeOut" }}
-          className="min-w-0"
+          className="flex flex-col items-center text-center lg:items-start lg:text-left"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <img
               src="/logo-title.png"
               alt="Centraliz"
-              className="h-20 w-20 object-contain"
+              className="h-20 w-20 md:h-24 md:w-24 object-contain"
             />
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+            <div className="text-left">
+              <p className="text-xl font-black text-secondary leading-none">
                 Centraliz
               </p>
-              <h1 className="text-3xl md:text-5xl font-black text-secondary leading-tight">
-                Votre espace numérique unifié.
-              </h1>
+              <p className="text-xs font-semibold text-primary tracking-wide">
+                centraliz.it
+              </p>
             </div>
           </div>
-
-          <p className="mt-5 text-base md:text-xl text-gray-700 max-w-2xl leading-relaxed">
-            Centraliz rassemble les outils utiles pour les étudiants de Centrale
-            Lille, ITEEM et ENSCL. Connectez-vous avec CLA, puis retrouvez
-            vos informations au même endroit.
+          <h1 className="mt-5 text-3xl md:text-4xl font-black text-secondary leading-tight">
+            Ton emploi du temps, tes mails, et le jeu des photos, au même
+            endroit.
+          </h1>
+          <p className="mt-3 text-base md:text-lg text-gray-700 max-w-xl">
+            Fait par un élève de l'ITEEM pour les étudiants de Centrale Lille,
+            ITEEM et ENSCL.
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-2">
+          <motion.button
+            onClick={handleLogin}
+            className="mt-7 w-full sm:w-auto bg-primary hover:bg-primary-dark text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-3 text-lg shadow-lg shadow-primary/20 transition-all duration-200"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <LogIn size={24} />
+            Se connecter avec ton compte CLA
+            <ArrowRight size={20} />
+          </motion.button>
+
+          <p className="mt-3 text-sm text-text-secondary">
+            CLA, c'est le compte utilisé par les associations de l'école.
+          </p>
+
+          <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-2">
             {features.map((feature) => (
               <span
                 key={feature.text}
@@ -125,62 +126,30 @@ const LoginPage = () => {
               </span>
             ))}
           </div>
+
+          <a
+            href="https://github.com/foucault-watt/centraliz"
+            className="mt-8 flex items-center justify-center lg:justify-start gap-2 text-sm text-text-secondary hover:text-primary transition-colors"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <GitBranch size={16} />
+            <span>Projet open-source sur GitHub</span>
+          </a>
         </motion.div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="w-full max-w-md mx-auto"
-        >
-          <motion.h2
-            variants={itemVariants}
-            className="text-2xl md:text-3xl font-bold text-secondary mb-2"
-          >
-            Connexion
-          </motion.h2>
-          <motion.p
-            variants={itemVariants}
-            className="text-text-secondary mb-6"
-          >
-            Accédez à l'application avec votre compte école.
-          </motion.p>
-
-          <motion.button
-            variants={itemVariants}
-            onClick={handleLogin}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 px-5 rounded-xl flex items-center justify-center gap-3 text-lg shadow-lg shadow-primary/20 transition-all duration-200"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <LogIn size={24} />
-            Se connecter via CLA
-            <ArrowRight size={20} />
-          </motion.button>
-
-          <motion.div
-            variants={itemVariants}
-            className="mt-4 flex items-start gap-2 text-sm text-text-secondary"
-          >
-            <Shield size={16} className="text-primary mt-0.5 shrink-0" />
-            <p>Connexion sécurisée via le portail de l'école.</p>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="mt-6 text-center text-sm text-text-secondary"
-          >
-            <a
-              href="https://github.com/foucault-watt/centraliz"
-              className="flex items-center justify-center space-x-2 mt-4 hover:text-primary transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <GitBranch size={16} />
-              <span>Projet open-source sur GitHub</span>
-            </a>
-          </motion.div>
-        </motion.div>
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-sm mx-auto w-full">
+          <img
+            src="/calendrier.png"
+            alt="Vue Calendriers de Centraliz : Hyperplanning et CLA fusionnés"
+            className="rounded-xl border border-gray-200 shadow-md w-full object-cover"
+          />
+          <img
+            src="/jeu-des-photos.png"
+            alt="Jeu des photos de Centraliz : deviner qui est sur la photo"
+            className="rounded-xl border border-gray-200 shadow-md w-full object-cover"
+          />
+        </div>
       </main>
 
       <footer className="px-4 pb-6 text-center text-sm text-text-secondary">

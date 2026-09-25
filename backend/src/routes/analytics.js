@@ -193,6 +193,19 @@ router.get("/admin/modules/:module/timeseries", authMiddleware, adminMiddleware,
   }
 });
 
+router.get("/admin/modules/:module/category-timeseries", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const timeseries = await analyticsService.getCategoryTimeseries(req.params.module, req.query);
+    return res.json({ success: true, timeseries });
+  } catch (error) {
+    console.error("[Analytics] Erreur category timeseries:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Erreur lors de la récupération de la série par catégorie.",
+    });
+  }
+});
+
 router.get("/admin/modules/:module/users", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await analyticsService.getModuleUsers(req.params.module, req.query);

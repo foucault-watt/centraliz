@@ -68,6 +68,12 @@ const ranges = [
   { value: "365d", label: "12 mois" },
 ];
 
+const groupByOptions = [
+  { value: "day", label: "Jour" },
+  { value: "week", label: "Semaine" },
+  { value: "month", label: "Mois" },
+];
+
 const tabs = [
   { id: "overview", label: "Aperçu", icon: BarChart3, path: "/analytics/admin" },
   { id: "explorer", label: "Explorer", icon: Table2, path: "/analytics/admin/explorer" },
@@ -90,6 +96,41 @@ const eventTypeOptions = [
 
 const defaultEventTypes = eventTypeOptions.map((item) => item.value);
 const moduleColors = ["#1f9d8a", "#2668d9", "#f59e0b", "#dc2626", "#7c3aed", "#0f766e"];
+
+// Graphique "évolution par catégorie" affiché sur la page de détail du
+// module correspondant, quand ce module a une dimension catégorielle
+// pertinente à suivre dans le temps (cf. propriétés déjà trackées par
+// trackProductEvent / analyticsService.trackEvent côté métier).
+const moduleCategoryChartConfig = {
+  links: {
+    eventName: "external_link_clicked",
+    propertyKey: "name",
+    title: "Évolution des liens utilisés",
+    subtitle: "Clics par lien, regroupés par période. Cliquer une pastille masque/affiche le lien.",
+    emptyLabel: "Aucun clic sur un lien pour cette période",
+  },
+  calendars: {
+    eventName: "calendar_event_opened,calendar_course_opened",
+    propertyKey: "type",
+    title: "Évolution des éléments de calendrier consultés",
+    subtitle: "Ouvertures de cours/événements par type, regroupées par période.",
+    emptyLabel: "Aucune ouverture de calendrier pour cette période",
+  },
+  events: {
+    eventName: "event_opened",
+    propertyKey: "event_type",
+    title: "Évolution des types d'événements consultés",
+    subtitle: "Ouvertures d'événements par type, regroupées par période.",
+    emptyLabel: "Aucun événement consulté pour cette période",
+  },
+  cekilui: {
+    eventName: "ceki_game_started",
+    propertyKey: "mode",
+    title: "Évolution des modes de jeu Cékilui",
+    subtitle: "Parties démarrées par mode, regroupées par période.",
+    emptyLabel: "Aucune partie démarrée pour cette période",
+  },
+};
 
 const formatNumber = (value) =>
   new Intl.NumberFormat("fr-FR").format(value || 0);
@@ -1545,6 +1586,141 @@ const ModulesPage = ({
   );
 };
 
+const CategoryTimeseriesChart = ({
+  moduleName,
+  range,
+  hideExcluded,
+  eventName,
+  propertyKey,
+  title,
+  subtitle,
+  emptyLabel = "Aucune donnée pour cette période",
+}) => {
+  const [groupBy, setGroupBy] = useState("day");
+  const [timeseries, setTimeseries] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [hiddenCategories, setHiddenCategories] = useState(() => new Set());
+
+  useEffect(() => {
+    const loadCategoryTimeseries = async () => {
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({
+          range,
+          groupBy,
+          eventName,
+          propertyKey,
+          ...(hideExcluded ? { hideExcluded: "true" } : {}),
+        }).toString();
+        const response = await fetchApi(
+          `/api/analytics/admin/modules/${encodeURIComponent(moduleName)}/category-timeseries?${query}`,
+        );
+        const data = await response.json();
+        setTimeseries(data.success ? data.timeseries : null);
+      } catch (error) {
+        console.error(error);
+        setTimeseries(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCategoryTimeseries();
+  }, [moduleName, range, groupBy, hideExcluded, eventName, propertyKey]);
+
+  const categories = timeseries?.categories || [];
+
+  const toggleCategory = (name) => {
+    setHiddenCategories((previous) => {
+      const next = new Set(previous);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  return (
+    <Card className="p-5">
+      <SectionTitle
+        icon={LineChartIcon}
+        title={title}
+        subtitle={subtitle}
+        action={
+          <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+            {groupByOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setGroupBy(option.value)}
+                className={`rounded-md px-3 py-1 text-xs font-bold transition-colors ${
+                  groupBy === option.value
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-gray-500 hover:text-secondary"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
+
+      {!loading && !categories.length ? (
+        <EmptyPanel label={emptyLabel} />
+      ) : (
+        <>
+          <div className="mb-3 flex flex-wrap gap-2">
+            {categories.map((name, index) => {
+              const color = moduleColors[index % moduleColors.length];
+              const isHidden = hiddenCategories.has(name);
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => toggleCategory(name)}
+                  className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition-opacity ${
+                    isHidden ? "border-gray-200 text-gray-400 opacity-50" : "border-gray-200 text-secondary"
+                  }`}
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: isHidden ? "#d1d5db" : color }}
+                  />
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={timeseries?.points || []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                {categories
+                  .filter((name) => !hiddenCategories.has(name))
+                  .map((name) => (
+                    <Line
+                      key={name}
+                      type="monotone"
+                      dataKey={name}
+                      name={name}
+                      stroke={moduleColors[categories.indexOf(name) % moduleColors.length]}
+                      strokeWidth={2.2}
+                      dot={false}
+                      connectNulls
+                    />
+                  ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
+    </Card>
+  );
+};
+
 const ModuleDetailPage = ({
   moduleName,
   queryState,
@@ -1726,6 +1902,15 @@ const ModuleDetailPage = ({
           <MiniBarList items={summary.topEvents || []} onClickItem={(item) => openExplorer({ module: summary.module, eventName: item.name })} />
         </Card>
       </div>
+
+      {moduleCategoryChartConfig[summary.module] && (
+        <CategoryTimeseriesChart
+          moduleName={summary.module}
+          range={queryState.range}
+          hideExcluded={hideExcluded}
+          {...moduleCategoryChartConfig[summary.module]}
+        />
+      )}
 
       <Card className="p-5">
         <SectionTitle icon={Users} title="Utilisateurs du module" subtitle="Triable et paginé." />

@@ -178,6 +178,9 @@ const toPostgrestInList = (values) =>
 
 const getPeriodKey = (date, groupBy = "day") => {
   const parsed = new Date(date);
+  if (groupBy === "month") {
+    return `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, "0")}`;
+  }
   if (groupBy === "week") {
     const weekStart = new Date(parsed);
     const day = weekStart.getUTCDay();
@@ -269,6 +272,7 @@ const applyEventQueryFilters = (query, filters = {}) => {
   if (filters.beforeDate) query = query.lt("created_at", filters.beforeDate.toISOString());
   if (filters.module) query = query.eq("module", filters.module);
   if (filters.eventName) query = query.eq("event_name", filters.eventName);
+  else if (filters.eventNames?.length) query = query.in("event_name", filters.eventNames);
   if (filters.eventTypes?.length) query = query.in("event_type", filters.eventTypes);
   if (filters.exactUsername) query = query.eq("user_username", filters.exactUsername);
   else if (filters.username) query = query.ilike("user_username", `%${filters.username}%`);
@@ -296,6 +300,7 @@ const resolveEventFilters = async (filters = {}) => {
     beforeDate: filters.beforeDate,
     module: filters.module || null,
     eventName: filters.eventName || null,
+    eventNames: filters.eventNames || null,
     eventTypes,
     username: filters.username || null,
     exactUsername: filters.exactUsername || null,
@@ -1216,6 +1221,42 @@ const analyticsService = {
     return {
       range: VALID_RANGES[range] ? range : "30d",
       points: buildTimeseriesPoints(events, sessions, "day"),
+    };
+  },
+
+  // Série temporelle générique par valeur de propriété (ex: nom de lien, type
+  // de calendrier, mode de jeu), agrégée jour/semaine/mois : sert les
+  // graphiques d'évolution "par catégorie" des pages de détail de module.
+  async getCategoryTimeseries(
+    module,
+    { range = "30d", groupBy = "day", hideExcluded, eventName, propertyKey = "name" } = {},
+  ) {
+    const safeGroupBy = ["day", "week", "month"].includes(groupBy) ? groupBy : "day";
+    const eventNames = parseCsv(eventName);
+    const safeKey = normalizeKey(propertyKey) || "name";
+    const events = await fetchEvents(
+      { range, hideExcluded, module, eventNames: eventNames.length ? eventNames : undefined },
+      "properties, created_at",
+    );
+
+    const categoryTotals = new Map();
+    const buckets = new Map();
+
+    events.forEach((event) => {
+      const category = String(event.properties?.[safeKey] || "Autre").slice(0, 60);
+      increment(categoryTotals, category);
+
+      const period = getPeriodKey(event.created_at, safeGroupBy);
+      if (!buckets.has(period)) buckets.set(period, { period });
+      const bucket = buckets.get(period);
+      bucket[category] = (bucket[category] || 0) + 1;
+    });
+
+    return {
+      range: VALID_RANGES[range] ? range : "30d",
+      groupBy: safeGroupBy,
+      categories: toSortedArray(categoryTotals, 30).map((item) => item.name),
+      points: [...buckets.values()].sort((a, b) => a.period.localeCompare(b.period)),
     };
   },
 

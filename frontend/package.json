@@ -5,7 +5,7 @@
   "private": true,
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
-    "axios": "^1.11.0",
+    "axios": "^1.18.0",
     "centraliz-root": "file:..",
     "client": "file:",
     "dompurify": "^3.2.3",

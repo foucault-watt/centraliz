@@ -25,6 +25,7 @@ const pokemonRoutes = require("../routes/pokemon");
 const campaignsRoutes = require("../routes/campaigns");
 const userRoutes = require("../routes/user");
 const themePaletteRoutes = require("../routes/themePalette");
+const navPagesRoutes = require("../routes/navPages");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
@@ -96,6 +97,7 @@ app.use("/api/pokemon", pokemonRoutes);
 app.use("/api/campaigns", campaignsRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/theme-palette", themePaletteRoutes);
+app.use("/api/nav-pages", navPagesRoutes);
 
 // Route de test pour crash du serveur (à utiliser avec précaution)
 app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {

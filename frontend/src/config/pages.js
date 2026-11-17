@@ -8,12 +8,17 @@ import {
   Users,
 } from "lucide-react";
 
-export const pagesConfig = [
-  // { id: "notes", label: "Notes", icon: FileText },
+// Catalogue des pages disponibles dans la navbar du bas (libellé + icône).
+// L'activation et les promos concernées sont gérées côté admin (/nav-pages/admin).
+export const pagesCatalog = [
+  { id: "notes", label: "Notes", icon: FileText },
   { id: "links", label: "Liens", icon: ExternalLink },
   { id: "calendars", label: "Calendriers", icon: Calendar1 },
   { id: "communication", label: "Mails", icon: Mail },
   { id: "cekilui", label: "Cékilui", icon: Users },
-  // { id: "pokemon", label: "Pokémon", icon: Gamepad2 },
-  // { id: "bibli", label: "Bibli", icon: LibraryBig },
+  { id: "pokemon", label: "Pokémon", icon: Gamepad2 },
+  { id: "bibli", label: "Bibli", icon: LibraryBig },
 ];
+
+// Utilisé si l'API est injoignable.
+export const defaultPageIds = ["links", "calendars", "communication", "cekilui"];

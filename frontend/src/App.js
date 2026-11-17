@@ -37,6 +37,7 @@ const BdsLanding = lazy(() => import("./components/BdsLanding.js"));
 const AnalyticsAdminPage = lazy(() => import("./components/AnalyticsAdminPage.js"));
 const CampaignsAdminPage = lazy(() => import("./components/CampaignsAdminPage.js"));
 const ThemePaletteAdminPage = lazy(() => import("./components/ThemePaletteAdminPage.js"));
+const NavPagesAdminPage = lazy(() => import("./components/NavPagesAdminPage.js"));
 const ReglagesPage = lazy(() => import("./components/ReglagesPage.js"));
 
 export const UserContext = createContext();
@@ -306,6 +307,14 @@ const App = () => {
               element={
                 <PageLayout fullWidth>
                   <ThemePaletteAdminPage user={user} />
+                </PageLayout>
+              }
+            />
+            <Route
+              path="/nav-pages/admin"
+              element={
+                <PageLayout>
+                  <NavPagesAdminPage user={user} />
                 </PageLayout>
               }
             />

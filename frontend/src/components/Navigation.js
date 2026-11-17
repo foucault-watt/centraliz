@@ -1,8 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
+import { useNavPages } from "../utils/navPages";
 
-const Navigation = ({ pagesConfig }) => {
+const Navigation = () => {
+  const pagesConfig = useNavPages() || [];
   return (
     <motion.nav
       className="app-navigation"

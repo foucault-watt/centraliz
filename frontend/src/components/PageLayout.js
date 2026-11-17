@@ -1,10 +1,9 @@
-import { pagesConfig } from "../config/pages";
 import Navigation from "./Navigation";
 
 const PageLayout = ({ children, fullWidth = false }) => {
   return (
     <div className="app-shell">
-      <Navigation pagesConfig={pagesConfig} />
+      <Navigation />
       <main className="app-main">
         <div
           className={`app-main-inner ${

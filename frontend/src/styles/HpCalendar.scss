@@ -1,5 +1,11 @@
 .hp-calendar {
-  animation: slideInFromBottom 0.6s ease-out;
+  // Hauteur d'une heure (10 heures affichées). Sur PC, la grille remplit
+  // la hauteur de l'écran au lieu de laisser du vide sous la grille.
+  --hp-hour-height: 45px;
+
+  @media (min-width: 1024px) and (min-height: 700px) {
+    --hp-hour-height: clamp(45px, calc((100svh - 24rem) / 10), 84px);
+  }
 
   .day-association-preview {
     height: 34px;
@@ -84,7 +90,9 @@
   // En-tête du calendrier
   .calendar-header {
     display: grid;
-    grid-template-columns: auto minmax(220px, 1fr);
+    // La recherche s'arrête à 28rem : au-delà, la barre se centre au lieu de s'étirer.
+    grid-template-columns: auto minmax(220px, 28rem);
+    justify-content: center;
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 0.75rem;
@@ -646,7 +654,7 @@
     }
 
     .time-slot {
-      height: 45px; // Réduit de 60px
+      height: var(--hp-hour-height, 45px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -688,7 +696,7 @@
     }
 
     .time-cell {
-      height: 45px; // Réduit de 60px
+      height: var(--hp-hour-height, 45px);
       border-bottom: 1px solid rgba($second, 0.07);
       border-right: 1px solid rgba($second, 0.065);
       position: relative;

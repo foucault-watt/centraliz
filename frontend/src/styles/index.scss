@@ -2,12 +2,20 @@
 @import "HpCalendar.scss";
 @import "Main.scss";
 @import "ClaCalendar.scss";
-@import "Links.scss";
-@import "Notes.scss";
 @import "Mail.scss";
 @import "MailModern.scss";
 @import "Bdi.scss";
 @import "Bibli.scss";
+
+// Taille de base fluide : tout ce qui est en rem (Tailwind compris) grandit
+// sur les grands écrans. 16px jusqu'à 1600px, ~17px en 1080p, ~19.5px en 1440p.
+html {
+  font-size: 100%;
+
+  @media (min-width: 1600px) {
+    font-size: clamp(16px, calc(0.35vw + 10.4px), 20px);
+  }
+}
 
 .loading-container {
   display: flex;

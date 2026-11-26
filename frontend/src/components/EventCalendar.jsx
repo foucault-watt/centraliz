@@ -5,6 +5,8 @@ import ReactDOM from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { fetchApi } from "../utils/api";
 import { trackProductEvent } from "../utils/analytics";
+import EmptyState from "./EmptyState";
+import LoadingSkeleton from "./LoadingSkeleton";
 
 const TYPE_OPTIONS = [
   "Soirée",
@@ -113,7 +115,7 @@ const formatEventDate = (eventDate, eventTime) => {
   return `${weekDay} ${dayMonth}`;
 };
 
-const EventCalendar = ({ user }) => {
+const EventCalendar = ({ user, onCountChange }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -201,6 +203,14 @@ const EventCalendar = ({ user }) => {
   );
 
   const hasMore = visibleCount < filteredEvents.length;
+
+  // Aucun événement à venir (indépendamment du filtre) : on masque le bloc.
+  const isEmpty = !loading && !error && events.length === 0;
+  const loadedCount = loading || error ? null : events.length;
+
+  useEffect(() => {
+    onCountChange?.(loadedCount);
+  }, [loadedCount, onCountChange]);
 
   const renderEventDetailsModal = () => {
     if (!selectedEvent) return null;
@@ -324,8 +334,10 @@ const EventCalendar = ({ user }) => {
     );
   };
 
+  if (isEmpty) return null;
+
   return (
-    <section className="space-y-4 animate-fade-in-up event-calendar-shell">
+    <section className="space-y-4 event-calendar-shell">
       <style>{`
         .event-calendar-scrollbar {
           scrollbar-width: thin;
@@ -413,12 +425,7 @@ const EventCalendar = ({ user }) => {
       )}
 
       {loading && (
-        <div className="text-center py-10 bg-white rounded-2xl border border-gray-200 shadow-sm">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="mt-3 text-secondary font-medium">
-            Chargement des événements...
-          </p>
-        </div>
+        <LoadingSkeleton label="Chargement des événements…" rows={3} />
       )}
 
       {!loading && error && (
@@ -428,15 +435,11 @@ const EventCalendar = ({ user }) => {
       )}
 
       {!loading && !error && filteredEvents.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
-          <CalendarDays className="mx-auto text-primary" size={42} />
-          <p className="mt-3 font-semibold text-secondary">
-            Aucun événement trouvé
-          </p>
-          <p className="text-sm text-gray-500">
-            Ajuste tes filtres ou reviens plus tard.
-          </p>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title="Aucun événement de ce type"
+          description="Essaie un autre filtre."
+        />
       )}
 
       {!loading && !error && filteredEvents.length > 0 && (

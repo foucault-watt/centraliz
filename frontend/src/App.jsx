@@ -1,16 +1,19 @@
 import { Suspense, createContext, lazy, useEffect, useState } from "react";
+import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import BdsFloatingButton from "./components/BdsFloatingButton";
 import Header from "./components/Header"; // Import Header
-import LoginPage from "./components/LoginPage.js";
+import LoginPage from "./components/LoginPage.jsx";
 import PageLayout from "./components/PageLayout";
 import CampaignRuntime from "./components/CampaignRuntime";
+import EntBrowserMigration from "./components/EntBrowserMigration";
 import SlideMenu from "./components/SlideMenu"; // Import SlideMenu
 import { getSupportBdsInfo } from "./config/supportBds";
 import {
   clearStoredUserSecretSalt,
   fetchApi,
-  storeUserSecretSalt,
+  syncUserSecretSalt,
+  getStoredUserSecretSalt,
 } from "./utils/api";
 import { applyBDSTheme } from "./utils/bdsTheme";
 import { applyUserTheme } from "./utils/userTheme";
@@ -25,24 +28,32 @@ const AssociationEventsPage = lazy(
 );
 const AdminEventsPage = lazy(() => import("./components/AdminEventsPage"));
 const Communication = lazy(() => import("./components/Communication"));
+const MoodleCourses = lazy(() => import("./components/MoodleCourses"));
 const Bdi = lazy(() => import("./components/Bdi"));
 const Links = lazy(() => import("./components/Links"));
 const Bibli = lazy(() => import("./components/Bibli"));
-const Cekilui = lazy(() => import("./components/Cekilui.js"));
-const Pokemon = lazy(() => import("./components/Pokemon.js"));
-const HelpPage = lazy(() => import("./components/HelpPage.js"));
-const FeedbackPage = lazy(() => import("./components/FeedbackPage.js"));
-const LegalPage = lazy(() => import("./components/LegalPage.js"));
-const BdsLanding = lazy(() => import("./components/BdsLanding.js"));
-const AnalyticsAdminPage = lazy(() => import("./components/AnalyticsAdminPage.js"));
-const CampaignsAdminPage = lazy(() => import("./components/CampaignsAdminPage.js"));
-const ThemePaletteAdminPage = lazy(() => import("./components/ThemePaletteAdminPage.js"));
-const NavPagesAdminPage = lazy(() => import("./components/NavPagesAdminPage.js"));
-const ReglagesPage = lazy(() => import("./components/ReglagesPage.js"));
+const Cekilui = lazy(() => import("./components/Cekilui.jsx"));
+const Pokemon = lazy(() => import("./components/Pokemon.jsx"));
+const Musee = process.env.REACT_APP_MUSEE_ENABLED === "true"
+  ? lazy(() => import("./components/Musee.jsx"))
+  : null;
+const HelpPage = lazy(() => import("./components/HelpPage.jsx"));
+const FeedbackPage = lazy(() => import("./components/FeedbackPage.jsx"));
+const LegalPage = lazy(() => import("./components/LegalPage.jsx"));
+const BdsLanding = lazy(() => import("./components/BdsLanding.jsx"));
+const AnalyticsAdminPage = lazy(() => import("./components/AnalyticsAdminPage.jsx"));
+const CampaignsAdminPage = lazy(() => import("./components/CampaignsAdminPage.jsx"));
+const ThemePaletteAdminPage = lazy(() => import("./components/ThemePaletteAdminPage.jsx"));
+const NavPagesAdminPage = lazy(() => import("./components/NavPagesAdminPage.jsx"));
+const ReglagesPage = lazy(() => import("./components/ReglagesPage.jsx"));
 
 export const UserContext = createContext();
 
 const App = () => {
+  // Lien public à partager, sans compte ni menu. Dans l'app, le jeu est sur /le-musee.
+  // Décidé une fois : un re-rendu ne doit jamais faire basculer une page ouverte.
+  const [publicMusee] = useState(() => process.env.REACT_APP_MUSEE_ENABLED === "true" &&
+    window.location.pathname.replace(/\/+$/, "") === "/musee");
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,8 +71,7 @@ const App = () => {
       setIsAuthenticated(data.authenticated);
 
       if (data.authenticated) {
-        storeUserSecretSalt(data.user?.userSecretSalt || "");
-        console.log("[App] User authenticated:", data.user);
+        syncUserSecretSalt(data.user);
         // Le thème BDS (campagne élection) reste prioritaire sur la couleur
         // personnelle quand les deux sont présents.
         if (data.user && data.user.support_bds) {
@@ -86,8 +96,8 @@ const App = () => {
   };
 
   useEffect(() => {
-    refreshAuthStatus();
-  }, []);
+    if (!publicMusee) refreshAuthStatus();
+  }, [publicMusee]);
 
   if (window.location.pathname.startsWith("/support/")) {
     return (
@@ -115,6 +125,14 @@ const App = () => {
     );
   }
 
+  if (publicMusee) {
+    return (
+      <Suspense fallback={<p className="p-8">Chargement du Musée…</p>}>
+        <main className="mx-auto max-w-7xl px-4 py-6"><Musee /></main>
+      </Suspense>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -137,8 +155,16 @@ const App = () => {
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
+      {/* Les animations framer-motion suivent le réglage système « réduire les animations ». */}
+      <MotionConfig reducedMotion="user">
       <BrowserRouter>
         <Header onMenuToggle={toggleSlideMenu} />{" "}
+        {user?.userKeyMode === 'client' && !getStoredUserSecretSalt() && (
+          <p role="alert" className="mx-4 mt-4 rounded-xl bg-amber-50 p-4 text-amber-950">
+            Cet appareil ne possède pas ta clé personnelle ENT.{' '}
+            <a className="underline" href="/api/mcp/oauth/consent/connections">Restaurer ma sauvegarde</a>
+          </p>
+        )}
         {/* Pass toggle function to Header */}
         <SlideMenu
           isOpen={isSlideMenuOpen}
@@ -149,6 +175,9 @@ const App = () => {
         <CampaignRuntime />
         <Suspense fallback={<div></div>}>
           <Routes>
+            {process.env.REACT_APP_MUSEE_ENABLED === "true" && (
+              <Route path="/le-musee" element={<PageLayout fullWidth><Musee /></PageLayout>} />
+            )}
             <Route
               path="/"
               element={<Navigate to="/calendars" replace />}
@@ -157,7 +186,9 @@ const App = () => {
               path="/notes"
               element={
                 <PageLayout fullWidth>
-                  <Notes />
+                  <EntBrowserMigration user={user} onMigrated={refreshAuthStatus}>
+                    <Notes />
+                  </EntBrowserMigration>
                 </PageLayout>
               }
             />
@@ -209,10 +240,13 @@ const App = () => {
               path="/communication"
               element={
                 <PageLayout>
-                  <Communication />
+                  <EntBrowserMigration user={user} onMigrated={refreshAuthStatus}>
+                    <Communication />
+                  </EntBrowserMigration>
                 </PageLayout>
               }
             />
+            <Route path="/moodle" element={<PageLayout><MoodleCourses /></PageLayout>} />
             <Route
               path="/bdi"
               element={
@@ -335,6 +369,7 @@ const App = () => {
           />
         )}
       </BrowserRouter>
+      </MotionConfig>
     </UserContext.Provider>
   );
 };

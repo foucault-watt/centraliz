@@ -1,4 +1,5 @@
 const supabase = require("../utils/supabaseClient");
+const { parisHour, parisPeriodKey, parisWeekday } = require("../utils/parisTime");
 
 const VALID_RANGES = {
   "7d": 7,
@@ -176,20 +177,8 @@ const normalizeSource = (value, fallback = "backend") =>
 const toPostgrestInList = (values) =>
   `(${values.map((value) => `"${String(value).replace(/"/g, '\\"')}"`).join(",")})`;
 
-const getPeriodKey = (date, groupBy = "day") => {
-  const parsed = new Date(date);
-  if (groupBy === "month") {
-    return `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, "0")}`;
-  }
-  if (groupBy === "week") {
-    const weekStart = new Date(parsed);
-    const day = weekStart.getUTCDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    weekStart.setUTCDate(weekStart.getUTCDate() + diff);
-    return weekStart.toISOString().slice(0, 10);
-  }
-  return parsed.toISOString().slice(0, 10);
-};
+// Périodes à l'heure de Paris (cf. utils/parisTime).
+const getPeriodKey = (date, groupBy = "day") => parisPeriodKey(date, groupBy);
 
 const increment = (map, key, amount = 1) => {
   if (!key) return;
@@ -476,7 +465,7 @@ const buildUserSummaries = async (filters = {}) => {
     const parsed = safeDateValue(event.created_at);
     summary.totalEvents += 1;
     summary.activeDaysSet.add(getPeriodKey(event.created_at));
-    if (parsed) summary.activeHoursSet.add(parsed.getUTCHours());
+    if (parsed) summary.activeHoursSet.add(parisHour(parsed));
     increment(summary.modulesMap, event.module);
     increment(summary.eventsMap, event.event_name);
     increment(summary.eventTypesMap, event.event_type || "interaction");
@@ -535,7 +524,7 @@ const buildActivityByHour = (events) => {
   events.forEach((event) => {
     const parsed = safeDateValue(event.created_at);
     if (!parsed) return;
-    increment(hours, String(parsed.getUTCHours()).padStart(2, "0"));
+    increment(hours, String(parisHour(parsed)).padStart(2, "0"));
   });
 
   return [...Array(24)].map((_, hour) => {
@@ -549,7 +538,7 @@ const buildActivityByWeekday = (events) => {
   events.forEach((event) => {
     const parsed = safeDateValue(event.created_at);
     if (!parsed) return;
-    increment(weekdays, parsed.toLocaleDateString("fr-FR", { weekday: "long" }));
+    increment(weekdays, parisWeekday(parsed));
   });
 
   return WEEKDAYS.map((weekday) => ({
@@ -659,11 +648,11 @@ const buildTimeseriesPoints = (events, sessions, groupBy = "day") => {
     .sort((a, b) => a.period.localeCompare(b.period));
 };
 
-const buildModuleSummaries = async (filters = {}) => {
-  const events = await fetchEvents(
-    filters,
-    "user_username, event_name, event_type, module, created_at",
-  );
+const MODULE_EVENT_FIELDS = "user_username, event_name, event_type, module, created_at";
+
+// `preloadedEvents` : évite un second chargement quand l'appelant a déjà les événements.
+const buildModuleSummaries = async (filters = {}, preloadedEvents = null) => {
+  const events = preloadedEvents || (await fetchEvents(filters, MODULE_EVENT_FIELDS));
   const sessions = buildSessions(events);
   const sessionsByModule = new Map();
 
@@ -684,6 +673,7 @@ const buildModuleSummaries = async (filters = {}) => {
         eventsMap: new Map(),
         eventTypesMap: new Map(),
         timelineMap: new Map(),
+        usersByDay: new Map(),
         firstSeenAt: event.created_at,
         lastSeenAt: event.created_at,
       });
@@ -695,6 +685,11 @@ const buildModuleSummaries = async (filters = {}) => {
     increment(summary.eventsMap, event.event_name);
     increment(summary.eventTypesMap, event.event_type || "interaction");
     increment(summary.timelineMap, getPeriodKey(event.created_at));
+    if (event.user_username) {
+      const day = getPeriodKey(event.created_at);
+      if (!summary.usersByDay.has(day)) summary.usersByDay.set(day, new Set());
+      summary.usersByDay.get(day).add(event.user_username);
+    }
     if (new Date(event.created_at) < new Date(summary.firstSeenAt)) {
       summary.firstSeenAt = event.created_at;
     }
@@ -722,6 +717,10 @@ const buildModuleSummaries = async (filters = {}) => {
         topEvents: toSortedArray(summary.eventsMap, 8),
         timeline: [...summary.timelineMap.entries()]
           .map(([period, count]) => ({ period, count }))
+          .sort((a, b) => a.period.localeCompare(b.period)),
+        // Personnes distinctes par jour : la tendance affichée sur les cartes.
+        usersTimeline: [...summary.usersByDay.entries()]
+          .map(([period, users]) => ({ period, users: users.size }))
           .sort((a, b) => a.period.localeCompare(b.period)),
         firstSeenAt: summary.firstSeenAt,
         lastSeenAt: summary.lastSeenAt,
@@ -784,6 +783,27 @@ const stepKeyForEvent = (eventName, moduleName) => {
 };
 
 const analyticsService = {
+  async getMuseeStats({ range = "30d", hideExcluded = true } = {}) {
+    const events = await fetchEvents({ module: "musee", range },
+      "user_username,anonymous_id,event_name,properties,created_at");
+    const excluded = new Set(hideExcluded ? await getExcludedUsernames() : []);
+    const stats = require("./museeAnalytics.cjs").buildMuseeStats(
+      events.filter(event => !excluded.has(event.user_username)),
+    );
+    // Noms et promos des comptes connectés, pour savoir qui a joué.
+    const users = await getUsersByUsername([
+      ...stats.participants.map(p => p.account),
+      ...stats.sessionList.map(session => session.account),
+    ]);
+    const withName = entry => entry.account && users.has(entry.account)
+      ? { ...entry, displayName: users.get(entry.account).displayName, group: users.get(entry.account).group }
+      : entry;
+    return {
+      ...stats,
+      participants: stats.participants.map(withName),
+      sessionList: stats.sessionList.map(withName),
+    };
+  },
   VALID_RANGES,
   sanitizeProperties,
   stepKeyForEvent,
@@ -1195,8 +1215,11 @@ const analyticsService = {
   },
 
   async getModules({ range = "30d", eventTypes, hideExcluded } = {}) {
+    const events = await fetchEvents({ range, eventTypes, hideExcluded }, MODULE_EVENT_FIELDS);
     return {
-      modules: await buildModuleSummaries({ range, eventTypes, hideExcluded }),
+      modules: await buildModuleSummaries({}, events),
+      // Pour la "portée" : part des utilisateurs actifs qui ont ouvert chaque module.
+      activeUsersTotal: uniqueUsers(events).size,
     };
   },
 
@@ -1295,70 +1318,45 @@ const analyticsService = {
     };
   },
 
-  async getRetention({ range = "30d", eventTypes, hideExcluded } = {}) {
-    const summaries = await buildUserSummaries({ range, eventTypes, hideExcluded });
-    const buckets = new Map([
-      ["1 jour actif", 0],
-      ["2-3 jours actifs", 0],
-      ["4-7 jours actifs", 0],
-      ["8+ jours actifs", 0],
-    ]);
-    const moduleBreadth = new Map([
-      ["1 module", 0],
-      ["2-3 modules", 0],
-      ["4+ modules", 0],
-    ]);
-    const sessionBreadth = new Map([
-      ["1 session", 0],
-      ["2-3 sessions", 0],
-      ["4-7 sessions", 0],
-      ["8+ sessions", 0],
+  // Arrivées (première connexion enregistrée) et configuration des comptes :
+  // emploi du temps, mot de passe ENT, couleur. Cf. acquisitionStats.js.
+  async getAcquisition({ range = "30d", hideExcluded } = {}) {
+    const safeRange = VALID_RANGES[range] ? range : "30d";
+    const shouldHide = hideExcluded === "true" || hideExcluded === true;
+    const [users, logins, passwords, excluded] = await Promise.all([
+      fetchAllRows((from, to) =>
+        supabase
+          .from("users")
+          .select("username, display_name, group, ical_link, theme_color, ent_username")
+          .order("username")
+          .range(from, to),
+      ),
+      fetchAllRows((from, to) =>
+        supabase
+          .from("user_logins")
+          .select("username, login_time")
+          .order("login_time")
+          .range(from, to),
+      ),
+      fetchAllRows((from, to) =>
+        supabase
+          .from("passwords")
+          .select("ent_username")
+          .order("ent_username")
+          .range(from, to),
+      ),
+      shouldHide ? getExcludedUsernames() : Promise.resolve([]),
     ]);
 
-    summaries.forEach((user) => {
-      if (user.activeDays <= 1) increment(buckets, "1 jour actif");
-      else if (user.activeDays <= 3) increment(buckets, "2-3 jours actifs");
-      else if (user.activeDays <= 7) increment(buckets, "4-7 jours actifs");
-      else increment(buckets, "8+ jours actifs");
-
-      const moduleCount = user.modules.length;
-      if (moduleCount <= 1) increment(moduleBreadth, "1 module");
-      else if (moduleCount <= 3) increment(moduleBreadth, "2-3 modules");
-      else increment(moduleBreadth, "4+ modules");
-
-      if (user.sessionsTotal <= 1) increment(sessionBreadth, "1 session");
-      else if (user.sessionsTotal <= 3) increment(sessionBreadth, "2-3 sessions");
-      else if (user.sessionsTotal <= 7) increment(sessionBreadth, "4-7 sessions");
-      else increment(sessionBreadth, "8+ sessions");
+    return require("./acquisitionStats").buildAcquisition({
+      users,
+      logins,
+      passwords,
+      excluded,
+      rangeStart: getRangeStart(safeRange),
+      groupBy: VALID_RANGES[safeRange] > 90 ? "week" : "day",
+      range: safeRange,
     });
-
-    return {
-      range: VALID_RANGES[range] ? range : "30d",
-      activeUsers: summaries.length,
-      avgSessionsPerUser: summaries.length
-        ? round(summaries.reduce((sum, user) => sum + user.sessionsTotal, 0) / summaries.length, 1)
-        : 0,
-      activeDayBuckets: [...buckets.entries()].map(([name, count]) => ({ name, count })),
-      moduleBreadth: [...moduleBreadth.entries()].map(([name, count]) => ({ name, count })),
-      sessionBreadth: [...sessionBreadth.entries()].map(([name, count]) => ({ name, count })),
-      stickyUsers: summaries
-        .map((user) => ({
-          username: user.username,
-          displayName: user.displayName,
-          activeDays: user.activeDays,
-          moduleCount: user.modules.length,
-          events: user.totalEvents,
-          sessionsTotal: user.sessionsTotal,
-          avgSessionDuration: user.avgSessionDuration,
-        }))
-        .sort(
-          (a, b) =>
-            b.activeDays - a.activeDays ||
-            b.sessionsTotal - a.sessionsTotal ||
-            b.events - a.events,
-        )
-        .slice(0, 20),
-    };
   },
 
   async getSessions({ range, eventTypes, hideExcluded, username, group, module, page, pageSize, sort } = {}) {
@@ -1397,32 +1395,17 @@ const analyticsService = {
   },
 
   async getHeatmap({ range = "30d", eventTypes, hideExcluded } = {}) {
+    const safeRange = VALID_RANGES[range] ? range : "30d";
     const events = await fetchEvents(
-      { range, eventTypes, hideExcluded },
-      "user_username, event_type, created_at",
+      { range: safeRange, eventTypes, hideExcluded },
+      "user_username, event_type, module, created_at",
     );
-    const cells = new Map();
-
-    WEEKDAYS.forEach((weekday) => {
-      for (let hour = 0; hour < 24; hour += 1) {
-        cells.set(`${weekday}-${hour}`, { weekday, hour, count: 0 });
-      }
-    });
-
-    events.forEach((event) => {
-      const parsed = safeDateValue(event.created_at);
-      if (!parsed) return;
-      const weekday = parsed.toLocaleDateString("fr-FR", { weekday: "long" });
-      const hour = parsed.getUTCHours();
-      const key = `${weekday}-${hour}`;
-      if (cells.has(key)) cells.get(key).count += 1;
-    });
-
     return {
-      range: VALID_RANGES[range] ? range : "30d",
-      weekdays: WEEKDAYS,
-      hours: [...Array(24)].map((_, hour) => hour),
-      cells: [...cells.values()],
+      range: safeRange,
+      timeZone: "Europe/Paris",
+      ...require("./heatmapStats").buildHeatmap(events, {
+        rangeStart: getRangeStart(safeRange),
+      }),
     };
   },
 

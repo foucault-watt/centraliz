@@ -4,6 +4,7 @@ const authMiddleware = require("../middlewares/auth");
 const adminMiddleware = require("../middlewares/admin");
 
 const router = express.Router();
+router.use("/musee", require("./musee.cjs")({ analyticsService, authMiddleware, adminMiddleware }));
 
 router.post("/track", authMiddleware, async (req, res) => {
   analyticsService.trackEvent({
@@ -219,15 +220,15 @@ router.get("/admin/modules/:module/users", authMiddleware, adminMiddleware, asyn
   }
 });
 
-router.get("/admin/retention", authMiddleware, adminMiddleware, async (req, res) => {
+router.get("/admin/acquisition", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const retention = await analyticsService.getRetention(req.query);
-    res.json({ success: true, retention });
+    const acquisition = await analyticsService.getAcquisition(req.query);
+    res.json({ success: true, acquisition });
   } catch (error) {
-    console.error("[Analytics] Erreur retention:", error);
+    console.error("[Analytics] Erreur acquisition:", error);
     res.status(500).json({
       success: false,
-      error: "Erreur lors de la récupération de la rétention analytics.",
+      error: "Erreur lors de la récupération de l'acquisition.",
     });
   }
 });

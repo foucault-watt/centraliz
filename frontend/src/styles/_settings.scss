@@ -107,16 +107,6 @@ li {
   letter-spacing: 0;
 }
 
-// Mixin pour les wrappers flexibles
-@mixin flex-wrapper {
-  display: flex;
-  gap: $gap;
-  width: 100%;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-}
 
 // Gate bloquante (sans échappatoire) affichée par-dessus un aperçu flouté du
 // contenu réel, utilisée par PasswordGateModal pour le mot de passe mail et
@@ -155,18 +145,3 @@ li {
   max-width: 460px;
 }
 
-// Style de base pour les cartes
-%card {
-  border: 1px solid rgba($second, 0.08);
-  border-radius: $radius-card;
-  padding: 16px;
-  box-shadow: $shadow-card;
-  position: relative;
-  background:
-    linear-gradient(180deg, rgba(white, 0.94), rgba(white, 0.86)),
-    $background-module;
-
-  @media (max-width: 768px) {
-    padding: 12px;
-  }
-}

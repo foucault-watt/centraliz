@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const puppeteer = require("../utils/puppeteer");
 const supabase = require("../utils/supabaseClient");
+const selectUsersWithEntPasswordStorage = require("../utils/selectUsersWithEntPasswordStorage");
 const ZimbraService = require("./zimbraService");
 const AurionHttpService = require("./aurionHttpService");
 const {
@@ -101,11 +102,10 @@ const readCoefficientsConfig = () => {
 };
 
 const getUserRecord = async (username) => {
-  const { data, error } = await supabase
-    .from("users")
-    .select("username, ent_username, group")
-    .eq("username", username)
-    .single();
+  const { data, error } = await selectUsersWithEntPasswordStorage(
+    "username, ent_username, group",
+    (query) => query.eq("username", username).single(),
+  );
 
   if (error || !data) {
     throw createHttpError(404, "Utilisateur introuvable", error);
@@ -218,6 +218,8 @@ const incrementNotesCount = async (username) => {
 
 const resolveCredentials = async (username, providedCredentials = {}) => {
   const userRecord = await getUserRecord(username);
+  const browserStorage = userRecord.ent_password_storage === "browser";
+  const rememberMe = !browserStorage && Boolean(providedCredentials.rememberMe);
   let entUsername = providedCredentials.ent_username || userRecord.ent_username;
   let password = providedCredentials.password || null;
   const userKey = providedCredentials.userKey || null;
@@ -227,6 +229,11 @@ const resolveCredentials = async (username, providedCredentials = {}) => {
   }
 
   if (!password) {
+    if (browserStorage) {
+      throw createHttpError(428, "Mot de passe ENT requis sur ce navigateur", {
+        code: "ENT_PASSWORD_REQUIRED",
+      });
+    }
     if (!entUsername) {
       throw createHttpError(
         400,
@@ -267,7 +274,7 @@ const resolveCredentials = async (username, providedCredentials = {}) => {
     throw createHttpError(400, "Identifiants ENT incomplets");
   }
 
-  if (providedCredentials.rememberMe && !userKey) {
+  if (rememberMe && !userKey) {
     throw createHttpError(428, "Cle utilisateur manquante", {
       code: "USER_KEY_MISSING",
       action: "retry_with_local_key",
@@ -278,7 +285,7 @@ const resolveCredentials = async (username, providedCredentials = {}) => {
   return {
     entUsername,
     password,
-    rememberMe: Boolean(providedCredentials.rememberMe),
+    rememberMe,
     userKey,
     userRecord,
   };
@@ -348,7 +355,9 @@ const persistSnapshot = async ({
   return data;
 };
 
-const buildResponseFromSnapshot = async (username, snapshotRow) => {
+const buildResponseFromSnapshot = async (username, snapshotRow, storageMode) => {
+  const hasStoredPassword = storageMode !== "browser" &&
+    await ZimbraService.hasStoredPassword(username);
   if (!snapshotRow) {
     return {
       snapshot: null,
@@ -356,7 +365,7 @@ const buildResponseFromSnapshot = async (username, snapshotRow) => {
       data: null,
       credentials: {
         entUsername: null,
-        hasStoredPassword: await ZimbraService.hasStoredPassword(username),
+        hasStoredPassword,
       },
     };
   }
@@ -395,7 +404,7 @@ const buildResponseFromSnapshot = async (username, snapshotRow) => {
     data: computedView,
     credentials: {
       entUsername: snapshotRow.ent_username || null,
-      hasStoredPassword: await ZimbraService.hasStoredPassword(username),
+      hasStoredPassword,
     },
   };
 };
@@ -441,9 +450,9 @@ const buildRefreshReport = (previousSnapshotRow, nextEntries) => {
   };
 };
 
-const getGrades = async (username) => {
+const getGrades = async (username, storageMode) => {
   const latestSnapshot = await getLatestSnapshotRow(username);
-  return buildResponseFromSnapshot(username, latestSnapshot);
+  return buildResponseFromSnapshot(username, latestSnapshot, storageMode);
 };
 
 const enforceRefreshCooldown = async (username, force = false) => {
@@ -823,7 +832,9 @@ const refreshGrades = async (username, options = {}) => {
       },
     });
 
-    const response = await buildResponseFromSnapshot(username, snapshot);
+    const response = await buildResponseFromSnapshot(
+      username, snapshot, userRecord.ent_password_storage,
+    );
     logGradesDebug("refresh_completed", {
       username,
       snapshotId: snapshot.id,
@@ -942,7 +953,8 @@ const getCredentialStatus = async (username) => {
   const userRecord = await getUserRecord(username);
   return {
     entUsername: userRecord.ent_username || null,
-    hasStoredPassword: await ZimbraService.hasStoredPassword(username),
+    hasStoredPassword: userRecord.ent_password_storage !== "browser" &&
+      await ZimbraService.hasStoredPassword(username),
   };
 };
 

@@ -9,7 +9,8 @@ const bdsWhitelist = require("../config/bdsWhitelist");
 const analyticsService = require("../services/analyticsService");
 const ZimbraService = require("../services/zimbraService");
 const themePaletteService = require("../services/themePaletteService");
-const { createUserSecretSalt } = require("../utils/userSecret");
+const authMiddleware = require("../middlewares/auth");
+const entBrowserMigration = require("../services/entBrowserMigration");
 
 const getUserAssociations = async (username) => {
   const { data, error } = await supabase
@@ -36,6 +37,7 @@ const getUserAssociations = async (username) => {
 // Middleware pour parser les cookies, nécessaire pour lire le cookie remember_me
 router.use(cookieParser());
 router.get("/status", async (req, res) => {
+  res.set("Cache-Control", "no-store");
   let userFromSession = req.session.user;
   let fullUser = null;
 
@@ -82,10 +84,11 @@ router.get("/status", async (req, res) => {
   }
 
   if (fullUser) {
+    const browserStorage = fullUser.ent_password_storage === "browser";
     const [associationRoles, hasMailPassword, setupStepFlags, themePaletteAssociation] =
       await Promise.all([
         getUserAssociations(fullUser.username),
-        ZimbraService.hasStoredPassword(fullUser.username),
+        browserStorage ? false : ZimbraService.hasStoredPassword(fullUser.username),
         analyticsService.getUserStepEventFlags(fullUser.username),
         fullUser.theme_palette_association_id
           ? themePaletteService.getPublicById(fullUser.theme_palette_association_id)
@@ -114,6 +117,7 @@ router.get("/status", async (req, res) => {
       is_admin: fullUser.is_admin,
       is_bibli_admin: fullUser.is_bibli_admin,
       ent_username: fullUser.ent_username,
+      ent_password_storage: fullUser.ent_password_storage,
       support_bds: fullUser.support_bds,
       theme_color: fullUser.theme_color,
       theme_color_dark: fullUser.theme_color_dark,
@@ -121,7 +125,6 @@ router.get("/status", async (req, res) => {
       theme_association_name: themePaletteAssociation?.name || null,
       has_association_role: Boolean(fullUser.has_association_role),
       association_roles: associationRoles,
-      userSecretSalt: createUserSecretSalt(fullUser.username),
       has_mail_password: hasMailPassword,
       has_cekilui_photo: Boolean(fullUser.hasPhoto),
       has_read_mail: setupStepFlags.hasReadMail,
@@ -129,12 +132,62 @@ router.get("/status", async (req, res) => {
       has_viewed_calendar_event: setupStepFlags.hasViewedCalendarEvent,
       has_played_ceki_round: setupStepFlags.hasPlayedCekiRound,
     };
-    return res.json({ authenticated: true, user: req.session.user });
+    if (browserStorage) {
+      delete req.session.zimbraToken;
+      return res.json({
+        authenticated: true,
+        user: {
+          ...req.session.user,
+          entPasswordMigrationId: fullUser.ent_password_migration_id,
+        },
+      });
+    }
+    try {
+      const { storedPasswordVersion, ...keyHint } =
+        await ZimbraService.getClientKeyHint(fullUser.username);
+      return res.json({
+        authenticated: true,
+        user: {
+          ...req.session.user,
+          ...keyHint,
+          canMigrateEntPassword: fullUser.ent_password_storage === "legacy" &&
+            Object.hasOwn(fullUser, "ent_password_migration_id") && storedPasswordVersion === "v2",
+        },
+      });
+    } catch {
+      return res.status(503).json({ error: 'Vérification de la clé ENT momentanément indisponible.' });
+    }
   }
 
   res.clearCookie("remember_me");
   return res.json({ authenticated: false, user: null });
 });
+
+const migrationPath = "/ent-browser-migration";
+router.use(migrationPath, authMiddleware, (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  if (req.method === "POST" && !req.is("application/json")) return res.sendStatus(415);
+  if (!req.secure && !["localhost", "127.0.0.1", "::1"].includes(req.hostname)) {
+    return res.sendStatus(403);
+  }
+  return next();
+});
+
+const migrationAction = (handler) => async (req, res) => {
+  try {
+    return await handler(req, res);
+  } catch (error) {
+    if (error.code === "ENT_CREDENTIALS_INVALID") {
+      return res.status(401).json({ code: "ENT_CREDENTIALS_INVALID" });
+    }
+    const status = error.code === "STORED_PASSWORD_NOT_FOUND" ? 409 : 503;
+    return res.status(status).json({
+      code: status === 409 ? "ENT_MIGRATION_CHANGED" : "ENT_MIGRATION_UNAVAILABLE",
+    });
+  }
+};
+router.post(`${migrationPath}/prepare`, migrationAction(entBrowserMigration.prepare));
+router.post(`${migrationPath}/commit`, migrationAction(entBrowserMigration.commit));
 
 router.get("/login", (req, res, next) => {
   req.session.rememberMe = req.query.remember === "true";

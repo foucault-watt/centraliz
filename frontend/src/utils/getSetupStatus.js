@@ -9,7 +9,9 @@ const STEPS = [
   {
     key: "mailPassword",
     label: "Mot de passe mail configuré",
-    done: (user) => Boolean(user.has_mail_password),
+    done: (user) => user.ent_password_storage === "browser"
+      ? Boolean(user.ent_username)
+      : Boolean(user.has_mail_password),
   },
   {
     key: "schedule",
@@ -76,7 +78,9 @@ export const getSetupStatus = (user) => {
     completedCount,
     totalCount,
     isComplete: completedCount === totalCount,
-    unlockedTabs: safeUser.has_mail_password ? ["notes", "communication"] : [],
+    unlockedTabs: safeUser.has_mail_password || safeUser.ent_password_storage === "browser"
+      ? ["notes", "communication"]
+      : [],
     activeColor: getActiveColor(safeUser),
   };
 };

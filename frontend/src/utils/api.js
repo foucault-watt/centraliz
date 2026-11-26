@@ -12,6 +12,7 @@ export const USER_SECRET_SALT_STORAGE_KEY = "centraliz.userSecretSalt";
 
 const ENT_ENDPOINT_PREFIXES = [
   "/api/zimbra",
+  "/api/moodle",
   "/api/grades",
   "/api/download-csv",
   "/api/csv-data",
@@ -31,6 +32,14 @@ export const storeUserSecretSalt = (userSecretSalt) => {
 
 export const clearStoredUserSecretSalt = () => {
   window.localStorage.removeItem(USER_SECRET_SALT_STORAGE_KEY);
+};
+
+// A migrated account's key comes only from this browser, never from auth/status.
+export const syncUserSecretSalt = (user) => {
+  const key = user?.userKeyMode === 'client'
+    ? window.localStorage.getItem(`centraliz.entKey:${user.userName}`) || ''
+    : user?.userSecretSalt || '';
+  storeUserSecretSalt(key);
 };
 
 const shouldAttachUserKey = (endpoint) =>

@@ -1,6 +1,5 @@
 // backend/src/services/zimbraService.js
 const axios = require("axios");
-const https = require("https");
 const crypto = require("crypto");
 const { simpleParser } = require("mailparser"); // Importer le module mailparser
 const supabase = require("../utils/supabaseClient");
@@ -71,6 +70,7 @@ class ZimbraService {
   }
 
   static getEncryptionVersion(encryptedPassword) {
+    if (String(encryptedPassword || '').startsWith('v3:')) return 'v3';
     return this.isV2EncryptedPassword(encryptedPassword) ? "v2" : "v1";
   }
 
@@ -87,15 +87,10 @@ class ZimbraService {
     const url = "https://mail.centralelille.fr/home/~/inbox.json?auth=ba";
 
     try {
-      const httpsAgent = new https.Agent({
-        rejectUnauthorized: false, // **Attention : Désactive la vérification SSL (utiliser uniquement pour le développement)**
-      });
-
       const response = await axios.get(url, {
         headers: {
           Authorization: `Basic ${authString}`,
         },
-        httpsAgent, // Utiliser l'agent HTTPS configuré
         timeout: 10000, // Timeout de 10 secondes
       });
 
@@ -183,6 +178,8 @@ class ZimbraService {
   }
 
   static encryptPassword({ entUsername, password, userKey }) {
+    const vault = require('../mcp/clientVault.cjs');
+    if (vault.validSecret(userKey)) return vault.encryptEntPassword(entUsername, password, userKey);
     const key = this.deriveEncryptionKey({ entUsername, userKey });
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
@@ -193,6 +190,9 @@ class ZimbraService {
 
   static decryptPassword({ entUsername, encryptedPassword, userKey }) {
     try {
+      if (String(encryptedPassword).startsWith('v3:')) {
+        return require('../mcp/clientVault.cjs').decryptEntPassword(entUsername, encryptedPassword, userKey);
+      }
       const isV2 = this.isV2EncryptedPassword(encryptedPassword);
       const parts = String(encryptedPassword || "").split(":");
       const [ivHex, encrypted] = isV2 ? parts.slice(1) : parts;
@@ -210,7 +210,7 @@ class ZimbraService {
         error.message
       );
 
-      if (this.isV2EncryptedPassword(encryptedPassword)) {
+      if (this.getEncryptionVersion(encryptedPassword) !== 'v1') {
         throw this.createServiceError("Cle utilisateur invalide", {
           statusCode: 401,
           code: "USER_KEY_INVALID",
@@ -257,33 +257,59 @@ class ZimbraService {
     }
   }
 
-  static async upsertStoredPassword(entUsername, encryptedPassword) {
-    const { error } = await supabase.from("passwords").upsert(
-      {
-        ent_username: entUsername,
-        encrypted_password: encryptedPassword,
-        creation_date: new Date().toISOString(),
-      },
-      { onConflict: "ent_username" }
-    );
-
-    if (error) {
-      console.error(
-        "[ZimbraService] Erreur lors de la sauvegarde du mot de passe:",
-        error.message
-      );
-      throw this.createServiceError("Erreur lors de la sauvegarde du mot de passe");
-    }
+  static async replaceStoredPassword(entUsername, encryptedPassword, previous) {
+    const values = { ent_username: entUsername, encrypted_password: encryptedPassword, creation_date: new Date().toISOString() };
+    const query = previous
+      ? supabase.from('passwords').update(values).eq('ent_username', entUsername).eq('encrypted_password', previous)
+      : supabase.from('passwords').insert(values);
+    const { data, error } = await query.select('ent_username');
+    if (error || data?.length !== 1) throw this.createServiceError('Le compte a changé. Reconnectez votre appareil.', { statusCode: 409 });
   }
 
   static async storeEncryptedPassword(ent_username, password, userKey) {
+    // An old device must not restore the server-reconstructible key after migration.
+    const { data, error } = await supabase.from('passwords').select('encrypted_password').eq('ent_username', ent_username).maybeSingle();
+    if (error) throw this.createServiceError('Vérification du chiffrement impossible');
+    if (data?.encrypted_password?.startsWith('v3:')) {
+      this.decryptPassword({ entUsername: ent_username, encryptedPassword: data.encrypted_password, userKey });
+    }
     const encryptedPassword = this.encryptPassword({
       entUsername: ent_username,
       password,
       userKey,
     });
 
-    await this.upsertStoredPassword(ent_username, encryptedPassword);
+    await this.replaceStoredPassword(ent_username, encryptedPassword, data?.encrypted_password);
+  }
+
+  static async getClientKeyHint(username) {
+    const ent = await this.getEntUsername(username);
+    if (ent) {
+      const { data, error } = await supabase.from('passwords').select('encrypted_password').eq('ent_username', ent).maybeSingle();
+      if (error) throw this.createServiceError('Vérification du chiffrement impossible');
+      if (data?.encrypted_password?.startsWith('v3:')) return { userKeyMode: 'client' };
+      if (data?.encrypted_password?.startsWith('v2:')) {
+        return {
+          userKeyMode: "legacy",
+          userSecretSalt: require("../utils/userSecret").createUserSecretSalt(username),
+          storedPasswordVersion: "v2",
+        };
+      }
+    }
+    return { userKeyMode: 'legacy', userSecretSalt: require('../utils/userSecret').createUserSecretSalt(username) };
+  }
+
+  static async enableClientKey(username, oldKey, candidateKey) {
+    const vault = require('../mcp/clientVault.cjs');
+    const credentials = await this.resolveStoredCredentials(username, oldKey);
+    if (credentials.version === 'v3') return { username, userKey: oldKey };
+    if (!vault.validSecret(candidateKey)) throw this.createServiceError('Nouvelle clé invalide', { statusCode: 400 });
+    const encrypted = vault.encryptEntPassword(credentials.entUsername, credentials.password, candidateKey);
+    // Compare-and-swap: two enrollment attempts must never silently overwrite a key.
+    const { data, error } = await supabase.from('passwords').update({ encrypted_password: encrypted })
+      .eq('ent_username', credentials.entUsername).eq('encrypted_password', credentials.encryptedPassword).select('ent_username');
+    if (error || data?.length !== 1) throw this.createServiceError('Le compte a changé. Rechargez avant de réessayer.', { statusCode: 409 });
+    return { username, userKey: candidateKey };
   }
 
   static async hasStoredPassword(username) {
@@ -350,7 +376,7 @@ class ZimbraService {
         password,
         userKey,
       });
-      await this.upsertStoredPassword(entUsername, nextEncryptedPassword);
+      await this.replaceStoredPassword(entUsername, nextEncryptedPassword, encryptedPassword);
     } catch (error) {
       throw this.createServiceError("Migration du mot de passe stocke impossible", {
         statusCode: 409,
@@ -410,20 +436,13 @@ class ZimbraService {
   }
 
   static async getRawMailContent(zimbraToken, mailId) {
-    const decoded = Buffer.from(zimbraToken, "base64").toString("ascii");
-    const [username, password] = decoded.split(":");
-    const url = `https://mail.centralelille.fr/home/~/inbox?id=${mailId}&fmt=raw`;
+    const url = `https://mail.centralelille.fr/home/~/inbox?id=${encodeURIComponent(mailId)}&fmt=raw`;
 
     try {
-      const httpsAgent = new https.Agent({
-        rejectUnauthorized: false,
-      });
-
       const response = await axios.get(url, {
         headers: {
           Authorization: `Basic ${zimbraToken}`,
         },
-        httpsAgent,
         timeout: 10000,
         responseType: "stream", // Récupérer la réponse en tant que flux
       });
@@ -442,6 +461,13 @@ class ZimbraService {
         });
       }
     } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw this.createServiceError("Identifiants ENT invalides", {
+          statusCode: 401,
+          code: "ENT_CREDENTIALS_INVALID",
+          action: "prompt_ent_password",
+        });
+      }
       console.error(
         "[ZimbraService] Erreur lors de la récupération du contenu brut:",
         error.message

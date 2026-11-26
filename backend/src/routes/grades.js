@@ -29,7 +29,8 @@ const handleError = (res, error) => {
 
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const response = await gradesService.getGrades(req.session.user.userName);
+    const { userName, ent_password_storage } = req.session.user;
+    const response = await gradesService.getGrades(userName, ent_password_storage);
     analyticsService.trackEvent({
       req,
       eventName: "grades_viewed",
@@ -47,6 +48,7 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 router.post("/refresh", authMiddleware, attachUserKey, async (req, res) => {
+  res.set("Cache-Control", "no-store");
   try {
     const response = await gradesService.refreshGrades(
       req.session.user.userName,

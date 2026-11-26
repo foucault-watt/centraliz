@@ -11,6 +11,17 @@ exports.downloadCSV = async (req, res) => {
   }
   const username = req.session.user.userName;
   let { ent_username, password, rememberMe } = req.body || {};
+  if (req.session.user.ent_password_storage === "browser") {
+    res.set("Cache-Control", "no-store");
+    rememberMe = false;
+    if (!password) {
+      return res.status(428).json({
+        success: false,
+        error: "Mot de passe ENT requis sur ce navigateur",
+        code: "ENT_PASSWORD_REQUIRED",
+      });
+    }
+  }
   const userKey =
     typeof req.userKey === "string" && req.userKey.trim()
       ? req.userKey.trim()

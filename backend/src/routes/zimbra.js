@@ -4,6 +4,7 @@ const router = express.Router();
 const ZimbraService = require("../services/zimbraService");
 const authMiddleware = require("../middlewares/auth");
 const analyticsService = require("../services/analyticsService");
+const selectUsersWithEntPasswordStorage = require("../utils/selectUsersWithEntPasswordStorage");
 const {
   attachUserKey,
   buildUserKeyMissingError,
@@ -24,6 +25,36 @@ const handleEntError = (res, error, fallbackMessage) => {
   return res.status(statusCode).json(payload);
 };
 
+const usesBrowserStorage = (req) =>
+  req.session.user.ent_password_storage === "browser";
+
+const browserPasswordRequired = (res) =>
+  res.status(428).json({
+    error: "Mot de passe ENT requis sur ce navigateur",
+    code: "ENT_PASSWORD_REQUIRED",
+  });
+
+const requireStoredPassword = (req, res, next) =>
+  usesBrowserStorage(req) ? browserPasswordRequired(res) : requireUserKey(req, res, next);
+
+router.use(async (req, res, next) => {
+  const user = req.session?.user;
+  if (!user || usesBrowserStorage(req)) return next();
+  try {
+    const { data, error } = await selectUsersWithEntPasswordStorage(
+      "username", (query) => query.eq("username", user.userName).maybeSingle(),
+    );
+    if (error) throw error;
+    if (data?.ent_password_storage === "browser") {
+      user.ent_password_storage = "browser";
+      delete req.session.zimbraToken;
+    }
+    return next();
+  } catch {
+    return res.status(503).json({ error: "Impossible de vérifier le mode ENT." });
+  }
+});
+
 /**
  * Route pour vérifier si un mot de passe est stocké pour l'utilisateur.
  * GET /api/zimbra/check
@@ -31,7 +62,8 @@ const handleEntError = (res, error, fallbackMessage) => {
 router.get("/check", authMiddleware, async (req, res) => {
   const username = req.session.user.userName;
   try {
-    const hasPassword = await ZimbraService.hasStoredPassword(username);
+    const hasPassword = !usesBrowserStorage(req) &&
+      await ZimbraService.hasStoredPassword(username);
     res.json({ hasPassword });
   } catch (error) {
     console.error(
@@ -48,7 +80,7 @@ router.get("/check", authMiddleware, async (req, res) => {
  * Route pour authentifier l'utilisateur en utilisant le mot de passe stocké.
  * POST /api/zimbra/auto-auth
  */
-router.post("/auto-auth", authMiddleware, requireUserKey, async (req, res) => {
+router.post("/auto-auth", authMiddleware, requireStoredPassword, async (req, res) => {
   const username = req.session.user.userName;
   try {
     const jsonData = await ZimbraService.authenticateWithStoredPassword(
@@ -83,9 +115,12 @@ router.post("/auto-auth", authMiddleware, requireUserKey, async (req, res) => {
  * POST /api/zimbra
  */
 router.post("/", authMiddleware, attachUserKey, async (req, res) => {
-  const { ent_username, password, rememberMe } = req.body;
+  const { ent_username, password } = req.body || {};
+  const browserStorage = usesBrowserStorage(req);
+  const rememberMe = !browserStorage && Boolean(req.body?.rememberMe);
   const username = req.session.user.userName;
-  if (!ent_username || !password) {
+  if (typeof ent_username !== "string" || !ent_username ||
+      typeof password !== "string" || !password) {
     console.warn(
       "[Zimbra Route] Nom d'utilisateur ENT ou mot de passe manquant"
     );
@@ -102,9 +137,13 @@ router.post("/", authMiddleware, attachUserKey, async (req, res) => {
 
     const jsonData = await ZimbraService.authenticate(ent_username, password);
     const mails = await ZimbraService.parseMails(jsonData);
-    req.session.zimbraToken = Buffer.from(
-      `${ent_username}:${password}`
-    ).toString("base64");
+    if (browserStorage) {
+      res.set("Cache-Control", "no-store");
+    } else {
+      req.session.zimbraToken = Buffer.from(
+        `${ent_username}:${password}`
+      ).toString("base64");
+    }
 
     // Link ent_username to user
     await ZimbraService.linkEntUsername(username, ent_username);
@@ -140,6 +179,7 @@ router.post("/", authMiddleware, attachUserKey, async (req, res) => {
  * GET /api/zimbra/mails
  */
 router.get("/mails", authMiddleware, async (req, res) => {
+  if (usesBrowserStorage(req)) return browserPasswordRequired(res);
   const { zimbraToken } = req.session;
   const username = req.session.user.userName;
 
@@ -177,15 +217,8 @@ router.get("/mails", authMiddleware, async (req, res) => {
  * Route pour récupérer le contenu brut d'un mail
  * GET /api/zimbra/mail/:id
  */
-router.get("/mail/:id", authMiddleware, async (req, res) => {
-  const { zimbraToken } = req.session;
-  const username = req.session.user.userName;
+const sendMailContent = async (req, res, zimbraToken) => {
   const mailId = req.params.id;
-
-  if (!zimbraToken) {
-    return res.status(401).json({ error: "Accès au mail non autorisé" });
-  }
-
   try {
     const content = await ZimbraService.getRawMailContent(zimbraToken, mailId);
     analyticsService.trackEvent({
@@ -203,6 +236,28 @@ router.get("/mail/:id", authMiddleware, async (req, res) => {
     );
     handleEntError(res, error, "Erreur lors de la récupération du mail");
   }
+};
+
+router.get("/mail/:id", authMiddleware, (req, res) => {
+  if (usesBrowserStorage(req)) return browserPasswordRequired(res);
+  const { zimbraToken } = req.session;
+  if (!zimbraToken) {
+    return res.status(401).json({ error: "Accès au mail non autorisé" });
+  }
+  return sendMailContent(req, res, zimbraToken);
+});
+
+router.post("/mail/:id", authMiddleware, (req, res) => {
+  if (!usesBrowserStorage(req)) return res.sendStatus(404);
+  res.set("Cache-Control", "no-store");
+  const { ent_username, password } = req.body || {};
+  if (typeof ent_username !== "string" || !ent_username ||
+      typeof password !== "string" || !password) {
+    return browserPasswordRequired(res);
+  }
+  return sendMailContent(
+    req, res, Buffer.from(`${ent_username}:${password}`).toString("base64"),
+  );
 });
 
 module.exports = router;

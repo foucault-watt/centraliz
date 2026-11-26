@@ -1,4 +1,5 @@
 const supabase = require("../utils/supabaseClient");
+const selectUsersWithEntPasswordStorage = require("../utils/selectUsersWithEntPasswordStorage");
 const analyticsService = require("./analyticsService");
 
 const REQUIRED_BEHAVIORAL_STEP_COUNT = 4; // mailRead, linksUsed, calendarViewed, cekiPlayed
@@ -42,9 +43,9 @@ async function fetchStepEvents() {
 // "step" compté). Alimente la formulation "tu es dans les X%..." de la page
 // Réglages.
 async function getSetupCompletionPercentage() {
-  const { data: users, error: usersError } = await supabase
-    .from("users")
-    .select("username, ent_username, ical_link, hasPhoto");
+  const { data: users, error: usersError } = await selectUsersWithEntPasswordStorage(
+    "username, ent_username, ical_link, hasPhoto",
+  );
 
   if (usersError) {
     console.error(
@@ -83,7 +84,10 @@ async function getSetupCompletionPercentage() {
 
   const completedCount = users.filter((user) => {
     const hasMailPassword = Boolean(
-      user.ent_username && entUsernamesWithPassword.has(user.ent_username),
+      user.ent_username && (
+        user.ent_password_storage === "browser" ||
+        entUsernamesWithPassword.has(user.ent_username)
+      ),
     );
     const hasSchedule = Boolean(user.ical_link);
     const hasPhoto = Boolean(user.hasPhoto);

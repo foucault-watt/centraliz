@@ -5,7 +5,6 @@ const tokenService = require("./tokenService");
 const loginService = require("./loginService");
 const bdsWhitelist = require("../config/bdsWhitelist");
 const analyticsService = require("./analyticsService");
-const { createUserSecretSalt } = require("../utils/userSecret");
 
 // Remplacez par vos variables d'environnement
 const claAuthHost = process.env.CLA_AUTH_HOST;
@@ -100,15 +99,10 @@ exports.callback = async (req, res) => {
     if (!response || !response.success) {
       console.error(
         "[CLA Service] La réponse du serveur d'authentification est invalide",
-        response,
       );
       return res.status(401).send("Échec de l'authentification CLA.");
     }
 
-    console.log(
-      "[CLA Service] Réponse du serveur d'authentification CLA:",
-      response,
-    );
     const {
       username: cla_username,
       firstName,
@@ -212,10 +206,10 @@ exports.callback = async (req, res) => {
       is_admin: user.is_admin,
       is_bibli_admin: user.is_bibli_admin,
       ent_username: user.ent_username,
+      ent_password_storage: user.ent_password_storage,
       support_bds: user.support_bds,
       has_association_role: associationData.has_association_role,
       association_roles: associationData.association_roles,
-      userSecretSalt: createUserSecretSalt(user.username),
     };
 
     // Gérer le "Remember Me"
@@ -246,7 +240,7 @@ exports.callback = async (req, res) => {
     });
     res.redirect(process.env.URL_FRONT);
   } catch (error) {
-    console.error("[CLA Service] Erreur lors du callback:", error);
+    console.error("[CLA Service] Erreur lors du callback:", error.code || error.name);
     res.status(500).send("Erreur interne lors de l'authentification.");
   }
 };

@@ -1,9 +1,6 @@
 const DATABASE = "centraliz-ent";
 const STORE = "credentials";
 
-export const browserEntNotice =
-  "Pour protéger votre mot de passe ENT, Centraliz le mémorise uniquement dans ce navigateur. Il l’utilise pour se connecter à vos notes et à vos mails. Sur un autre navigateur, vous devrez le saisir une fois.";
-
 export const browserEntStorageUnavailable =
   "Ce navigateur n’a pas pu mémoriser votre mot de passe. Vous devrez le saisir à nouveau.";
 

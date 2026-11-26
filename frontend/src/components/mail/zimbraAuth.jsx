@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useContext, useState } from "react";
 import { UserContext } from "../../App";
 import { fetchApi } from "../../utils/api";
+import EntPasswordForm, { EntUsernameField } from "../EntPasswordForm";
 import {
-  browserEntNotice,
   browserEntStorageUnavailable,
   saveBrowserEntCredentials,
 } from "../../utils/browserEntCredentials";
@@ -22,7 +22,7 @@ const ZimbraAuth = ({ onAuthenticated, authStatus }) => {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
-    setStatus("Traitement...");
+    setStatus("");
 
     try {
       const credentials = { ent_username: entUsername, password };
@@ -70,6 +70,22 @@ const ZimbraAuth = ({ onAuthenticated, authStatus }) => {
     setPassword(e.target.value);
   };
 
+  if (browserStorage && authStatus === "failure") {
+    return (
+      <EntPasswordForm
+        title="Accède à tes mails"
+        password={password}
+        onPasswordChange={setPassword}
+        onSubmit={handleSubmit}
+        submitLabel="Ouvrir mes mails"
+        busy={submitting}
+        error={status}
+      >
+        <EntUsernameField value={entUsername} onChange={setEntUsername} />
+      </EntPasswordForm>
+    );
+  }
+
   return (
     <div className="zimbra-auth-container" onClick={(e) => e.stopPropagation()}>
       <AnimatePresence mode="wait">
@@ -114,7 +130,7 @@ const ZimbraAuth = ({ onAuthenticated, authStatus }) => {
                 autoComplete="current-password"
                 required
               />
-              {browserStorage ? <p>{browserEntNotice}</p> : <div className="remember-me">
+              <div className="remember-me">
                 <label>
                   <input
                     type="checkbox"
@@ -123,8 +139,10 @@ const ZimbraAuth = ({ onAuthenticated, authStatus }) => {
                   />
                   Se souvenir du mot de passe
                 </label>
-              </div>}
-              <button type="submit" disabled={submitting}>Se connecter</button>
+              </div>
+              <button type="submit" disabled={submitting}>
+                {submitting ? "Connexion en cours…" : "Se connecter"}
+              </button>
             </form>
             {status && <p>{status}</p>}
           </motion.div>

@@ -16,9 +16,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "../App";
 import InlineFeedbackModal from "./InlineFeedbackModal";
+import EntPasswordForm, { EntUsernameField } from "./EntPasswordForm";
 import { fetchApi } from "../utils/api";
 import {
-  browserEntNotice,
   browserEntStorageUnavailable,
   readBrowserEntCredentials,
   saveBrowserEntCredentials,
@@ -1350,7 +1350,23 @@ const NotesV2 = () => {
         </AnimatePresence>
 
         <AnimatePresence initial={false}>
-          {showRefreshForm && (
+          {showRefreshForm && browserStorage && (
+            <motion.section key="browser-refresh-form" {...panelMotion}>
+              <EntPasswordForm
+                title="Accède à tes notes"
+                password={password}
+                onPasswordChange={setPassword}
+                onSubmit={handleSubmitCredentials}
+                submitLabel="Actualiser mes notes"
+                busy={isRefreshing}
+                cancelLabel="Annuler"
+                onCancel={() => { setPassword(""); setShowRefreshForm(false); }}
+              >
+                <EntUsernameField value={entUsername} onChange={setEntUsername} />
+              </EntPasswordForm>
+            </motion.section>
+          )}
+          {showRefreshForm && !browserStorage && (
             <motion.section
               key="refresh-form"
               {...panelMotion}
@@ -1392,9 +1408,6 @@ const NotesV2 = () => {
                 />
               </label>
 
-              {browserStorage ? (
-                <p className="text-sm text-gray-600">{browserEntNotice}</p>
-              ) : (
                 <label className="flex items-center gap-2 text-sm text-gray-600">
                   <input
                     type="checkbox"
@@ -1403,7 +1416,6 @@ const NotesV2 = () => {
                   />
                   Se souvenir du mot de passe
                 </label>
-              )}
 
               <div className="flex gap-2 pt-1">
                 <button

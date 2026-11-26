@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchApi } from "../utils/api";
+import EntPasswordForm from "./EntPasswordForm";
 import {
   confirmBrowserEntMigration,
   saveBrowserEntCredentials,
@@ -68,33 +69,18 @@ export default function EntBrowserMigration({ user, onMigrated, children }) {
   if (!eligible || dismissed) return children;
 
   return (
-    <form onSubmit={migrate} className="mx-auto my-6 max-w-md space-y-4 rounded-xl bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold">Connexion ENT</h2>
-      <p className="text-sm">
-        Saisis ton mot de passe une fois pour l’enregistrer sur ce navigateur.
-        Centraliz supprimera ensuite la copie serveur.
-      </p>
-      <label className="block text-sm">
-        Mot de passe ENT
-        <input
-          type="password"
-          autoComplete="current-password"
-          className="mt-1 block w-full rounded-lg border border-gray-300 p-2"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-      </label>
-      {message && <p role="alert" className="text-sm">{message}</p>}
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" className="rounded-lg bg-primary px-4 py-2 font-semibold text-white" disabled={busy}>
-          {busy ? "Validation…" : "Continuer"}
-        </button>
-        <button type="button" className="rounded-lg border border-gray-300 px-4 py-2" disabled={busy}
-          onClick={() => { setPassword(""); setDismissed(true); }}>
-          Plus tard
-        </button>
-      </div>
-    </form>
+    <div className="py-4 sm:py-8">
+      <EntPasswordForm
+        title="Active ton accès ENT"
+        onSubmit={migrate}
+        password={password}
+        onPasswordChange={setPassword}
+        busy={busy}
+        error={message}
+        submitLabel="Continuer"
+        cancelLabel="Plus tard"
+        onCancel={() => { setPassword(""); setDismissed(true); }}
+      />
+    </div>
   );
 }

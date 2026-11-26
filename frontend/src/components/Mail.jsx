@@ -329,14 +329,10 @@ function Mail() {
 
   let body;
   if (needsPassword) {
-    body = (
-      <PasswordGateModal background={<MailSkeleton label="" />}>
-        <ZimbraAuth
-          onAuthenticated={acceptMails}
-          authStatus={authStatus}
-        />
-      </PasswordGateModal>
-    );
+    const form = <ZimbraAuth onAuthenticated={acceptMails} authStatus={authStatus} />;
+    body = browserStorage
+      ? <div className="py-4 sm:py-8">{form}</div>
+      : <PasswordGateModal background={<MailSkeleton label="" />}>{form}</PasswordGateModal>;
   } else if (!isAuthenticated || !mailsLoaded) {
     body = <MailSkeleton label={waitingLabel} />;
   } else if (allMails.length === 0 && !status) {

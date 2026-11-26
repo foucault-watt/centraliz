@@ -9,6 +9,8 @@ import {
   triggerInstallPrompt,
 } from "../utils/installPrompt";
 import { fetchApi } from "../utils/api";
+import PageHeader from "./PageHeader";
+import { Settings as PageIcon } from "lucide-react";
 
 const ReglagesPage = ({ user, onUserRefresh }) => {
   const setupStatus = useMemo(() => getSetupStatus(user), [user]);
@@ -44,18 +46,10 @@ const ReglagesPage = ({ user, onUserRefresh }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Centraliz
-        </p>
-        <h1 className="text-2xl md:text-3xl font-bold text-secondary mt-1">
-          Réglages
-        </h1>
-        <p className="text-sm text-gray-600 mt-2 max-w-3xl">
-          Ta couleur, ta progression de configuration, et l'accès à
-          l'installation de l'application.
-        </p>
-      </div>
+      <PageHeader
+        icon={PageIcon}
+        title="Réglages"
+      />
 
       <section>
         <AccentColorCard forceVisible onSaved={onUserRefresh} />

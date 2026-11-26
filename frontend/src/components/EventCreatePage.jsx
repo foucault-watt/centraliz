@@ -1,6 +1,8 @@
 import { Image as ImageIcon, School } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PageHeader from "./PageHeader";
+import { CalendarPlus as PageIcon } from "lucide-react";
 
 const SCHOOL_OPTIONS = ["ITEEM", "Centrale", "Chimie"];
 const TYPE_OPTIONS = [
@@ -108,10 +110,9 @@ const EventCreatePage = ({ user }) => {
   };
 
   return (
+    <div className="space-y-4">
+    <PageHeader icon={PageIcon} title="Créer un événement" />
     <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
-      <h2 className="text-2xl font-bold text-secondary mb-3">
-        Créer un événement
-      </h2>
       {feedback && (
         <div className="bg-primary/10 border border-primary/20 text-primary rounded-lg px-4 py-3 mb-4">
           {feedback}
@@ -268,6 +269,7 @@ const EventCreatePage = ({ user }) => {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 };

@@ -12,6 +12,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchApi } from "../utils/api";
 import ZoomableImage from "./ZoomableImage";
+import LoadingSkeleton from "./LoadingSkeleton";
+import PageHeader from "./PageHeader";
+import { CalendarDays as PageIcon } from "lucide-react";
 
 const TYPE_OPTIONS = [
   "Soirée",
@@ -101,7 +104,6 @@ const EventManagementPage = ({
   association = null,
   associationOptions = [],
   title,
-  subtitle,
 }) => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
@@ -364,27 +366,26 @@ const EventManagementPage = ({
   }
 
   return (
-    <section className="space-y-6 animate-fade-in-up">
-      <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 space-y-3">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Événements
-            </p>
-            <h2 className="text-2xl font-bold text-secondary mt-1">{title}</h2>
-            <p className="text-sm text-gray-600 mt-1 max-w-3xl">{subtitle}</p>
-          </div>
+    <section className="space-y-6">
+      {/* En mode admin, ce bloc est intégré sous l'en-tête de l'espace admin. */}
+      <PageHeader
+        level={mode === "admin" ? 2 : 1}
+        icon={PageIcon}
+        title={title}
+        actions={
           <button
             type="button"
             onClick={() => navigate("/events")}
-            className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
+            className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
           >
             <X size={16} /> Fermer
           </button>
-        </div>
+        }
+      />
 
-        {mode === "admin" && associationOptions.length > 0 && (
-          <div className="pt-2">
+      {mode === "admin" && associationOptions.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
+          <div>
             <label className="block text-sm font-semibold text-secondary">
               Association ciblée pour la création
             </label>
@@ -415,16 +416,11 @@ const EventManagementPage = ({
               ))}
             </select>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {loading && (
-        <div className="text-center py-10 bg-white rounded-2xl border border-gray-200 shadow-sm">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="mt-3 text-secondary font-medium">
-            Chargement des événements...
-          </p>
-        </div>
+        <LoadingSkeleton label="Chargement des événements…" rows={3} />
       )}
 
       {!loading && error && (

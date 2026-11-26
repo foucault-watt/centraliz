@@ -17,6 +17,14 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "../App";
 import InlineFeedbackModal from "./InlineFeedbackModal";
 import { fetchApi } from "../utils/api";
+import {
+  browserEntNotice,
+  browserEntStorageUnavailable,
+  readBrowserEntCredentials,
+  saveBrowserEntCredentials,
+} from "../utils/browserEntCredentials";
+import PageHeader from "./PageHeader";
+import { FileText as PageIcon } from "lucide-react";
 
 const pageVariants = {
   hidden: { opacity: 0, y: 14 },
@@ -704,6 +712,8 @@ let simulatedEntryCounter = 0;
 
 const NotesV2 = () => {
   const { user, setUser } = useContext(UserContext);
+  const account = user?.userName;
+  const browserStorage = user?.ent_password_storage === "browser";
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -823,6 +833,15 @@ const NotesV2 = () => {
   }, [loadGrades]);
 
   useEffect(() => {
+    if (!browserStorage) return;
+    let current = true;
+    readBrowserEntCredentials(account).then((saved) => {
+      if (current && !saved) setShowRefreshForm(true);
+    });
+    return () => { current = false; };
+  }, [account, browserStorage]);
+
+  useEffect(() => {
     if (user?.ent_username && !entUsername) {
       setEntUsername(user.ent_username);
     }
@@ -840,6 +859,17 @@ const NotesV2 = () => {
     };
 
     try {
+      if (browserStorage) {
+        requestBody.rememberMe = false;
+        if (!requestBody.password) {
+          const saved = await readBrowserEntCredentials(account);
+          if (!saved) {
+            setShowRefreshForm(true);
+            return;
+          }
+          Object.assign(requestBody, saved);
+        }
+      }
       const response = await fetchApi("/api/grades/refresh", {
         method: "POST",
         body: JSON.stringify(requestBody),
@@ -847,6 +877,10 @@ const NotesV2 = () => {
 
       const payload = await response.json();
       if (!response.ok) {
+        if (!browserStorage && payload.code === "ENT_PASSWORD_REQUIRED") {
+          window.location.reload();
+          return;
+        }
         if (response.status === 429) {
           const retryAfterMs = Number(payload?.details?.retryAfterMs || 0);
           setCooldownRetryAfterMs(retryAfterMs);
@@ -901,6 +935,13 @@ const NotesV2 = () => {
       setRefreshProgress(100);
       updateFromResponse(payload);
       setLastRefreshReport(payload.refreshReport || null);
+      if (browserStorage && body.password) {
+        const saved = await saveBrowserEntCredentials(account, {
+          ent_username: requestBody.ent_username,
+          password: requestBody.password,
+        });
+        if (!saved) setError(browserEntStorageUnavailable);
+      }
       setPassword("");
       setShowRefreshForm(false);
     } catch (refreshError) {
@@ -920,6 +961,10 @@ const NotesV2 = () => {
   };
 
   const handleRefreshClick = async () => {
+    if (browserStorage) {
+      await handleRefresh();
+      return;
+    }
     let hasStoredPassword = credentials.hasStoredPassword;
     let linkedEntUsername = credentials.entUsername || entUsername;
 
@@ -1187,86 +1232,86 @@ const NotesV2 = () => {
       variants={pageVariants}
       initial="hidden"
       animate="visible"
-      className="w-full max-w-[1680px] mx-auto px-2 lg:px-4"
+      className="w-full max-w-[1680px] mx-auto space-y-4"
     >
+      {/* En-tête commun, posé sur le fond comme sur les autres pages. */}
+      <motion.div variants={softItemVariants}>
+        <PageHeader
+          icon={PageIcon}
+          title="Mes notes"
+          subtitle={
+            snapshot
+              ? `Mis à jour le ${formatDateTime(snapshot.createdAt)} · groupe ${gradesData?.userGroup || "—"}`
+              : "Pas encore de notes enregistrées sur cet appareil"
+          }
+          actions={
+            <>
+                {hasSimulation && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-semibold">
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    Simulation active
+                  </span>
+                )}
+
+                <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1">
+                  {Object.entries(REFRESH_MODES).map(([mode, config]) => {
+                    const isActive = refreshMode === mode;
+                    const isSuggestedFallback =
+                      showHttpFallbackHint && mode === "csv" && !isActive;
+
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => {
+                          setRefreshMode(mode);
+                          if (mode === "csv") {
+                            setShowHttpFallbackHint(false);
+                          }
+                        }}
+                        disabled={isRefreshing}
+                        title={config.description}
+                        className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                          isActive
+                            ? "bg-primary text-white shadow-sm"
+                            : isSuggestedFallback
+                              ? "bg-amber-50 text-amber-800 ring-2 ring-amber-300 shadow-sm"
+                              : "text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {config.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-500">
+                  <Clock3 className="w-3.5 h-3.5" />
+                  {formatTimeSince(snapshot?.createdAt, now)}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleRefreshClick}
+                  disabled={isRefreshing}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary text-white text-sm font-semibold px-4 py-2.5 hover:bg-primary-dark transition-colors disabled:opacity-60"
+                >
+                  {isRefreshing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  Mettre a jour
+                </button>
+            </>
+          }
+        />
+      </motion.div>
+
       <motion.div
         variants={softItemVariants}
         className="rounded-2xl border border-gray-200 bg-white/90 shadow-sm p-4 md:p-6 lg:p-7 space-y-5"
       >
-        <motion.header
-          variants={softItemVariants}
-          className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4"
-        >
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Mes notes</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {snapshot
-                ? `Snapshot du ${formatDateTime(snapshot.createdAt)} · groupe ${gradesData?.userGroup || "—"}`
-                : "Aucun snapshot local pour le moment"}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            {hasSimulation && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-semibold">
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                Simulation active
-              </span>
-            )}
-
-            <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-1">
-              {Object.entries(REFRESH_MODES).map(([mode, config]) => {
-                const isActive = refreshMode === mode;
-                const isSuggestedFallback =
-                  showHttpFallbackHint && mode === "csv" && !isActive;
-
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => {
-                      setRefreshMode(mode);
-                      if (mode === "csv") {
-                        setShowHttpFallbackHint(false);
-                      }
-                    }}
-                    disabled={isRefreshing}
-                    title={config.description}
-                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
-                      isActive
-                        ? "bg-primary text-white shadow-sm"
-                        : isSuggestedFallback
-                          ? "bg-amber-50 text-amber-800 ring-2 ring-amber-300 shadow-sm"
-                          : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    {config.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-500">
-              <Clock3 className="w-3.5 h-3.5" />
-              {formatTimeSince(snapshot?.createdAt, now)}
-            </span>
-
-            <button
-              type="button"
-              onClick={handleRefreshClick}
-              disabled={isRefreshing}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary text-white text-sm font-semibold px-4 py-2.5 hover:bg-primary-dark transition-colors disabled:opacity-60"
-            >
-              {isRefreshing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <RefreshCw className="w-4 h-4" />
-              )}
-              Mettre a jour
-            </button>
-          </div>
-        </motion.header>
-
         <motion.div
           variants={softItemVariants}
           whileHover={{ y: -1 }}
@@ -1347,14 +1392,18 @@ const NotesV2 = () => {
                 />
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => setRememberMe(event.target.checked)}
-                />
-                Se souvenir du mot de passe
-              </label>
+              {browserStorage ? (
+                <p className="text-sm text-gray-600">{browserEntNotice}</p>
+              ) : (
+                <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
+                  />
+                  Se souvenir du mot de passe
+                </label>
+              )}
 
               <div className="flex gap-2 pt-1">
                 <button

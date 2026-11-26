@@ -1,6 +1,8 @@
 import { Palette, Plus, Save, ShieldAlert, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { fetchApi } from "../utils/api";
+import PageHeader from "./PageHeader";
+import { Palette as PageIcon } from "lucide-react";
 
 const emptyDraft = () => ({
   id: null,
@@ -153,20 +155,11 @@ const ThemePaletteAdminPage = ({ user }) => {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-md">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Centraliz
-        </p>
-        <h1 className="mt-1 text-3xl font-bold text-secondary">
-          Assos &amp; couleurs admin
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm text-gray-600">
-          Gère les entrées proposées dans le sélecteur de couleur d'accent
-          personnelle (nom, couleur, icône). Séparé du système de parrainage
-          BDS existant — ceci ne pilote que la personnalisation privée des
-          utilisateurs, jamais un affichage public.
-        </p>
-      </section>
+      <PageHeader
+        icon={PageIcon}
+        kicker="Admin"
+        title="Assos & couleurs"
+      />
 
       <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="rounded-3xl border border-gray-200 bg-white p-4 shadow-md">

@@ -27,6 +27,8 @@ import {
   createDefaultCampaignDraft,
 } from "../config/campaigns";
 import { CampaignPreviewFrame } from "./CampaignSurface";
+import PageHeader from "./PageHeader";
+import { Megaphone as PageIcon } from "lucide-react";
 
 const pageVariants = {
   hidden: { opacity: 0, y: 14 },
@@ -627,22 +629,13 @@ const CampaignsAdminPage = ({ user }) => {
       animate="visible"
       className="space-y-6"
     >
-      <motion.section
-        variants={itemVariants}
-        className="rounded-3xl border border-gray-200 bg-white p-6 shadow-md"
-      >
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Centraliz
-        </p>
-        <h1 className="mt-1 text-3xl font-bold text-secondary">
-          Campagnes admin
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm text-gray-600">
-          Crée des avertissements, annonces, sondages et invites texte sans
-          rebuild. Chaque campagne peut viser des pages, des groupes et des
-          exceptions utilisateur, avec un rendu mobile prêt à l’emploi.
-        </p>
-      </motion.section>
+      <motion.div variants={itemVariants}>
+        <PageHeader
+          icon={PageIcon}
+          kicker="Admin"
+          title="Campagnes"
+        />
+      </motion.div>
 
       <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)_420px]">
         <motion.aside

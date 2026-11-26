@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Shield, Trash2, UserX, CheckCircle, ArrowLeft } from 'lucide-react';
+import LoadingSkeleton from "./LoadingSkeleton";
 
 const CekiluiAdmin = ({ onBack }) => {
   const [reportedPhotos, setReportedPhotos] = useState([]);
@@ -67,10 +68,7 @@ const CekiluiAdmin = ({ onBack }) => {
   
   if (isLoading) {
     return (
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="mt-4 text-secondary font-medium">Chargement des signalements...</p>
-      </div>
+      <LoadingSkeleton label="Chargement des signalements…" rows={4} avatar />
     );
   }
 

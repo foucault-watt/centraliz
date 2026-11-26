@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { fetchApi } from "../utils/api";
+import PageHeader from "./PageHeader";
+import LoadingSkeleton from "./LoadingSkeleton";
+import { MessageCircle as PageIcon } from "lucide-react";
 
 const feedbackTypes = [
   { value: "suggestion", label: "Suggestion" },
@@ -268,18 +271,10 @@ const FeedbackPage = ({ user }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Centraliz
-        </p>
-        <h1 className="text-2xl md:text-3xl font-bold text-secondary mt-1">
-          Donner son avis
-        </h1>
-        <p className="text-sm text-gray-600 mt-2 max-w-3xl">
-          Une idée, un bug, un détail pénible ? Écris-le ici. Les retours restent
-          visibles avec leur statut et une réponse admin quand il y en a une.
-        </p>
-      </div>
+      <PageHeader
+        icon={PageIcon}
+        title="Donner son avis"
+      />
 
       <SectionCard icon={MessageCircle} kicker="Avis" title="Nouveau retour">
         <form onSubmit={submitFeedback} className="space-y-4">
@@ -381,7 +376,7 @@ const FeedbackPage = ({ user }) => {
 
       <SectionCard icon={History} kicker="Historique" title="Mes retours">
         {myLoading ? (
-          <p className="text-sm text-gray-600">Chargement des retours...</p>
+          <LoadingSkeleton card={false} label="Chargement des retours…" rows={2} />
         ) : myFeedbacks.length === 0 ? (
           <p className="text-sm text-gray-600">
             Aucun retour envoyé pour le moment.
@@ -453,7 +448,7 @@ const FeedbackPage = ({ user }) => {
           </div>
 
           {adminLoading ? (
-            <p className="text-sm text-gray-600">Chargement des retours...</p>
+            <LoadingSkeleton card={false} label="Chargement des retours…" rows={3} />
           ) : adminFeedbacks.length === 0 ? (
             <p className="text-sm text-gray-600">Aucun retour à afficher.</p>
           ) : (

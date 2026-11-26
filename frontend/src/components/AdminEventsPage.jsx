@@ -2,6 +2,9 @@ import { Plus, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchApi } from "../utils/api";
 import EventManagementPage from "./EventManagementPage";
+import LoadingSkeleton from "./LoadingSkeleton";
+import PageHeader from "./PageHeader";
+import { ShieldCheck as PageIcon } from "lucide-react";
 
 const AdminEventsPage = ({ user }) => {
   const [associations, setAssociations] = useState([]);
@@ -130,12 +133,7 @@ const AdminEventsPage = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="text-center py-10 bg-white rounded-2xl border border-gray-200 shadow-sm">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="mt-3 text-secondary font-medium">
-          Chargement de l'admin...
-        </p>
-      </div>
+      <LoadingSkeleton label="Chargement de l'admin…" rows={5} />
     );
   }
 
@@ -149,9 +147,14 @@ const AdminEventsPage = ({ user }) => {
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        icon={PageIcon}
+        kicker="Admin"
+        title="Espace admin events"
+      />
       <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200 space-y-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-secondary">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             Associations
           </p>
           <h2 className="text-2xl font-bold text-secondary mt-1">
@@ -275,7 +278,6 @@ const AdminEventsPage = ({ user }) => {
         mode="admin"
         associationOptions={associations}
         title="Administration des événements"
-        subtitle="Toutes les associations et tous les événements sont visibles et modifiables ici."
       />
     </div>
   );

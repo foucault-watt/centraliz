@@ -64,7 +64,6 @@ const AssociationEventsPage = ({ user }) => {
         }
       }
       title={association?.association_name || associationSlug}
-      subtitle="Gérez les événements de cette association : création, modification et suppression sans popup."
     />
   );
 };

@@ -3,6 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { pagesCatalog } from "../config/pages";
 import { fetchApi } from "../utils/api";
 import { invalidateNavPages } from "../utils/navPages";
+import PageHeader from "./PageHeader";
+import LoadingSkeleton from "./LoadingSkeleton";
+import { PanelBottom as PageIcon } from "lucide-react";
 
 const NavPagesAdminPage = ({ user }) => {
   const [pages, setPages] = useState([]);
@@ -112,24 +115,21 @@ const NavPagesAdminPage = ({ user }) => {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-md">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">Centraliz</p>
-        <h1 className="mt-1 text-3xl font-bold text-secondary">Pages navbar admin</h1>
-        <p className="mt-2 max-w-3xl text-sm text-gray-600">
-          Active ou désactive les pages de la barre de navigation du bas, et
-          choisis les promos qui les voient. Sans promo cochée, la page est
-          visible par toutes les promos. Les changements s'appliquent au
-          prochain chargement de l'app pour les utilisateurs.
-        </p>
-        {statusMessage && (
-          <span className="mt-3 inline-block rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-xs font-semibold text-primary">
-            {statusMessage}
-          </span>
-        )}
-      </section>
+      <PageHeader
+        icon={PageIcon}
+        kicker="Admin"
+        title="Pages de navigation"
+        actions={
+          statusMessage && (
+            <span className="inline-block rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              {statusMessage}
+            </span>
+          )
+        }
+      />
 
       {loading ? (
-        <p className="text-sm text-gray-500">Chargement...</p>
+        <LoadingSkeleton label="Chargement des pages…" rows={4} />
       ) : (
         <div className="space-y-3">
           {pages.map((page, index) => {

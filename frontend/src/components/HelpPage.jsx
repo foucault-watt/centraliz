@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 import { getInstallContext } from "../utils/installContext";
+import PageHeader from "./PageHeader";
+import { CircleHelp as PageIcon } from "lucide-react";
 
 const INSTALL_ICON_BY_PLATFORM = {
   standalone: Smartphone,
@@ -48,18 +50,10 @@ const HelpPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-200">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          Centraliz
-        </p>
-        <h1 className="text-2xl md:text-3xl font-bold text-secondary mt-1">
-          Autres infos
-        </h1>
-        <p className="text-sm text-gray-600 mt-2 max-w-3xl">
-          Le coin pratique : installer Centraliz, comprendre l'app et retrouver
-          les contacts utiles.
-        </p>
-      </div>
+      <PageHeader
+        icon={PageIcon}
+        title="Autres infos"
+      />
 
       <section className="bg-white rounded-2xl p-5 md:p-6 shadow-md border border-gray-200">
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-5 items-start">

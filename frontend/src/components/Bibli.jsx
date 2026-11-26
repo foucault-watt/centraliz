@@ -3,6 +3,8 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Book, Info, Search, Loader } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
+import PageHeader from "./PageHeader";
+import { LibraryBig as PageIcon } from "lucide-react";
 
 // --- Hooks et Helpers ---
 
@@ -521,11 +523,11 @@ function Bibli({ user }) {
   // --- RENDU PRINCIPAL ---
 
   return (
-    <div className="p-4 md:p-6 bg-background min-h-screen">
-      <div className="container mx-auto">
+    <div>
+      <div className="space-y-4">
+        <PageHeader icon={PageIcon} title="Bibliothèque" />
         <header className="mb-6">
-          <h1 className="text-4xl font-extrabold text-text-primary">Bibliothèque</h1>
-          <div className="mt-4 border-b border-border-light">
+          <div className="border-b border-border-light">
             <nav className="-mb-px flex space-x-6 overflow-x-auto">
               <button
                 onClick={() => { setView('catalogue'); setInitialLoading(true); }}

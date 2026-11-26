@@ -4,6 +4,8 @@ import PhotoUploader from "./PhotoUploader";
 import CekiluiAdmin from "./CekiluiAdmin";
 import CekiluiLeaderboard from "./CekiluiLeaderboard";
 import { Shield, Trophy } from "lucide-react";
+import PageHeader from "./PageHeader";
+import { Users as PageIcon } from "lucide-react";
 
 function Cekilui() {
   const [photoStatus, setPhotoStatus] = useState({
@@ -185,7 +187,8 @@ function Cekilui() {
   }
 
   return (
-    <div className="max-w-md md:max-w-3xl mx-auto transition-all duration-300">
+    <div className="max-w-md md:max-w-3xl mx-auto transition-all duration-300 space-y-4">
+      <PageHeader icon={PageIcon} title="Cékilui" />
       {/* Message de feedback */}
       {message && (
         <div className="bg-success/10 border border-success/20 rounded-xl p-4 mb-4 animate-scale-in">

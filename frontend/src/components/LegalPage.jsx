@@ -1,20 +1,13 @@
 import React from "react";
 import { motion } from "framer-motion";
-import PageLayout from "./PageLayout";
 import { Scale } from "lucide-react";
+import PageHeader from "./PageHeader";
 
 const LegalPage = () => {
   return (
-    <PageLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="p-4 bg-background-module rounded-lg shadow-lg"
-      >
-        <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
-          <Scale className="mr-2 text-primary" size={24} /> Mentions Légales
-        </h2>
+    <div className="space-y-4">
+      <PageHeader icon={Scale} title="Mentions légales" />
+      <div className="p-4 md:p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm">
         <div className="space-y-4 text-text-secondary text-sm">
           <h3 className="text-lg font-semibold text-text-primary">1. Éditeur du site</h3>
           <p>
@@ -140,8 +133,8 @@ const LegalPage = () => {
             foucault.wattinne@iteem.centralelille.fr
           </p>
         </div>
-      </motion.div>
-    </PageLayout>
+      </div>
+    </div>
   );
 };
 

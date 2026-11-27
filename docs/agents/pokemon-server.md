@@ -56,6 +56,6 @@ fpsTarget.120=Ctrl+Alt+3
 
 Renseigner `POKEMON_SPEED_DISPLAY` dans l'environnement du backend avec le display de l'instance. Le backend doit pouvoir lire la fenêtre mGBA via `xdotool`. Laisser l'affichage du FPS actif (`showFps=1`) et la fenêtre du jeu au premier plan. Sans cette configuration, la commande est indisponible.
 
-Le réglage « Cible FPS » de la page règle la cadence du flux d'images vers le navigateur. Il reste plafonné à 30 pour les joueurs et en mode de secours HTTP. En flux continu SSE, un admin peut tester jusqu'à 60. Sa demande augmente la cible de capture partagée tant que son flux est ouvert. Chaque autre spectateur conserve la cadence qu'il a demandée.
+Le réglage « Cible FPS » de la page règle la cadence du flux d'images vers le navigateur. Il est plafonné à 30 pour tout le monde, admins compris, en flux continu SSE comme en mode de secours HTTP. La capture suit le spectateur le plus exigeant, dans cette limite.
 
 Le mode natif « Fast forward » plafonné active l'attente audio même avec `audioSync=0`. Sur la partie publique sans sortie audio, un essai a bloqué le compteur. La sélection de 60 dans « Audio/Video → FPS target » a rétabli le jeu dans le même processus. Tester les nouveaux réglages sur un display indépendant, avec une copie de la ROM et un répertoire de configuration dédié.

@@ -26,7 +26,8 @@ import { createFramePainter } from "./framePainter";
 //             image (navigateur, proxy, session).
 
 export const DEFAULT_FPS = 30;
-export const ADMIN_MAX_FPS = 60;
+// Même plafond pour tous, admins compris.
+export const ADMIN_MAX_FPS = 30;
 export const RETRY_DELAY_MS = 1000;
 export const MAX_FAILURES_BEFORE_FRAME = 8;
 export const MAX_FAILURES_AFTER_FRAME = 15;

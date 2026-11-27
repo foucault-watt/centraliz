@@ -187,23 +187,11 @@ describe("flux continu (SSE)", () => {
     expect(FakeEventSource.instances.at(-1).url).toMatch(/\/api\/pokemon\/stream\?fps=22$/);
   });
 
-  it("essaie 60 FPS via le flux admin et revient à 30 si le flux échoue", async () => {
+  it("plafonne aussi les admins à 30 FPS", async () => {
     render(<Pokemon user={{ is_admin: true }} />);
-    const previous = FakeEventSource.instances[0];
-    fireEvent.click(screen.getByRole("button", { name: "60 FPS" }));
-    await act(async () => {
-      previous.emitFrame("a");
-      await vi.advanceTimersByTimeAsync(500);
-    });
-    const experimental = FakeEventSource.instances.at(-1);
-    expect(experimental.url).toMatch(/\/api\/pokemon\/admin\/stream\?fps=60$/);
-    await act(async () => {
-      experimental.fail({ closed: true });
-      await vi.advanceTimersByTimeAsync(100);
-    });
-    expect(experimental.closed).toBe(true);
-    expect(screen.getByRole("slider", { name: "FPS cibles" })).toHaveValue("30");
-    expect(fetchApi.mock.calls.some(([url]) => url.startsWith("/api/pokemon/frame?fps=30&"))).toBe(true);
+    expect(screen.queryByRole("button", { name: "60 FPS" })).toBeNull();
+    expect(screen.getByRole("slider", { name: "FPS cibles" })).toHaveAttribute("max", "30");
+    expect(FakeEventSource.instances[0].url).toMatch(/\/api\/pokemon\/stream\?fps=30$/);
   });
 
   it("repasse en interrogation si aucune image n'arrive", async () => {

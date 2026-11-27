@@ -30,7 +30,8 @@ const IDLE_AFTER_MS = 15000;
 const STATS_WINDOW_MS = 3000;
 
 const MAX_FPS = Math.min(Math.max(parseInt(process.env.POKEMON_MAX_FPS, 10) || 30, 1), 30);
-const ADMIN_MAX_FPS = 60;
+// Même plafond pour tous (30) : au-delà, le navigateur et le réseau ne suivent pas toujours.
+const ADMIN_MAX_FPS = 30;
 const DEFAULT_FPS = Math.min(
   1000 / Math.max(parseInt(process.env.POKEMON_FRAME_INTERVAL_MS, 10) || 100, 1000 / MAX_FPS),
   MAX_FPS

@@ -78,6 +78,7 @@ async function sendInput(button) {
 
 module.exports = {
   ALLOWED_BUTTONS,
+  isDemo: demo,
   subscribe: demo ? pokemonDemoService.subscribe : pokemonFrameService.subscribe,
   clampFps: pokemonFrameService.clampFps,
   getFrameBuffer: demo ? pokemonDemoService.getFrameBuffer : pokemonFrameService.getFrameBuffer,

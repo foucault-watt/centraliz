@@ -9,20 +9,76 @@ const stub = (rel, exports) => {
   require.cache[file] = { id: file, filename: file, loaded: true, exports };
 };
 let frameId = "abc";
-stub("../middlewares/auth", (req, res, next) => { req.session = { user: { userName: "alice" } }; next(); });
+stub("../middlewares/auth", (req, res, next) => {
+  req.session = { user: { userName: req.get("x-test-admin") === "yes" ? "admin" : "alice" } };
+  next();
+});
+stub("../utils/supabaseClient", {
+  from: () => ({
+    select: () => ({
+      eq: (_, username) => ({ single: async () => ({ data: { is_admin: username === "admin" } }) }),
+    }),
+  }),
+});
 const streamSubscribers = new Set();
 stub("../services/pokemonService", {
-  clampFps: (v) => (Number(v) > 0 ? Math.min(Number(v), 30) : null),
-  subscribe: ({ onFrame }) => {
+  isDemo: true,
+  clampFps: (v, experimental) => (Number(v) > 0 ? Math.min(Number(v), experimental ? 60 : 30) : null),
+  subscribe: ({ onFrame, fps }) => {
     streamSubscribers.add(onFrame);
     onFrame({ id: "first", buffer: Buffer.from("premiere"), capturedAt: Date.now() });
+    streamFps = fps;
     return () => streamSubscribers.delete(onFrame);
   },
   ALLOWED_BUTTONS: ["A"],
   getFrameBuffer: () => ({ buffer: Buffer.from("webp-bytes"), format: "webp", lastFrameAt: new Date().toISOString(), frameId, ageMs: 12 }),
 });
+let streamFps;
+stub("../services/pokemonAnalytics", { trackActivity: () => {} });
 
 const router = require("./pokemon");
+
+test("le réglage de vitesse est désactivé par défaut et accepte uniquement les multiplicateurs numériques", async () => {
+  const app = express();
+  app.use(express.json());
+  app.use("/api/pokemon", router);
+  const server = app.listen(0);
+  const url = `http://127.0.0.1:${server.address().port}/api/pokemon/speed`;
+  const change = (speed, admin = true) => fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "x-test-admin": admin ? "yes" : "no" },
+    body: JSON.stringify({ speed }),
+  });
+  try {
+    assert.equal((await fetch(url)).status, 403);
+    assert.equal((await change(2, false)).status, 403);
+    assert.deepEqual(await (await fetch(url, { headers: { "x-test-admin": "yes" } })).json(), { available: false });
+    assert.equal((await change("2")).status, 400);
+    assert.equal((await change(3)).status, 400);
+    assert.equal((await change(2)).status, 503);
+  } finally {
+    server.close();
+  }
+});
+
+test("seuls les admins peuvent ouvrir le flux expérimental à 60 FPS", async () => {
+  const app = express();
+  app.use("/api/pokemon", router);
+  const server = app.listen(0);
+  const base = `http://127.0.0.1:${server.address().port}/api/pokemon`;
+  try {
+    const ordinary = await fetch(`${base}/stream?fps=60`);
+    assert.equal(streamFps, 30);
+    await ordinary.body.cancel();
+    assert.equal((await fetch(`${base}/admin/stream?fps=60`)).status, 403);
+    const experimental = await fetch(`${base}/admin/stream?fps=90`, { headers: { "x-test-admin": "yes" } });
+    assert.equal(experimental.status, 200);
+    assert.equal(streamFps, 60);
+    await experimental.body.cancel();
+  } finally {
+    server.close();
+  }
+});
 
 test("répond 304 sans corps quand le navigateur a déjà l'image", async () => {
   const app = express();

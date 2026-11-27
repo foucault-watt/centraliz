@@ -29,6 +29,7 @@ test("cadence bornée entre 1 et le maximum", () => {
   assert.equal(frames.clampFps("abc"), null);
   assert.equal(frames.MAX_FPS, 30);
   assert.equal(frames.DEFAULT_FPS, 10);
+  assert.equal(frames.clampFps(500, true), 60);
 });
 
 test("capture au rythme du spectateur le plus exigeant, au-delà de 10 img/s", async () => {
@@ -85,4 +86,19 @@ test("un abonné au flux reçoit chaque image différente, sans rien demander", 
   unsubscribe();
   assert.equal(frames.getFrameStatus().streams, 0);
   frozen = false;
+});
+
+test("la capture partagée adopte la cible admin tant que le flux est ouvert", () => {
+  const publicStream = frames.subscribe({ fps: 60, viewer: "joueur", onFrame() {} });
+  const adminStream = frames.subscribe({ fps: 60, viewer: "admin", onFrame() {}, experimental: true });
+  try {
+    assert.equal(frames.targetFps(), 60);
+  } finally {
+    adminStream();
+  }
+  try {
+    assert.equal(frames.targetFps(), 30);
+  } finally {
+    publicStream();
+  }
 });

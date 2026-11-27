@@ -1,13 +1,16 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth");
+const adminMiddleware = require("../middlewares/admin");
 const pokemonService = require("../services/pokemonService");
 const pokemonSpeedService = require("../services/pokemonSpeedService");
 const pokemonPresence = require("../services/pokemonPresence");
+const pokemonAnalytics = require("../services/pokemonAnalytics");
 const { createSseSender, paddingComment } = require("../services/pokemonSse");
 
 const router = express.Router();
+const MAX_TRACKED_FRAME_AGE_MS = 15000;
 
-router.get("/speed", authMiddleware, async (req, res, next) => {
+router.get("/speed", authMiddleware, adminMiddleware, async (req, res, next) => {
   res.set("Cache-Control", "no-store");
   try {
     res.json(await pokemonSpeedService.getSpeed());
@@ -16,7 +19,7 @@ router.get("/speed", authMiddleware, async (req, res, next) => {
   }
 });
 
-router.put("/speed", authMiddleware, async (req, res, next) => {
+router.put("/speed", authMiddleware, adminMiddleware, async (req, res, next) => {
   try {
     res.json(await pokemonSpeedService.setSpeed(req.body?.speed));
   } catch (error) {
@@ -56,6 +59,9 @@ router.post("/input", authMiddleware, async (req, res) => {
     const result = await pokemonService.sendInput(button);
     pokemonPresence.notePlaying(presenceContext(req), result.button);
     res.json(result);
+    if (!pokemonService.isDemo) {
+      pokemonAnalytics.trackActivity(req, "pokemon_play_started", "interaction");
+    }
   } catch (error) {
     const status = error.status || 500;
     const payload = {
@@ -128,6 +134,9 @@ router.get("/frame", authMiddleware, async (req, res) => {
     } else {
       res.send(frame.buffer);
     }
+    if (!pokemonService.isDemo && frame.ageMs != null && frame.ageMs <= MAX_TRACKED_FRAME_AGE_MS) {
+      pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
+    }
   } catch (error) {
     res.status(error.status || 503).json({
       success: false,
@@ -158,27 +167,34 @@ const PRESENCE_REFRESH_MS = 3000;
 // Flux continu des images (Server-Sent Events) : le serveur envoie chaque
 // image différente dès qu'elle est capturée, au plus `fps` fois par seconde.
 // Remplace l'interrogation en boucle de /frame (gardée en secours).
-router.get("/stream", authMiddleware, (req, res) => {
+function streamFrames(req, res, experimental = false) {
+  if (res.destroyed) return;
   const user = req.session && req.session.user;
   const viewer = user && (user.id || user.userName || user.username);
-  const fps = pokemonService.clampFps(req.query.fps) || 10;
+  const fps = pokemonService.clampFps(req.query.fps, experimental) || 10;
 
   openSse(res);
   const sender = createSseSender(res, { fps });
-  const unsubscribe = pokemonService.subscribe({ fps, viewer, onFrame: sender.offer });
+  const unsubscribe = pokemonService.subscribe({ fps, viewer, onFrame: sender.offer, experimental });
 
   const context = presenceContext(req);
   pokemonPresence.noteWatching(context);
   const presenceTimer = setInterval(() => pokemonPresence.noteWatching(context), PRESENCE_REFRESH_MS);
   const heartbeat = setInterval(() => res.write(": ping\n\n"), HEARTBEAT_MS);
+  if (!pokemonService.isDemo) {
+    pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
+  }
 
-  req.on("close", () => {
+  res.once("close", () => {
     clearInterval(presenceTimer);
     clearInterval(heartbeat);
     sender.close();
     unsubscribe();
   });
-});
+}
+
+router.get("/stream", authMiddleware, (req, res) => streamFrames(req, res));
+router.get("/admin/stream", authMiddleware, adminMiddleware, (req, res) => streamFrames(req, res, true));
 
 // Test public du flux, sans aucune donnée du jeu : 10 messages en 2,5 s puis
 // fin. Sert à vérifier de l'extérieur que nginx et le proxy HTTPS laissent

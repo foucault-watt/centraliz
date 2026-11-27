@@ -283,7 +283,7 @@ const App = () => {
               path="/pokemon"
               element={
                 <PageLayout>
-                  <Pokemon />
+                  <Pokemon user={user} />
                 </PageLayout>
               }
             />

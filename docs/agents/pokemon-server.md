@@ -40,3 +40,22 @@ Le module exporte aussi `connect`, `run`, `download`, `upload` pour écrire des 
 ## Architecture (rappel)
 
 `Node backend → mGBA-http 127.0.0.1:5000 → Lua :8888 → mGBA Qt 0.10.5 (Xvfb :98, Openbox)`, lancé par `centraliz-gba.service`, qui appelle `game-runner/scripts/start-game-nymous.sh` sur le serveur. Pour le détail, voir `game-runner/CENTRALIZ_POKEMON_CONTEXTE_COMPLET_IA.md`. Pour l'état du projet, voir `game-runner/BILAN.md`.
+
+## Vitesse de la partie
+
+Le curseur réservé aux admins règle la cadence de la partie partagée à 60, 90 ou 120 FPS via les raccourcis du menu « FPS target ». Le réglage a été vérifié à chaud avec `audioSync=0` et `videoSync=1`, la configuration du serveur public.
+
+Dans « Settings → Shortcuts → Audio/Video → FPS target », associer les raccourcis suivants. Sur une nouvelle instance, ils peuvent aussi être déclarés dans `qt.ini`.
+
+```ini
+[shortcutKey]
+fpsTarget.60=Ctrl+Alt+1
+fpsTarget.90=Ctrl+Alt+2
+fpsTarget.120=Ctrl+Alt+3
+```
+
+Renseigner `POKEMON_SPEED_DISPLAY` dans l'environnement du backend avec le display de l'instance. Le backend doit pouvoir lire la fenêtre mGBA via `xdotool`. Laisser l'affichage du FPS actif (`showFps=1`) et la fenêtre du jeu au premier plan. Sans cette configuration, la commande est indisponible.
+
+Le réglage « Cible FPS » de la page règle la cadence du flux d'images vers le navigateur. Il reste plafonné à 30 pour les joueurs et en mode de secours HTTP. En flux continu SSE, un admin peut tester jusqu'à 60. Sa demande augmente la cible de capture partagée tant que son flux est ouvert. Chaque autre spectateur conserve la cadence qu'il a demandée.
+
+Le mode natif « Fast forward » plafonné active l'attente audio même avec `audioSync=0`. Sur la partie publique sans sortie audio, un essai a bloqué le compteur. La sélection de 60 dans « Audio/Video → FPS target » a rétabli le jeu dans le même processus. Tester les nouveaux réglages sur un display indépendant, avec une copie de la ROM et un répertoire de configuration dédié.

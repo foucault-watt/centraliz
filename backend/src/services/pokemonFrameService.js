@@ -29,7 +29,8 @@ const VIEWER_WINDOW_MS = 3000;
 const IDLE_AFTER_MS = 15000;
 const STATS_WINDOW_MS = 3000;
 
-const MAX_FPS = Math.min(Math.max(parseInt(process.env.POKEMON_MAX_FPS, 10) || 30, 1), 60);
+const MAX_FPS = Math.min(Math.max(parseInt(process.env.POKEMON_MAX_FPS, 10) || 30, 1), 30);
+const ADMIN_MAX_FPS = 60;
 const DEFAULT_FPS = Math.min(
   1000 / Math.max(parseInt(process.env.POKEMON_FRAME_INTERVAL_MS, 10) || 100, 1000 / MAX_FPS),
   MAX_FPS
@@ -72,10 +73,10 @@ const bus = createFrameBus();
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function clampFps(value) {
+function clampFps(value, experimental = false) {
   const fps = Number(value);
   if (!Number.isFinite(fps) || fps <= 0) return null;
-  return Math.min(Math.max(fps, 1), MAX_FPS);
+  return Math.min(Math.max(fps, 1), experimental ? ADMIN_MAX_FPS : MAX_FPS);
 }
 
 function targetFps(now = Date.now()) {
@@ -208,8 +209,8 @@ function getFrameBuffer(fps, viewer) {
 
 // Flux continu : onFrame reçoit { id, buffer, capturedAt } à chaque image
 // différente (et tout de suite la dernière connue). Renvoie la désinscription.
-function subscribe({ fps, viewer, onFrame }) {
-  const unsubscribe = bus.subscribe({ fps: clampFps(fps) || DEFAULT_FPS, viewer: viewer || "anonyme", onFrame });
+function subscribe({ fps, viewer, onFrame, experimental = false }) {
+  const unsubscribe = bus.subscribe({ fps: clampFps(fps, experimental) || DEFAULT_FPS, viewer: viewer || "anonyme", onFrame });
   lastViewerAt = Date.now();
   if (!loopRunning) captureLoop();
   return () => {

@@ -2,13 +2,19 @@
   "name": "centraliz-root",
   "version": "1.1",
   "scripts": {
-    "go": "concurrently \"npm --prefix frontend start\" \"npm --prefix backend run dev\"",
+    "go": "node tools/go.cjs",
+    "go:demo": "node tools/go.cjs --demo",
+    "logs": "node tools/show-logs.cjs",
+    "test:go": "node --test tools/go.test.cjs",
+    "test:terminal": "node --test tools/terminal-renderer.test.cjs tools/session-log.test.cjs tools/go.test.cjs",
     "pokemon:remote": "node tools/pokemon-remote.cjs",
     "install-all": "concurrently \"npm --prefix frontend install\" \"npm --prefix backend install\"",
     "audit-fix": "concurrently \"npm --prefix frontend audit fix\" \"npm --prefix backend audit fix\"",
     "build": "npm --prefix frontend run build",
     "deploy": "node deploy.js",
-    "rezo": "npm run build && npm run deploy"
+    "rezo": "node tools/rezo.cjs",
+    "rezo:demo": "node tools/rezo.cjs --demo",
+    "test:deploy": "node --test tools/upload-with-progress.test.cjs tools/deploy.test.cjs tools/deploy-restart.test.cjs backend/src/utils/restartRoutes.test.cjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.1",

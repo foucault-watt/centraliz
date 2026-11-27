@@ -27,4 +27,9 @@ game-runner/state/
 profile-photos
 books.csv
 backend-*.log
+
+# Optional local Godot export, regenerated before frontend start/build
+/frontend/public/games/le-musee/
+/logs/cli/
+/backend/data/mcp-oauth/
 /logs/pokemon/

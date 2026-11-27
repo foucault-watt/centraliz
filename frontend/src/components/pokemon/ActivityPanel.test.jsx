@@ -126,15 +126,48 @@ describe("ActivityPanel (chat)", () => {
     expect(screen.getByText("Gardé")).toBeInTheDocument();
   });
 
-  it("admin : le bouton supprime le message", async () => {
+  it("admin : le bouton supprime le message après confirmation", async () => {
     fakeServer([message(1, "À modérer")]);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<ActivityPanel isAdmin />);
     await flush();
 
     fireEvent.click(screen.getByLabelText("Supprimer le message"));
     await flush();
+    expect(confirm).toHaveBeenCalledWith("Supprimer le message de Alice pour tous les joueurs ?");
     expect(screen.queryByText("À modérer")).not.toBeInTheDocument();
     expect(fetchApi).toHaveBeenCalledWith("/api/pokemon/chat/1", { method: "DELETE" });
+    confirm.mockRestore();
+  });
+
+  it("admin : rien n'est supprimé si la confirmation est refusée", async () => {
+    fakeServer([message(1, "Gardé")]);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<ActivityPanel isAdmin />);
+    await flush();
+
+    fireEvent.click(screen.getByLabelText("Supprimer le message"));
+    await flush();
+    expect(screen.getByText("Gardé")).toBeInTheDocument();
+    expect(fetchApi.mock.calls.some(([, options]) => options?.method === "DELETE")).toBe(false);
+    confirm.mockRestore();
+  });
+
+  it("admin : un échec de suppression est signalé et le message reste", async () => {
+    fakeServer([message(1, "Toujours là")]);
+    const base = fetchApi.getMockImplementation();
+    fetchApi.mockImplementation(async (url, options = {}) =>
+      options.method === "DELETE" ? json({ message: "Accès non autorisé." }, false, 403) : base(url, options),
+    );
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<ActivityPanel isAdmin />);
+    await flush();
+
+    fireEvent.click(screen.getByLabelText("Supprimer le message"));
+    await flush();
+    expect(screen.getByText("Toujours là")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Message non supprimé. Réessayer.");
+    confirm.mockRestore();
   });
 
   it("joueur : pas de bouton de suppression", async () => {

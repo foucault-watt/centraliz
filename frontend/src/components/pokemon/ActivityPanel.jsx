@@ -132,12 +132,15 @@ export default function ActivityPanel({ isAdmin = false }) {
     }
   };
 
-  const deleteMessage = async (id) => {
+  const deleteMessage = async (item) => {
+    if (!window.confirm(`Supprimer le message de ${item.author} pour tous les joueurs ?`)) return;
+    setError("");
     try {
-      const response = await fetchApi(`/api/pokemon/chat/${id}`, { method: "DELETE" });
-      if (response.ok) remove(id);
+      const response = await fetchApi(`/api/pokemon/chat/${item.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error();
+      remove(item.id);
     } catch {
-      // Suppression non faite : le message reste affiché.
+      setError("Message non supprimé. Réessayer.");
     }
   };
 
@@ -205,7 +208,7 @@ export default function ActivityPanel({ isAdmin = false }) {
                 <button
                   type="button"
                   aria-label="Supprimer le message"
-                  onClick={() => deleteMessage(item.id)}
+                  onClick={() => deleteMessage(item)}
                   className="text-gray-300 hover:text-red-500"
                 >
                   <Trash2 size={14} />

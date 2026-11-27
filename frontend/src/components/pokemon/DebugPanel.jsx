@@ -133,6 +133,39 @@ function LatencyChart({ history }) {
   );
 }
 
+// Deltas : le serveur n'envoie que le rectangle modifié quand c'est plus
+// léger que l'image entière. Calculé côté navigateur, depuis l'ouverture ;
+// l'économie est estimée par rapport à la taille moyenne des images
+// entières récentes.
+function DeltaGroup({ stats, streaming }) {
+  const { frames = 0, deltas = 0, frameBytes = 0, deltaBytes = 0, savedBytes = 0 } = stats.session;
+  const received = frames + deltas;
+  const share = received ? Math.round((deltas / received) * 100) : 0;
+  const withoutDeltas = deltaBytes + savedBytes;
+  return (
+    <Group title="Deltas (rectangles modifiés)">
+      <Stat
+        label="Part de deltas"
+        value={`${share} %`}
+        hint={streaming ? `${deltas} deltas / ${received} images reçues` : "aucun delta en interrogation"}
+      />
+      <Stat
+        label="Octets économisés"
+        value={kb(savedBytes)}
+        hint={withoutDeltas
+          ? `${Math.round((savedBytes / withoutDeltas) * 100)} % de moins qu'en images entières (estimé)`
+          : "estimé par rapport aux images entières"}
+      />
+      <Stat label="Reçu en deltas" value={kb(deltaBytes)} hint={deltas ? `${kb(deltaBytes / deltas)} par delta` : "aucun delta"} />
+      <Stat
+        label="Reçu en images entières"
+        value={kb(frameBytes)}
+        hint={frames ? `${kb(frameBytes / frames)} par image` : "aucune image entière"}
+      />
+    </Group>
+  );
+}
+
 export default function DebugPanel({ targetFps, stats, mode = "polling" }) {
   const server = useServerStatus();
   const streaming = mode === "sse";
@@ -214,6 +247,8 @@ export default function DebugPanel({ targetFps, stats, mode = "polling" }) {
           hint={streaming ? "30 connexions ouvertes, 0 requête/s" : `${Math.round(stats.requestsPerSec * 30)} requêtes/s`}
         />
       </Group>
+
+      <DeltaGroup stats={stats} streaming={streaming} />
 
       <FpsChart history={stats.history} />
       <LatencyChart history={stats.history} />

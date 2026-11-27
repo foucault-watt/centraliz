@@ -64,15 +64,22 @@ let latestFrameBuffer = null;
 let latestFrameId = null;
 // Dernières images encodées, par empreinte : une animation en boucle repasse
 // par les mêmes images, inutile de les réencoder (et de refaire leur base64).
+// On garde aussi leurs pixels bruts RGB (240×160×3 = 115 Ko) : le flux SSE
+// en tire le rectangle modifié depuis l'image qu'a chaque spectateur.
 const ENCODED_LIMIT = 32;
-const encoded = new Map(); // frameId -> { buffer, base64? }
+const encoded = new Map(); // frameId -> { buffer, base64?, raw, width, height, channels }
 
 async function encodeFrame(frameId, rawBuffer) {
   let entry = encoded.get(frameId);
   if (entry) {
     encoded.delete(frameId); // remise en tête
   } else {
-    entry = { buffer: await sharp(rawBuffer).webp({ lossless: true }).toBuffer() };
+    const [buffer, pixels] = await Promise.all([
+      sharp(rawBuffer).webp({ lossless: true }).toBuffer(),
+      sharp(rawBuffer).removeAlpha().raw().toBuffer({ resolveWithObject: true }),
+    ]);
+    const { width, height, channels } = pixels.info;
+    entry = { buffer, raw: pixels.data, width, height, channels };
   }
   encoded.set(frameId, entry);
   if (encoded.size > ENCODED_LIMIT) encoded.delete(encoded.keys().next().value);
@@ -144,7 +151,16 @@ async function refreshFrame() {
       latestFrameId = frameId;
       state.lastFrameAt = new Date().toISOString();
       state.frameSizeBytes = latestFrameBuffer.length;
-      bus.publish({ id: frameId, buffer: entry.buffer, base64: entry.base64, capturedAt: Date.now() });
+      bus.publish({
+        id: frameId,
+        buffer: entry.buffer,
+        base64: entry.base64,
+        raw: entry.raw,
+        width: entry.width,
+        height: entry.height,
+        channels: entry.channels,
+        capturedAt: Date.now(),
+      });
     }
     lastCapturedAt = Date.now();
     state.status = "ok";
@@ -229,7 +245,8 @@ function getFrameBuffer(fps, viewer) {
   };
 }
 
-// Flux continu : onFrame reçoit { id, buffer, capturedAt } à chaque image
+// Flux continu : onFrame reçoit { id, buffer, base64, raw, width, height,
+// channels, capturedAt } à chaque image
 // différente (et tout de suite la dernière connue). Renvoie la désinscription.
 function subscribe({ fps, viewer, onFrame, experimental = false }) {
   const unsubscribe = bus.subscribe({ fps: clampFps(fps, experimental) || DEFAULT_FPS, viewer: viewer || "anonyme", onFrame });

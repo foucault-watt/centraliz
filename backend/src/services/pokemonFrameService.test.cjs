@@ -71,8 +71,13 @@ test("une image identique garde son identifiant et n'est pas ré-encodée", asyn
 test("un abonné au flux reçoit chaque image différente, sans rien demander", async () => {
   frozen = false;
   const received = [];
-  const unsubscribe = frames.subscribe({ fps: 30, viewer: "carol", onFrame: (f) => received.push(f.id) });
+  let last = null;
+  const unsubscribe = frames.subscribe({ fps: 30, viewer: "carol", onFrame: (f) => { received.push(f.id); last = f; } });
   await sleep(500);
+  // Pixels bruts RGB publiés avec l'image, pour le rectangle modifié du SSE.
+  assert.deepEqual([last.width, last.height, last.channels], [240, 160, 3]);
+  assert.equal(last.raw.length, 240 * 160 * 3);
+  assert.ok(last.base64);
   assert.ok(received.length >= 8, `seulement ${received.length} images reçues en 0,5 s`);
   assert.equal(new Set(received).size, received.length, "jamais deux fois la même");
   assert.equal(frames.getFrameStatus().streams, 1);

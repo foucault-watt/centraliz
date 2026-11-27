@@ -4,7 +4,9 @@
 
 function createFrameBus() {
   const subscribers = new Set(); // { fps, viewer, onFrame }
-  let latest = null; // { id, buffer, capturedAt }
+  // { id, buffer, capturedAt } ; le vrai jeu ajoute base64 et les pixels
+  // bruts (raw, width, height, channels) pour le rectangle modifié du SSE.
+  let latest = null;
 
   return {
     subscribe(subscriber, { sendLatest = true } = {}) {

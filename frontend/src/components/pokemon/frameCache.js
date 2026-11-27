@@ -1,62 +1,51 @@
-// Images du jeu déjà reçues, par identifiant (empreinte côté serveur).
+// Images complètes du jeu déjà affichées, par identifiant (empreinte côté
+// serveur), sous forme d'ImageBitmap prêtes à dessiner.
 //
 // Le serveur retient les 32 dernières images envoyées à chaque connexion et,
 // pour une image déjà vue (animation en boucle), n'envoie que son
 // identifiant. Le navigateur doit donc en garder au moins autant : on en
-// garde le double.
+// garde le double. Une image reçue en delta (rectangle) est stockée une fois
+// reconstituée en entier.
+//
+// L'écran est un <canvas> : une image dessinée y reste après sa sortie du
+// cache, on peut donc libérer (close) sans se soucier de l'image affichée.
 export const FRAME_CACHE_LIMIT = 64;
 
-export function createFrameCache({
-  limit = FRAME_CACHE_LIMIT,
-  createUrl = (blob) => URL.createObjectURL(blob),
-  revokeUrl = (url) => URL.revokeObjectURL(url),
-} = {}) {
-  const urls = new Map(); // id -> url, du plus ancien au plus récent
-  let current = ""; // url affichée, jamais libérée tant qu'elle l'est
+const closeBitmap = (bitmap) => bitmap?.close?.();
 
-  const release = (url) => {
-    if (url && url !== current) revokeUrl(url);
-  };
+export function createFrameCache({ limit = FRAME_CACHE_LIMIT, release = closeBitmap } = {}) {
+  const bitmaps = new Map(); // id -> bitmap, du plus ancien au plus récent
 
   return {
-    // Image reçue entière : la met en cache (si elle a un identifiant) et
-    // renvoie son url à afficher.
-    put(blob, id) {
-      const url = createUrl(blob);
-      const previous = current;
-      current = url;
-      const dropped = new Set([previous]);
-      if (id) {
-        dropped.add(urls.get(id));
-        urls.delete(id);
-        urls.set(id, url);
-        if (urls.size > limit) {
-          const [oldestId, oldestUrl] = urls.entries().next().value;
-          urls.delete(oldestId);
-          dropped.add(oldestUrl);
-        }
+    // Garde l'image complète sous son identifiant. Sans identifiant (mode
+    // secours), elle n'est pas gardée : elle est libérée tout de suite.
+    put(id, bitmap) {
+      if (!id) {
+        release(bitmap);
+        return;
       }
-      const kept = new Set(urls.values());
-      for (const old of dropped) if (!kept.has(old)) release(old);
-      return url;
+      const previous = bitmaps.get(id);
+      bitmaps.delete(id);
+      bitmaps.set(id, bitmap);
+      if (previous && previous !== bitmap) release(previous);
+      while (bitmaps.size > limit) {
+        const [oldestId, oldest] = bitmaps.entries().next().value;
+        bitmaps.delete(oldestId);
+        release(oldest);
+      }
     },
-    // Image déjà reçue : renvoie son url, ou "" si elle n'est plus en cache.
+    // Image déjà reçue (la remet en tête), ou null si elle n'est plus en cache.
     get(id) {
-      const url = urls.get(id);
-      if (!url) return "";
-      urls.delete(id);
-      urls.set(id, url);
-      const previous = current;
-      current = url;
-      if (!new Set(urls.values()).has(previous)) release(previous);
-      return url;
+      const bitmap = bitmaps.get(id);
+      if (!bitmap) return null;
+      bitmaps.delete(id);
+      bitmaps.set(id, bitmap);
+      return bitmap;
     },
     clear() {
-      for (const url of urls.values()) revokeUrl(url);
-      if (current && ![...urls.values()].includes(current)) revokeUrl(current);
-      urls.clear();
-      current = "";
+      for (const bitmap of bitmaps.values()) release(bitmap);
+      bitmaps.clear();
     },
-    size: () => urls.size,
+    size: () => bitmaps.size,
   };
 }

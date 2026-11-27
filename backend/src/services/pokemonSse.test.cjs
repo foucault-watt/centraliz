@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert");
 const { EventEmitter } = require("events");
-const { createSseSender } = require("./pokemonSse");
+const { createSseSender, padBytesFromEnv, SEEN_LIMIT } = require("./pokemonSse");
 
 // Faux res : enregistre les écritures ; `accept` simule un tampon plein.
 function fakeRes() {
@@ -84,4 +84,42 @@ test("pas de bourrage si désactivé", () => {
   const sender = createSseSender(res, { fps: 30, padBytes: 0, setTimer: () => { throw new Error("aucun minuteur attendu"); } });
   sender.offer(frame("a"));
   assert.equal(res.writes.filter((w) => w.startsWith(": ")).length, 0);
+});
+
+test("image déjà envoyée sur cette connexion : seulement son identifiant", () => {
+  let now = 0;
+  const res = fakeRes();
+  const sender = createSseSender(res, { fps: 30, padBytes: 0, now: () => now });
+  for (const id of ["a", "b", "c", "a", "b"]) {
+    now += 100;
+    sender.offer(frame(id));
+  }
+  assert.deepEqual(ids(res), ["a", "b", "c", "a", "b"]);
+  const events = res.writes.map((w) => /event: (\w+)/.exec(w)[1]);
+  assert.deepEqual(events, ["frame", "frame", "frame", "ref", "ref"]);
+  assert.doesNotMatch(res.writes[3], /img/);
+  assert.equal(sender.stats.refs, 2);
+});
+
+test("oublie les images trop anciennes et les renvoie entières", () => {
+  let now = 0;
+  const res = fakeRes();
+  const sender = createSseSender(res, { fps: 30, padBytes: 0, now: () => now });
+  for (let i = 0; i <= SEEN_LIMIT; i += 1) {
+    now += 100;
+    sender.offer(frame(`f${i}`));
+  }
+  now += 100;
+  sender.offer(frame("f0")); // sortie du cache : renvoyée entière
+  assert.match(res.writes.at(-1), /event: frame/);
+  now += 100;
+  sender.offer(frame(`f${SEEN_LIMIT}`)); // encore connue
+  assert.match(res.writes.at(-1), /event: ref/);
+});
+
+test("POKEMON_SSE_PAD_BYTES=0 coupe le bourrage", () => {
+  assert.equal(padBytesFromEnv("0"), 0);
+  assert.equal(padBytesFromEnv(undefined), 16384);
+  assert.equal(padBytesFromEnv("8192"), 8192);
+  assert.equal(padBytesFromEnv("999999"), 65536);
 });

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchApi } from "../../utils/api";
+import { createFrameCache } from "./frameCache";
 
 // Image du jeu, rafraîchie en boucle (une requête à la fois, jamais
 // d'empilement), mise en pause quand l'onglet est caché.
@@ -58,13 +59,14 @@ const EMPTY_STATS = {
   delayMs: 0,
   notModifiedRatio: 0,
   pushedPerSec: 0,
-  minute: { requests: 0, pushed: 0, fresh: 0, bytes: 0, errors: 0, notModified: 0 },
+  minute: { requests: 0, pushed: 0, cached: 0, fresh: 0, bytes: 0, errors: 0, notModified: 0 },
   session: { requests: 0, fresh: 0, bytes: 0, errors: 0 },
   history: [],
 };
 
 // Calcule les stats à partir des échantillons (exporté pour les tests).
-// sample : { at, ok, bytes, rttMs, ageMs, fresh, unchanged (304), pushed (SSE) }
+// sample : { at, ok, bytes, rttMs, ageMs, fresh, unchanged (304), pushed (SSE),
+//            cached (SSE : image déjà reçue, réaffichée depuis le cache) }
 export function computeStats(samples, session, history, now = Date.now()) {
   const recent = samples.filter((s) => now - s.at <= RECENT_MS);
   const minute = samples.filter((s) => now - s.at <= MINUTE_MS);
@@ -82,9 +84,11 @@ export function computeStats(samples, session, history, now = Date.now()) {
     freshPerSec: recentFresh.length / seconds,
     duplicateRatio: recentOk.length ? 1 - recentFresh.length / recentOk.length : 0,
     notModifiedRatio: recentOk.length ? recentOk.filter((s) => s.unchanged).length / recentOk.length : 0,
-    // Taille moyenne d'une image réellement téléchargée (les 304 sont vides).
+    cachedRatio: recentOk.length ? recentOk.filter((s) => s.cached).length / recentOk.length : 0,
+    // Taille moyenne d'une image réellement téléchargée (les 304 sont vides,
+    // les images du cache ne pèsent que leur identifiant).
     bytesPerFrame: (() => {
-      const downloaded = recentOk.filter((s) => s.bytes > 0);
+      const downloaded = recentOk.filter((s) => s.bytes > 0 && !s.cached);
       return downloaded.length ? bytes / downloaded.length : 0;
     })(),
     bytesPerSecond: bytes / seconds,
@@ -97,6 +101,7 @@ export function computeStats(samples, session, history, now = Date.now()) {
       requests: minute.filter((s) => !s.pushed).length,
       pushed: minute.filter((s) => s.pushed).length,
       fresh: minute.filter((s) => s.ok && s.fresh).length,
+      cached: minute.filter((s) => s.cached).length,
       bytes: minute.reduce((sum, s) => sum + (s.ok ? s.bytes : 0), 0),
       errors: minute.filter((s) => !s.ok).length,
       notModified: minute.filter((s) => s.unchanged).length,
@@ -123,6 +128,8 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
     return () => clearTimeout(id);
   }, [requestedFps]);
   const urlRef = useRef("");
+  const cacheRef = useRef(null);
+  if (!cacheRef.current) cacheRef.current = createFrameCache();
   const fpsRef = useRef(requestedFps);
   fpsRef.current = requestedFps;
   const samples = useRef([]);
@@ -154,12 +161,11 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
       }
     };
 
-    const showFrame = (blob) => {
-      const nextUrl = URL.createObjectURL(blob);
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-      urlRef.current = nextUrl;
-      setFrameUrl(nextUrl);
+    const display = (url) => {
+      urlRef.current = url;
+      setFrameUrl(url);
     };
+    const showFrame = (blob, id) => display(cacheRef.current.put(blob, id));
 
     const loop = async () => {
       while (!cancelled) {
@@ -236,10 +242,26 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
         if (cancelled) return;
         try {
           const data = JSON.parse(event.data);
-          showFrame(new Blob([base64ToBytes(data.img)], { type: "image/webp" }));
+          showFrame(new Blob([base64ToBytes(data.img)], { type: "image/webp" }), data.id);
           record({ at: Date.now(), ok: true, bytes: data.img.length, rttMs: null, ageMs: data.ageMs ?? null, fresh: true, pushed: true });
           hasFrame = true;
           receivedFrame = true;
+          errors = 0;
+          setStatus("live");
+        } catch {
+          // Message illisible : on attend le suivant.
+        }
+      });
+      // Image déjà reçue (animation en boucle) : le serveur n'envoie que
+      // son identifiant, on la réaffiche depuis le cache.
+      source.addEventListener("ref", (event) => {
+        if (cancelled) return;
+        try {
+          const data = JSON.parse(event.data);
+          const url = cacheRef.current.get(data.id);
+          if (!url) return; // plus en cache : la prochaine image entière corrigera
+          display(url);
+          record({ at: Date.now(), ok: true, bytes: event.data.length, rttMs: null, ageMs: data.ageMs ?? null, fresh: true, pushed: true, cached: true });
           errors = 0;
           setStatus("live");
         } catch {
@@ -303,7 +325,7 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
 
   useEffect(
     () => () => {
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      cacheRef.current.clear();
     },
     []
   );

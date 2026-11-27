@@ -200,7 +200,7 @@ export default function DebugPanel({ targetFps, stats, mode = "polling" }) {
           label="Dernière minute"
           value={kb(stats.minute.bytes)}
           hint={streaming
-            ? `${stats.minute.pushed} images poussées · ${stats.minute.requests} req. · ${stats.minute.errors} err.`
+            ? `${stats.minute.pushed} images poussées dont ${stats.minute.cached ?? 0} depuis le cache · ${stats.minute.errors} err.`
             : `${stats.minute.fresh} nouvelles / ${stats.minute.requests} req. · ${stats.minute.notModified} inchangées · ${stats.minute.errors} err.`}
         />
         <Stat

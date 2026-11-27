@@ -4,6 +4,7 @@ import Pokemon from "./Pokemon";
 import { buttonForKey, isTypingTarget } from "./pokemon/controls";
 import { computeStats } from "./pokemon/usePokemonStream";
 import { fetchApi } from "../utils/api";
+import { installFakeCanvas } from "./pokemon/fakeCanvas";
 
 vi.mock("../utils/api", () => ({ fetchApi: vi.fn() }));
 
@@ -14,7 +15,7 @@ global.ResizeObserver = class {
   disconnect() {}
 };
 
-const frameResponse = () => ({ ok: true, blob: async () => new Blob(["x"]) });
+const frameResponse = () => ({ ok: true, blob: async () => new Blob(["image-http"]) });
 const okResponse = () => ({ ok: true, json: async () => ({ success: true }) });
 
 const inputCalls = () =>
@@ -22,7 +23,10 @@ const inputCalls = () =>
     .filter(([url]) => url === "/api/pokemon/input")
     .map(([, options]) => JSON.parse(options.body).button);
 
+let canvas;
+
 beforeEach(() => {
+  canvas = installFakeCanvas();
   vi.useFakeTimers();
   fetchApi.mockReset();
   global.URL.createObjectURL = vi.fn(() => "blob:frame");
@@ -30,6 +34,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  canvas.uninstall();
   vi.useRealTimers();
 });
 
@@ -68,7 +73,10 @@ describe("Pokemon", () => {
   it("affiche l'écran en direct et une manette sans jargon technique", async () => {
     await renderLive();
 
-    expect(screen.getByAltText("Écran du jeu Pokémon en direct")).toHaveAttribute("src", "blob:frame");
+    expect(screen.getByRole("img", { name: "Écran du jeu Pokémon en direct" })).toBeVisible();
+    // Mode secours (interrogation) : image entière dessinée en (0, 0).
+    expect(canvas.state.draws.at(-1)).toEqual({ label: "image-http", x: 0, y: 0 });
+    expect(canvas.screen()).toBe("image-http");
     expect(screen.getByText("En direct")).toBeInTheDocument();
     ["Haut", "Bas", "Gauche", "Droite", "A, valider", "B, retour", "Start, menu"].forEach((name) => {
       expect(screen.getByRole("button", { name })).toBeEnabled();
@@ -356,7 +364,8 @@ describe("images inchangées", () => {
     });
 
     expect(calls).toBeGreaterThan(2);
-    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(globalThis.createImageBitmap).toHaveBeenCalledTimes(1);
+    expect(canvas.state.draws).toHaveLength(1);
     expect(screen.getByText("En direct")).toBeInTheDocument();
   });
 });

@@ -17,8 +17,17 @@
 //   SEEN_LIMIT dernières images envoyées ; pour l'une d'elles, on n'envoie
 //   que son identifiant (événement « ref ») et le navigateur la réaffiche
 //   depuis son cache, qui en garde au moins autant.
+// - Rectangle modifié (événement « delta ») : chaque connexion garde les
+//   pixels de la dernière image qu'elle a vraiment envoyée. Pour une
+//   nouvelle image, on calcule le plus petit rectangle qui contient les
+//   pixels changés et on l'encode en webp lossless ; s'il pèse moins que
+//   l'image entière (en base64), on n'envoie que lui, avec sa position.
+//   Le calcul part toujours de ce que le navigateur affiche, jamais d'une
+//   image sautée. Pendant la marche (tout l'écran défile), le rectangle
+//   couvre tout et pèse autant : l'image entière part alors comme avant.
 
 const crypto = require("crypto");
+const { createDeltaEncoder } = require("./pokemonDelta");
 
 // 0 coupe le bourrage (proxys réglés avec proxy_buffering off).
 function padBytesFromEnv(value) {
@@ -54,24 +63,64 @@ function refEvent(frame, now = Date.now()) {
   return `id: ${frame.id}\nevent: ref\ndata: ${data}\n\n`;
 }
 
-function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Date.now, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
+// Rectangle à poser sur l'image `baseId` que le navigateur affiche.
+function deltaEvent(frame, baseId, rect, now = Date.now()) {
+  const data = JSON.stringify({
+    id: frame.id,
+    baseId,
+    x: rect.x,
+    y: rect.y,
+    w: rect.w,
+    h: rect.h,
+    ageMs: Math.max(0, now - frame.capturedAt),
+    img: rect.base64,
+  });
+  return `id: ${frame.id}
+event: delta
+data: ${data}
+
+`;
+}
+
+// Totaux de toutes les connexions depuis le démarrage (exposés par
+// /api/pokemon/frame-status, champ `sse`).
+const totals = { frames: 0, refs: 0, deltas: 0, bytesSent: 0, bytesSaved: 0 };
+const sharedDeltas = createDeltaEncoder();
+
+function getSseStats() {
+  return { ...totals, deltaEncoder: sharedDeltas.stats() };
+}
+
+// Pixels bruts d'une image, si le service de capture les a publiés.
+const pixelsOf = (frame) =>
+  frame && frame.raw ? { id: frame.id, raw: frame.raw, width: frame.width, height: frame.height, channels: frame.channels } : null;
+
+function createSseSender(
+  res,
+  { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Date.now, setTimer = setTimeout, clearTimer = clearTimeout, deltas = sharedDeltas } = {}
+) {
   const minIntervalMs = 1000 / Math.max(fps, 1);
   let padTimer = null;
   let pending = null;
   let lastSentAt = -Infinity; // la première image part tout de suite
   let lastSentId = null;
   let congested = false;
+  let encoding = false; // rectangle en cours d'encodage : compte comme un envoi en cours
   let timer = null;
   let closed = false;
-  const seen = new Set(); // ordre d'insertion : du plus ancien au plus récent
-  const stats = { sent: 0, skipped: 0, padded: 0, refs: 0 };
+  // Pixels de la dernière image réellement envoyée (base du prochain delta).
+  let base = null;
+  // Images déjà envoyées -> leurs pixels (ou null). Ordre d'insertion : du
+  // plus ancien au plus récent. Les Buffers sont ceux du service de capture,
+  // partagés entre connexions : pas de copie.
+  const seen = new Map();
+  const stats = { sent: 0, skipped: 0, padded: 0, refs: 0, deltas: 0, bytesSaved: 0 };
 
-  // true si le navigateur a déjà cette image ; la marque comme la plus récente.
-  const remember = (id) => {
-    const known = seen.delete(id);
-    seen.add(id);
-    if (seen.size > SEEN_LIMIT) seen.delete(seen.values().next().value);
-    return known;
+  // Marque l'image comme la plus récente du cache.
+  const remember = (id, pixels) => {
+    seen.delete(id);
+    seen.set(id, pixels);
+    if (seen.size > SEEN_LIMIT) seen.delete(seen.keys().next().value);
   };
 
   const schedulePadding = () => {
@@ -85,8 +134,62 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
     }, PAD_AFTER_MS);
   };
 
+  // Écrit un événement déjà décidé, puis met à jour la base du delta.
+  const write = (chunk, kind, pixels, id) => {
+    stats.sent += 1;
+    totals.bytesSent += chunk.length;
+    if (kind === "ref") {
+      stats.refs += 1;
+      totals.refs += 1;
+    } else if (kind === "delta") {
+      totals.deltas += 1;
+    } else {
+      totals.frames += 1;
+    }
+    remember(id, pixels);
+    base = pixels;
+    const accepted = res.write(chunk);
+    schedulePadding();
+    if (accepted === false) {
+      congested = true;
+      res.once("drain", () => {
+        congested = false;
+        flush();
+      });
+    }
+  };
+
+  // Image entière ou rectangle, selon ce qui pèse le moins.
+  const sendNew = (frame) => {
+    const pixels = pixelsOf(frame);
+    const from = base;
+    if (!pixels || !from || !deltas) {
+      write(frameEvent(frame, now()), "frame", pixels, frame.id);
+      return;
+    }
+    encoding = true;
+    Promise.resolve()
+      .then(() => deltas.delta(from, pixels))
+      .catch(() => null) // encodage en échec : image entière
+      .then((rect) => {
+        encoding = false;
+        if (closed) return; // connexion fermée pendant l'encodage : rien à écrire
+        if (!frame.base64) frame.base64 = frame.buffer.toString("base64");
+        if (rect && rect.base64.length < frame.base64.length) {
+          stats.deltas += 1;
+          const saved = frame.base64.length - rect.base64.length;
+          stats.bytesSaved += saved;
+          totals.bytesSaved += saved;
+          write(deltaEvent(frame, from.id, rect, now()), "delta", pixels, frame.id);
+        } else {
+          write(frameEvent(frame, now()), "frame", pixels, frame.id);
+        }
+        flush(); // une image a pu arriver pendant l'encodage
+      });
+  };
+
   const flush = () => {
-    if (closed || !pending || congested || timer) return;
+    if (closed || !pending || congested || encoding || timer) return;
     const wait = minIntervalMs - (now() - lastSentAt);
     if (wait > 0) {
       timer = setTimer(() => {
@@ -100,17 +203,11 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
     if (frame.id === lastSentId) return;
     lastSentAt = now();
     lastSentId = frame.id;
-    stats.sent += 1;
-    const known = remember(frame.id);
-    if (known) stats.refs += 1;
-    const accepted = res.write(known ? refEvent(frame, now()) : frameEvent(frame, now()));
-    schedulePadding();
-    if (accepted === false) {
-      congested = true;
-      res.once("drain", () => {
-        congested = false;
-        flush();
-      });
+    if (seen.has(frame.id)) {
+      // Pixels gardés dans le cache, sinon ceux du frame offert.
+      write(refEvent(frame, now()), "ref", seen.get(frame.id) || pixelsOf(frame), frame.id);
+    } else {
+      sendNew(frame);
     }
   };
 
@@ -123,6 +220,7 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
     },
     close() {
       closed = true;
+      pending = null;
       if (timer) clearTimer(timer);
       if (padTimer) clearTimer(padTimer);
     },
@@ -130,4 +228,4 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
   };
 }
 
-module.exports = { createSseSender, frameEvent, refEvent, paddingComment, padBytesFromEnv, DEFAULT_PAD_BYTES, SEEN_LIMIT };
+module.exports = { createSseSender, frameEvent, refEvent, deltaEvent, getSseStats, paddingComment, padBytesFromEnv, DEFAULT_PAD_BYTES, SEEN_LIMIT };

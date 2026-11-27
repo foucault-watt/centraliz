@@ -5,7 +5,7 @@ const pokemonService = require("../services/pokemonService");
 const pokemonSpeedService = require("../services/pokemonSpeedService");
 const pokemonPresence = require("../services/pokemonPresence");
 const pokemonAnalytics = require("../services/pokemonAnalytics");
-const { createSseSender, paddingComment } = require("../services/pokemonSse");
+const { createSseSender, paddingComment, getSseStats } = require("../services/pokemonSse");
 
 const router = express.Router();
 const MAX_TRACKED_FRAME_AGE_MS = 15000;
@@ -84,7 +84,9 @@ router.post("/input", authMiddleware, async (req, res) => {
 
 router.get("/frame-status", authMiddleware, async (req, res) => {
   try {
-    const status = pokemonService.getFrameStatus();
+    // sse : totaux du flux continu, toutes connexions confondues (images
+    // entières, refs, rectangles « delta », octets économisés).
+    const status = { ...pokemonService.getFrameStatus(), sse: getSseStats() };
     res.json(status);
   } catch (error) {
     res.status(error.status || 500).json({
@@ -174,6 +176,7 @@ function streamFrames(req, res, experimental = false) {
   const fps = pokemonService.clampFps(req.query.fps, experimental) || 10;
 
   openSse(res);
+  // Envoie un rectangle « delta » quand il pèse moins que l'image entière.
   const sender = createSseSender(res, { fps });
   const unsubscribe = pokemonService.subscribe({ fps, viewer, onFrame: sender.offer, experimental });
 

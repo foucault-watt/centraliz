@@ -12,6 +12,7 @@ import GameButton from "./pokemon/GameButton";
 import usePokemonInput from "./pokemon/usePokemonInput";
 import usePokemonStream, { ADMIN_MAX_FPS, DEFAULT_FPS } from "./pokemon/usePokemonStream";
 import DebugPanel from "./pokemon/DebugPanel";
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from "./pokemon/framePainter";
 import PlayersPanel from "./pokemon/PlayersPanel";
 import PokemonUpdates from "./pokemon/PokemonUpdates";
 import SpeedControl from "./pokemon/SpeedControl";
@@ -34,24 +35,26 @@ const DPAD = [
   { button: "DOWN", label: "Bas", icon: ChevronDown, cell: "col-start-2 row-start-3", shape: "rounded-b-xl" },
 ];
 
-function Screen({ frameUrl, status, error, onRetry }) {
+function Screen({ canvasRef, hasFrame, status, error, onRetry }) {
   const tone = STATUS[status];
-  const hasFrame = Boolean(frameUrl);
 
   return (
     <div className="relative w-full">
       <div className="relative aspect-[3/2] w-full overflow-hidden rounded-xl bg-black ring-4 ring-black/40">
-        {hasFrame && (
-          <img
-            src={frameUrl}
-            alt="Écran du jeu Pokémon en direct"
-            draggable={false}
-            className={`h-full w-full select-none object-contain transition-opacity duration-300 ${
-              status === "live" ? "opacity-100" : "opacity-50"
-            }`}
-            style={{ imageRendering: "pixelated" }}
-          />
-        )}
+        {/* Toujours monté (on y dessine avant de l'afficher), caché tant
+            qu'aucune image n'y est dessinée. */}
+        <canvas
+          ref={canvasRef}
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
+          role="img"
+          aria-label="Écran du jeu Pokémon en direct"
+          hidden={!hasFrame}
+          className={`h-full w-full select-none object-contain transition-opacity duration-300 ${
+            status === "live" ? "opacity-100" : "opacity-50"
+          }`}
+          style={{ imageRendering: "pixelated" }}
+        />
 
         {!hasFrame && status === "connecting" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-slate-400" role="status">
@@ -155,9 +158,9 @@ function Pokemon({ user }) {
   const [showDebug, setShowDebug] = useState(debugEnabled);
   const debugId = useId();
   const [targetFps, setTargetFps] = useState(DEFAULT_FPS);
-  const { frameUrl, status, retry, stats, mode, requestedFps } = usePokemonStream({ targetFps, isAdmin });
+  const { canvasRef, hasFrame, status, retry, stats, mode, requestedFps } = usePokemonStream({ targetFps, isAdmin });
   const maxFps = isAdmin && mode === "sse" ? ADMIN_MAX_FPS : DEFAULT_FPS;
-  const canPlay = Boolean(frameUrl) && status !== "offline";
+  const canPlay = hasFrame && status !== "offline";
   const { press, release, pressed, error } = usePokemonInput({ enabled: canPlay });
   const controls = { pressed, onPress: press, onRelease: release, disabled: !canPlay };
 
@@ -176,7 +179,7 @@ function Pokemon({ user }) {
         className="grid grid-cols-2 items-center gap-x-4 gap-y-5 rounded-3xl bg-slate-900 p-4 shadow-xl shadow-slate-900/20 sm:p-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-x-10 lg:p-8"
       >
         <div className="col-span-2 lg:col-span-1 lg:col-start-2 lg:row-start-1">
-          <Screen frameUrl={frameUrl} status={status} error={error} onRetry={retry} />
+          <Screen canvasRef={canvasRef} hasFrame={hasFrame} status={status} error={error} onRetry={retry} />
         </div>
 
         <div className="justify-self-start lg:col-start-1 lg:row-start-1">

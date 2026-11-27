@@ -2,50 +2,58 @@ import { describe, expect, it } from "vitest";
 import { createFrameCache } from "./frameCache";
 
 function setup(limit = 3) {
-  let n = 0;
-  const revoked = [];
-  const cache = createFrameCache({ limit, createUrl: () => `blob:${(n += 1)}`, revokeUrl: (url) => revoked.push(url) });
-  return { cache, revoked };
+  const released = [];
+  const cache = createFrameCache({ limit, release: (bitmap) => released.push(bitmap) });
+  return { cache, released };
 }
 
 describe("cache des images du flux", () => {
   it("réaffiche une image déjà reçue sans la retélécharger", () => {
-    const { cache, revoked } = setup();
-    expect(cache.put("A", "a")).toBe("blob:1");
-    expect(cache.put("B", "b")).toBe("blob:2");
-    expect(cache.get("a")).toBe("blob:1");
-    expect(cache.get("b")).toBe("blob:2");
-    expect(revoked).toEqual([]);
+    const { cache, released } = setup();
+    cache.put("a", "A");
+    cache.put("b", "B");
+    expect(cache.get("a")).toBe("A");
+    expect(cache.get("b")).toBe("B");
+    expect(released).toEqual([]);
   });
 
-  it("renvoie une chaîne vide pour une image inconnue", () => {
+  it("renvoie null pour une image inconnue", () => {
     const { cache } = setup();
-    expect(cache.get("x")).toBe("");
+    expect(cache.get("x")).toBeNull();
   });
 
-  it("libère la plus ancienne au-delà de la limite, mais jamais l'image affichée", () => {
-    const { cache, revoked } = setup(2);
-    cache.put("A", "a");
-    cache.put("B", "b");
+  it("libère la plus ancienne au-delà de la limite", () => {
+    const { cache, released } = setup(2);
+    cache.put("a", "A");
+    cache.put("b", "B");
     cache.get("a"); // a redevient la plus récente
-    cache.put("C", "c"); // b sort du cache
-    expect(revoked).toEqual(["blob:2"]);
-    expect(cache.get("b")).toBe("");
+    cache.put("c", "C"); // b sort du cache
+    expect(released).toEqual(["B"]);
+    expect(cache.get("b")).toBeNull();
     expect(cache.size()).toBe(2);
   });
 
-  it("libère l'image sans identifiant (mode secours) quand une autre la remplace", () => {
-    const { cache, revoked } = setup();
-    cache.put("A");
-    cache.put("B");
-    expect(revoked).toEqual(["blob:1"]);
+  it("remplace et libère l'ancienne image d'un même identifiant", () => {
+    const { cache, released } = setup();
+    cache.put("a", "A1");
+    cache.put("a", "A2");
+    expect(released).toEqual(["A1"]);
+    expect(cache.get("a")).toBe("A2");
+  });
+
+  it("libère tout de suite une image sans identifiant (mode secours)", () => {
+    const { cache, released } = setup();
+    cache.put(null, "A");
+    expect(released).toEqual(["A"]);
+    expect(cache.size()).toBe(0);
   });
 
   it("vide tout au démontage", () => {
-    const { cache, revoked } = setup();
-    cache.put("A", "a");
-    cache.put("B");
+    const { cache, released } = setup();
+    cache.put("a", "A");
+    cache.put("b", "B");
     cache.clear();
-    expect(revoked.sort()).toEqual(["blob:1", "blob:2"]);
+    expect(released.sort()).toEqual(["A", "B"]);
+    expect(cache.size()).toBe(0);
   });
 });

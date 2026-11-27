@@ -5,6 +5,7 @@ const pokemonService = require("../services/pokemonService");
 const pokemonSpeedService = require("../services/pokemonSpeedService");
 const pokemonPresence = require("../services/pokemonPresence");
 const pokemonAnalytics = require("../services/pokemonAnalytics");
+const pokemonActivity = require("../services/pokemonActivityService");
 const { createSseSender, paddingComment } = require("../services/pokemonSse");
 
 const router = express.Router();
@@ -221,6 +222,53 @@ router.get("/stream-test", (req, res) => {
 router.get("/presence", authMiddleware, (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   res.json(pokemonPresence.getPresence());
+});
+
+// Fil d'activité : événements de jeu et chat, lisibles par tous les connectés.
+const sessionUser = (req) => ({
+  username: req.session?.user?.userName,
+  displayName: req.session?.user?.displayName,
+});
+
+router.get("/activity", authMiddleware, async (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  try {
+    res.json({ items: await pokemonActivity.getFeed(req.query) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/chat", authMiddleware, async (req, res, next) => {
+  try {
+    const result = await pokemonActivity.postChat(sessionUser(req), req.body?.text);
+    if (result.error) return res.status(result.status).json({ message: result.error });
+    res.status(201).json({ item: result.item });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/chat/:id", authMiddleware, adminMiddleware, async (req, res, next) => {
+  try {
+    const deleted = await pokemonActivity.deleteChat(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Message introuvable." });
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Résumé « depuis ta dernière visite » ; avance le curseur de l'utilisateur.
+router.get("/summary", authMiddleware, async (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  try {
+    const { username } = sessionUser(req);
+    if (!username) return res.status(401).json({ message: "Connexion requise." });
+    res.json(await pokemonActivity.getSummary(username));
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;

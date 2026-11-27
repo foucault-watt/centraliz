@@ -42,7 +42,7 @@ app.set("trust proxy", 1);
 // Utiliser Helmet pour sécuriser les en-têtes HTTP
 app.use(helmet());
 
-const POKEMON_POLLING = /^\/api\/pokemon\/(frame|frame-status|presence)(\?|$)/;
+const POKEMON_POLLING = /^\/api\/pokemon\/(frame|frame-status|presence|activity)(\?|$)/;
 const isPokemonPolling = (req) => POKEMON_POLLING.test(req.originalUrl || req.url || "");
 
 // Utiliser Morgan pour les logs détaillés des requêtes HTTP

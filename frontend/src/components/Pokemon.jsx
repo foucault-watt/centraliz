@@ -12,6 +12,7 @@ import GameButton from "./pokemon/GameButton";
 import usePokemonInput from "./pokemon/usePokemonInput";
 import usePokemonStream, { ADMIN_MAX_FPS, DEFAULT_FPS } from "./pokemon/usePokemonStream";
 import DebugPanel from "./pokemon/DebugPanel";
+import ActivityPanel from "./pokemon/ActivityPanel";
 import PlayersPanel from "./pokemon/PlayersPanel";
 import PokemonUpdates from "./pokemon/PokemonUpdates";
 import SpeedControl from "./pokemon/SpeedControl";
@@ -236,6 +237,10 @@ function Pokemon({ user }) {
 
       <div className="mx-auto w-full max-w-3xl">
         <PlayersPanel />
+      </div>
+
+      <div className="mx-auto w-full max-w-3xl">
+        <ActivityPanel isAdmin={isAdmin} />
       </div>
 
       <div className="mx-auto w-full max-w-3xl space-y-3">

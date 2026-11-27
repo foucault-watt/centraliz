@@ -1,8 +1,27 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth");
 const pokemonService = require("../services/pokemonService");
+const pokemonSpeedService = require("../services/pokemonSpeedService");
 
 const router = express.Router();
+
+router.get("/speed", authMiddleware, async (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    res.json(await pokemonSpeedService.getSpeed());
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put("/speed", authMiddleware, async (req, res, next) => {
+  try {
+    res.json(await pokemonSpeedService.setSpeed(req.body?.speed));
+  } catch (error) {
+    if (!error.status) return next(error);
+    res.status(error.status).json({ message: error.message });
+  }
+});
 
 router.get("/health", authMiddleware, async (req, res) => {
   try {

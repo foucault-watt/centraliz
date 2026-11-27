@@ -10,6 +10,11 @@ const claRoutes = require("../routes/cla");
 const hpRoutes = require("../routes/hp");
 const feedbackRoutes = require("../routes/feedback");
 const zimbraRoutes = require("../routes/zimbra");
+const { createMoodleService } = require("../services/moodleService");
+const moodleRoutes = require("../routes/moodle")({
+  authMiddleware: require("../middlewares/auth"),
+  moodleService: createMoodleService({ credentialsService: require("../services/zimbraService") }),
+});
 const publicRoutes = require("../routes/publicData");
 const evaRoutes = require("../routes/eva");
 const statsRoutes = require("../routes/stats");
@@ -29,6 +34,7 @@ const navPagesRoutes = require("../routes/navPages");
 const morgan = require("morgan");
 const logService = require("../services/logService");
 const app = express();
+const { installRestartRoutes, skipSensitiveRequest } = require('../utils/restartRoutes');
 
 // Faire confiance au premier proxy (nécessaire pour ngrok et le déploiement)
 app.set("trust proxy", 1);
@@ -48,7 +54,7 @@ app.use(
       // spectateur). Seules leurs erreurs sont gardées.
       if (isPokemonPolling(req) && res.statusCode < 400) return true;
       // Skip les logs Morgan qui seraient dupliqués
-      return req.url === "/healthcheck"; // exemple de filtre
+      return skipSensitiveRequest(req, process.env.SECRET_API);
     },
     stream: {
       write: (message) => {
@@ -68,7 +74,7 @@ app.use(
 // Extrait dans une variable pour que le serveur WebSocket puisse rejouer
 // exactement le même middleware (même secret, même store) sur les upgrades.
 const sessionMiddleware = session({
-  secret: "monfpizengpzeogn", // Remplacez par une clé secrète sécurisée
+  secret: process.env.SESSION_SECRET || process.env.SECRET_KEY_CENTRALIZ,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -82,9 +88,21 @@ app.use(sessionMiddleware);
 
 app.use(express.json());
 
+const { remoteConfig, createRemoteMcpRouter } = require('../mcp/remoteHttp.cjs');
+const mcpConfig = remoteConfig(process.env);
+if (mcpConfig) {
+  const path = require('node:path');
+  const credentialsService = require('../services/zimbraService');
+  const moodleService = createMoodleService({ credentialsService });
+  const { router } = createRemoteMcpRouter({ ...mcpConfig, credentialsService, moodleService,
+    storeFile: path.resolve(__dirname, '../../data/mcp-oauth/store.json') });
+  app.use(router);
+}
+
 // Utiliser les routes
 app.use("/api/auth", authRoutes);
 app.use("/api/zimbra", zimbraRoutes);
+app.use("/api/moodle", moodleRoutes);
 app.use("/api", csvRoutes);
 app.use("/api", claRoutes);
 app.use("/api", hpRoutes);
@@ -106,11 +124,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/theme-palette", themePaletteRoutes);
 app.use("/api/nav-pages", navPagesRoutes);
 
-// Route de test pour crash du serveur (à utiliser avec précaution)
-app.use(`/api/${process.env.SECRET_API}/crash`, async (req, res) => {
-  res.send("Le serveur va planter maintenant, planter comme un navet.");
-  process.exit(1);
-});
+installRestartRoutes(app, { secret: process.env.SECRET_API });
 
 // Assurez-vous que ce middleware est placé après les routes pour éviter les conflits
 app.use((err, req, res, next) => {

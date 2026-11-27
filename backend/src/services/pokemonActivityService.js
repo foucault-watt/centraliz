@@ -140,7 +140,7 @@ async function postChat({ username, displayName }, rawText, now = Date.now()) {
   }
   const previous = lastChatAt.get(username) || 0;
   if (now - previous < CHAT_COOLDOWN_MS) {
-    return { status: 429, error: "Doucement, un message toutes les 2 secondes." };
+    return { status: 429, error: "Un message toutes les 2 secondes au maximum." };
   }
   lastChatAt.set(username, now);
   const row = await getStore().insert({

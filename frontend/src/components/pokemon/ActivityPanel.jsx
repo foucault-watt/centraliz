@@ -3,10 +3,14 @@ import { Medal, MessageCircle, Send, Trash2 } from "lucide-react";
 import { fetchApi } from "../../utils/api";
 
 // Fil d'activité de la partie : événements de jeu (badges, captures...) et
-// chat des joueurs, dans une seule liste. Un récapitulatif « depuis ta dernière
+// chat des joueurs, dans une seule liste. Un récapitulatif « depuis la dernière
 // visite » s'affiche à l'ouverture s'il s'est passé quelque chose.
 
 const POLL_MS = 3000;
+// Toutes les N actualisations, on relit la fin du fil en entier pour retirer
+// les messages supprimés par un admin depuis un autre poste.
+const FULL_RELOAD_EVERY = 10;
+const FULL_LIMIT = 50;
 const MAX_LENGTH = 300;
 const FILTERS = [
   { id: "all", label: "Tout" },
@@ -53,13 +57,27 @@ function useFeed() {
     lastId.current = Math.max(lastId.current, ...incoming.map((item) => item.id));
   }, []);
 
+  // Fin du fil relue en entier : tout élément connu dans cette plage mais
+  // absent de la réponse a été supprimé.
+  const reconcile = useCallback((fresh) => {
+    if (!fresh.length) return;
+    const oldest = Math.min(...fresh.map((item) => item.id));
+    const ids = new Set(fresh.map((item) => item.id));
+    setItems((current) => current.filter((item) => item.id < oldest || ids.has(item.id)));
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
+    let polls = 0;
     const load = async () => {
+      const full = !lastId.current || polls % FULL_RELOAD_EVERY === 0;
+      polls += 1;
       try {
-        const query = lastId.current ? `?after=${lastId.current}` : "?limit=50";
+        const query = full ? `?limit=${FULL_LIMIT}` : `?after=${lastId.current}`;
         const data = await getJson(`/api/pokemon/activity${query}`);
-        if (!cancelled) merge(data.items || []);
+        if (cancelled) return;
+        if (full) reconcile(data.items || []);
+        merge(data.items || []);
       } catch {
         // On garde le fil déjà affiché.
       }
@@ -70,7 +88,7 @@ function useFeed() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [merge]);
+  }, [merge, reconcile]);
 
   const remove = useCallback((id) => setItems((current) => current.filter((item) => item.id !== id)), []);
   return { items, merge, remove };
@@ -129,7 +147,7 @@ export default function ActivityPanel({ isAdmin = false }) {
         <div className="rounded-xl bg-primary/10 p-3 text-sm text-secondary">
           <div className="flex items-start justify-between gap-2">
             <p className="font-semibold">
-              Depuis ta dernière visite : {summary.total} événement{summary.total > 1 ? "s" : ""}
+              Depuis la dernière visite : {summary.total} événement{summary.total > 1 ? "s" : ""}
             </p>
             <button type="button" onClick={dismissSummary} className="text-xs text-gray-500 underline">
               Fermer
@@ -167,7 +185,7 @@ export default function ActivityPanel({ isAdmin = false }) {
 
       <ul ref={listRef} className="max-h-72 space-y-1.5 overflow-y-auto" aria-live="polite">
         {visible.length === 0 && (
-          <li className="text-sm text-gray-500">Rien pour l'instant. Écris le premier message !</li>
+          <li className="text-sm text-gray-500">Aucun message pour l'instant.</li>
         )}
         {visible.map((item) =>
           item.kind === "event" ? (

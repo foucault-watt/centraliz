@@ -40,6 +40,22 @@ const base64ToBytes = (base64) => {
 };
 const MINUTE_MS = 60000;
 
+// true une fois l'image décodée (prête à être peinte sans attente), false si
+// elle est illisible ou déjà libérée. Sans img.decode (anciens navigateurs,
+// tests), on l'affiche directement.
+async function decodeImage(url) {
+  if (typeof Image === "undefined") return true;
+  const img = new Image();
+  if (typeof img.decode !== "function") return true;
+  img.src = url;
+  try {
+    await img.decode();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const isHidden = () =>
@@ -137,6 +153,28 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
   const history = useRef([]);
   const lastTimestamp = useRef(null);
 
+  // Affichage : ne passer à une image qu'une fois décodée par le navigateur.
+  // Changer la source de l'<img> avant la fin du décodage de la précédente
+  // l'abandonne ; à 60 images/s, l'écran pouvait rester figé tant que le
+  // flux ne se calmait pas. Une seule image décodée à la fois, et seule la
+  // plus récente attend : l'écran avance toujours, quitte à sauter des images.
+  const paintRef = useRef({ wanted: "", busy: false });
+  const paintLatest = useCallback(async (url) => {
+    const paint = paintRef.current;
+    paint.wanted = url;
+    if (paint.busy) return;
+    paint.busy = true;
+    try {
+      for (;;) {
+        const next = paint.wanted;
+        if (await decodeImage(next)) setFrameUrl(next);
+        if (paint.wanted === next) break;
+      }
+    } finally {
+      paint.busy = false;
+    }
+  }, []);
+
   useEffect(() => {
     const onVisibility = () => setHidden(isHidden());
     document.addEventListener("visibilitychange", onVisibility);
@@ -163,7 +201,7 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
 
     const display = (url) => {
       urlRef.current = url;
-      setFrameUrl(url);
+      paintLatest(url);
     };
     const showFrame = (blob, id) => display(cacheRef.current.put(blob, id));
 
@@ -259,7 +297,14 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
         try {
           const data = JSON.parse(event.data);
           const url = cacheRef.current.get(data.id);
-          if (!url) return; // plus en cache : la prochaine image entière corrigera
+          if (!url) {
+            // Le serveur croit que le navigateur a cette image, mais elle
+            // n'est plus en cache : on rouvre le flux, le serveur repart
+            // d'une mémoire vide et renvoie l'image entière.
+            source.close();
+            setRunId((n) => n + 1);
+            return;
+          }
           display(url);
           record({ at: Date.now(), ok: true, bytes: event.data.length, rttMs: null, ageMs: data.ageMs ?? null, fresh: true, pushed: true, cached: true });
           errors = 0;
@@ -297,7 +342,7 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
     return () => {
       cancelled = true;
     };
-  }, [hidden, runId, mode, streamFps]);
+  }, [hidden, runId, mode, streamFps, paintLatest]);
 
   // Stats recalculées chaque seconde ; un point d'historique par seconde,
   // 60 points gardés.

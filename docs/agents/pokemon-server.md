@@ -1,0 +1,42 @@
+# Serveur de jeu Pokémon : accès et tests à distance
+
+Les tests du serveur de jeu se font depuis le poste de dev avec `tools/pokemon-remote.cjs`. Il n'y a pas besoin de demander à l'utilisateur d'aller sur le serveur ni d'envoyer des captures à la main.
+
+## Connexion
+
+- Les identifiants sont ceux du `.env` racine : `SFTP_HOST`, `SFTP_USER`, `SFTP_PASSWORD`.
+- **Port 8887**, pas 22 (`SFTP_PORT`, défaut 8887). Sur le port 22, la connexion expire : c'est la cause de l'échec des tentatives précédentes.
+- Le compte `fwattinne` a un **vrai shell SSH**, pas seulement SFTP. On peut lancer des commandes et pas seulement transférer des fichiers.
+- Pas de `sudo`, pas de `git` sur le serveur. Le dépôt n'y est pas cloné : les fichiers y sont copiés.
+
+## Commandes
+
+```powershell
+npm run pokemon:remote -- status        # diagnostic OK/FAIL, code de sortie 1 si un FAIL
+npm run pokemon:remote -- native        # vraie image du jeu 240x160 via mGBA-http
+npm run pokemon:remote -- press START A # appuie sur des boutons puis capture native
+npm run pokemon:remote -- screenshot    # capture X11 de la fenêtre mGBA (menus Qt, dialogues)
+npm run pokemon:remote -- logs 50       # log mGBA-http + journal systemd
+npm run pokemon:remote -- exec "ss -ltnp"
+npm run pokemon:remote -- get /chemin/distant [local]
+npm run pokemon:remote -- put local /chemin/distant
+npm run pokemon:remote -- restart       # systemctl restart centraliz-gba.service + diagnostic
+npm run pokemon:remote -- stream-check  # vérifie depuis l'extérieur que le flux SSE des images passe nginx sans être retenu
+```
+
+Les captures sont écrites dans `logs/pokemon/`, qui est ignoré par Git. Pour les lire, ouvrir le PNG avec l'outil de lecture d'image.
+
+Le module exporte aussi `connect`, `run`, `download`, `upload` pour écrire des scripts ponctuels.
+
+## Pièges connus
+
+- **Git Bash convertit les chemins** `/tmp/...` en chemins Windows. Préfixer avec `MSYS_NO_PATHCONV=1` pour `get` et `put` lancés depuis Bash. PowerShell n'a pas ce problème.
+- **La capture X11 peut être figée** alors que l'émulation tourne : mGBA ne redessine sa fenêtre Xvfb qu'après activation. Pour savoir si le jeu avance, se fier au compteur de frames (`status`) et à `native`, jamais à deux captures X11 identiques.
+- **Le CPU de mGBA ne prouve rien** : environ 3 % suffisent à 60 fps.
+- **File de requêtes côté Lua** : le serveur Lua traite les connexions une par une. Des requêtes abandonnées (timeouts) s'accumulent et rendent l'API lente (20 à 40 s) pendant un moment, puis elle redevient rapide (environ 10 ms). Avant de conclure qu'elle est bloquée, relancer `status`.
+- **Après `press`**, une transition d'écran peut prendre plus d'une seconde. Si l'image n'a pas changé, refaire `native`.
+- Le jeu est partagé : appuyer sur des boutons change vraiment la partie. Ne jamais sauvegarder en jeu ni charger de save state sans accord.
+
+## Architecture (rappel)
+
+`Node backend → mGBA-http 127.0.0.1:5000 → Lua :8888 → mGBA Qt 0.10.5 (Xvfb :98, Openbox)`, lancé par `centraliz-gba.service`, qui appelle `game-runner/scripts/start-game-nymous.sh` sur le serveur. Pour le détail, voir `game-runner/CENTRALIZ_POKEMON_CONTEXTE_COMPLET_IA.md`. Pour l'état du projet, voir `game-runner/BILAN.md`.

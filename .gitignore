@@ -27,3 +27,4 @@ game-runner/state/
 profile-photos
 books.csv
 backend-*.log
+/logs/pokemon/

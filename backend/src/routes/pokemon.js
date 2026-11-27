@@ -6,10 +6,25 @@ const pokemonSpeedService = require("../services/pokemonSpeedService");
 const pokemonPresence = require("../services/pokemonPresence");
 const pokemonAnalytics = require("../services/pokemonAnalytics");
 const pokemonActivity = require("../services/pokemonActivityService");
+const pokemonSessions = require("../services/pokemonSessions");
+const analyticsService = require("../services/analyticsService");
 const { createSseSender, paddingComment } = require("../services/pokemonSse");
 
 const router = express.Router();
 const MAX_TRACKED_FRAME_AGE_MS = 15000;
+
+// Une ligne par session de jeu et par appareil (voir pokemonSessions). Rien
+// n'est enregistré en démo.
+pokemonSessions.setRecorder(({ userUsername, properties }) => {
+  return analyticsService.trackEvent({
+    userUsername,
+    eventName: "pokemon_session",
+    module: "pokemon",
+    eventType: "system",
+    isAutomatic: true,
+    properties,
+  });
+});
 
 router.get("/speed", authMiddleware, adminMiddleware, async (req, res, next) => {
   res.set("Cache-Control", "no-store");
@@ -61,6 +76,7 @@ router.post("/input", authMiddleware, async (req, res) => {
     pokemonPresence.notePlaying(presenceContext(req), result.button);
     res.json(result);
     if (!pokemonService.isDemo) {
+      pokemonSessions.noteInput(presenceContext(req), result.button);
       pokemonAnalytics.trackActivity(req, "pokemon_play_started", "interaction");
     }
   } catch (error) {
@@ -103,8 +119,13 @@ router.get("/frame", authMiddleware, async (req, res) => {
   try {
     const user = req.session && req.session.user;
     const viewer = user && (user.id || user.userName || user.username);
-    pokemonPresence.noteWatching(presenceContext(req));
+    const context = presenceContext(req);
+    pokemonPresence.noteWatching(context);
     const frame = pokemonService.getFrameBuffer(req.query.fps, viewer);
+
+    const trackSession = !pokemonService.isDemo;
+    const isRecent = frame.ageMs != null && frame.ageMs <= MAX_TRACKED_FRAME_AGE_MS;
+    if (trackSession && isRecent) pokemonSessions.noteWatch(context, "polling");
 
     res.setHeader("Content-Type", `image/${frame.format}`);
     res.setHeader(
@@ -134,8 +155,9 @@ router.get("/frame", authMiddleware, async (req, res) => {
       res.status(304).end();
     } else {
       res.send(frame.buffer);
+      if (trackSession && isRecent) pokemonSessions.noteServerTraffic(context, { bytes: frame.buffer.length, frames: 1 });
     }
-    if (!pokemonService.isDemo && frame.ageMs != null && frame.ageMs <= MAX_TRACKED_FRAME_AGE_MS) {
+    if (trackSession && isRecent) {
       pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
     }
   } catch (error) {
@@ -175,12 +197,24 @@ function streamFrames(req, res, experimental = false) {
   const fps = pokemonService.clampFps(req.query.fps, experimental) || 10;
 
   openSse(res);
-  const sender = createSseSender(res, { fps });
+  const context = presenceContext(req);
+  const trackSession = !pokemonService.isDemo;
+  if (trackSession) pokemonSessions.streamOpened(context);
+  const sender = createSseSender(res, {
+    fps,
+    onTraffic: trackSession ? (bytes, frames) => pokemonSessions.noteStreamTraffic(context, bytes, frames) : undefined,
+  });
   const unsubscribe = pokemonService.subscribe({ fps, viewer, onFrame: sender.offer, experimental });
 
-  const context = presenceContext(req);
-  pokemonPresence.noteWatching(context);
-  const presenceTimer = setInterval(() => pokemonPresence.noteWatching(context), PRESENCE_REFRESH_MS);
+  const refreshPresence = () => {
+    pokemonPresence.noteWatching(context);
+    if (trackSession) {
+      const hasRecentFrame = sender.stats.sent > 0 && pokemonService.hasRecentCapture(MAX_TRACKED_FRAME_AGE_MS);
+      pokemonSessions.noteStreamWatch(context, hasRecentFrame);
+    }
+  };
+  refreshPresence();
+  const presenceTimer = setInterval(refreshPresence, PRESENCE_REFRESH_MS);
   const heartbeat = setInterval(() => res.write(": ping\n\n"), HEARTBEAT_MS);
   if (!pokemonService.isDemo) {
     pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
@@ -191,6 +225,7 @@ function streamFrames(req, res, experimental = false) {
     clearInterval(heartbeat);
     sender.close();
     unsubscribe();
+    if (trackSession) pokemonSessions.streamClosed(context);
   });
 }
 
@@ -217,6 +252,31 @@ router.get("/stream-test", (req, res) => {
   }, 250);
   req.on("close", () => clearInterval(timer));
 });
+
+// Résumé des mesures du navigateur (aller-retour, retard, images et octets
+// reçus) depuis le précédent : toutes les 60 s et à la fermeture de la page
+// (navigator.sendBeacon, envoyé en text/plain pour éviter une requête
+// préalable CORS). Ajouté à la session en mémoire, rien n'est écrit ici.
+router.post(
+  "/session-stats",
+  express.text({ type: "text/plain", limit: "4kb" }),
+  authMiddleware,
+  (req, res) => {
+    let summary = req.body;
+    if (typeof summary === "string") {
+      try {
+        summary = JSON.parse(summary);
+      } catch {
+        summary = null;
+      }
+    }
+    if (!summary || typeof summary !== "object" || Array.isArray(summary)) {
+      return res.status(400).json({ success: false });
+    }
+    if (!pokemonService.isDemo) pokemonSessions.noteClientSummary(presenceContext(req), summary);
+    return res.status(204).end();
+  }
+);
 
 // Qui regarde et qui joue en ce moment (visible par tous les connectés).
 router.get("/presence", authMiddleware, (req, res) => {

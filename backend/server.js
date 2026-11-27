@@ -1,6 +1,7 @@
 const http = require('http');
 const { app } = require('./src/config/app');
 const { attachWebSocketServer } = require('./src/ws');
+const pokemonSessions = require('./src/services/pokemonSessions');
 
 const PORT = 3001;
 const server = http.createServer(app);
@@ -18,22 +19,37 @@ server.listen(PORT, () => {
 const SHUTDOWN_GRACE_MS = 2000;
 let shuttingDown = false;
 
-async function shutdown(signal) {
+async function shutdown(signal, exitCode = 0) {
     if (shuttingDown) return;
     shuttingDown = true;
     console.log(`[Server] Signal ${signal} reçu, arrêt en cours...`);
-    await shutdownWebSocket();
-    server.close(() => {
-        console.log('[Server] Arrêt terminé.');
-        process.exit(0);
-    });
+    const httpClosed = new Promise((resolve) => server.close(resolve));
     server.closeIdleConnections();
-    setTimeout(() => {
+    const closeTimer = setTimeout(() => {
         console.log('[Server] Fermeture des connexions encore ouvertes.');
         server.closeAllConnections();
-    }, SHUTDOWN_GRACE_MS).unref();
-    setTimeout(() => process.exit(0), SHUTDOWN_GRACE_MS + 3000).unref();
+    }, SHUTDOWN_GRACE_MS);
+    const deadline = setTimeout(() => {
+        console.error('[Server] Délai maximal d’arrêt atteint.');
+        process.exit(exitCode);
+    }, SHUTDOWN_GRACE_MS + 3000);
+
+    try {
+        const webSocketClosed = shutdownWebSocket();
+        await httpClosed;
+        // Les dernières écritures du flux sont déjà comptabilisées.
+        await Promise.all([pokemonSessions.flush(), webSocketClosed]);
+        console.log('[Server] Arrêt terminé.');
+    } catch (error) {
+        console.error('[Server] Erreur pendant l’arrêt:', error);
+    } finally {
+        clearTimeout(closeTimer);
+        clearTimeout(deadline);
+        process.exit(exitCode);
+    }
 }
+
+app.locals.restart = (code) => shutdown('redémarrage demandé', code);
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));

@@ -60,9 +60,11 @@ test("n'envoie pas deux fois la même image", () => {
 test("bourre après une image suivie d'un silence, pour la sortir des tampons des proxys", () => {
   let now = 0;
   const timers = [];
+  const writes = [];
   const res = fakeRes();
   const sender = createSseSender(res, {
     fps: 30,
+    onTraffic: (bytes, frames) => writes.push([bytes, frames]),
     padBytes: 64,
     now: () => now,
     setTimer: (fn) => { timers.push(fn); return timers.length; },
@@ -77,6 +79,7 @@ test("bourre après une image suivie d'un silence, pour la sortir des tampons de
   assert.equal(res.writes[res.writes.length - 1], paddings[0]);
   assert.ok(paddings[0].length >= 64 && paddings[0].endsWith("\n\n"));
   assert.equal(sender.stats.padded, 1);
+  assert.deepEqual(writes, res.writes.map((chunk) => [Buffer.byteLength(chunk), chunk.startsWith(":") ? 0 : 1]));
 });
 
 test("pas de bourrage si désactivé", () => {
@@ -89,7 +92,13 @@ test("pas de bourrage si désactivé", () => {
 test("image déjà envoyée sur cette connexion : seulement son identifiant", () => {
   let now = 0;
   const res = fakeRes();
-  const sender = createSseSender(res, { fps: 30, padBytes: 0, now: () => now });
+  const writes = [];
+  const sender = createSseSender(res, {
+    fps: 30,
+    padBytes: 0,
+    now: () => now,
+    onTraffic: (bytes, frames) => writes.push([bytes, frames]),
+  });
   for (const id of ["a", "b", "c", "a", "b"]) {
     now += 100;
     sender.offer(frame(id));
@@ -99,6 +108,7 @@ test("image déjà envoyée sur cette connexion : seulement son identifiant", ()
   assert.deepEqual(events, ["frame", "frame", "frame", "ref", "ref"]);
   assert.doesNotMatch(res.writes[3], /img/);
   assert.equal(sender.stats.refs, 2);
+  assert.deepEqual(writes, res.writes.map((chunk) => [Buffer.byteLength(chunk), 1]));
 });
 
 test("oublie les images trop anciennes et les renvoie entières", () => {

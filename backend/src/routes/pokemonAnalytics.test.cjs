@@ -116,3 +116,60 @@ test("seul le début de chaque activité Pokémon réelle est compté par compte
   assert.equal(summary.exposureCount, 3);
   assert.equal(summary.interactionCount, 1);
 });
+
+test("une session de jeu donne une seule ligne pokemon_session, avec le résumé du navigateur", async (t) => {
+  const pokemonSessions = require("../services/pokemonSessions");
+  pokemonSessions.resetForTests();
+  let now = Date.parse("2026-11-27T14:00:00Z");
+  t.mock.method(Date, "now", () => now);
+  const before = events.length;
+
+  function call(path, { method = "GET", body, headers = {} } = {}) {
+    const { route } = routes.stack.find(({ route }) => route.path === path);
+    const req = {
+      method, url: path, headers, body, query: {}, sessionID: "sid-carol",
+      session: { user: { userName: "carol" } },
+      get(name) { return headers[name.toLowerCase()]; },
+    };
+    return new Promise((resolve, reject) => {
+      const res = {
+        statusCode: 200,
+        status(code) { this.statusCode = code; return this; },
+        setHeader() {},
+        send() { resolve(this.statusCode); },
+        json() { resolve(this.statusCode); },
+        end() { resolve(this.statusCode); },
+      };
+      route.dispatch(req, res, reject);
+    });
+  }
+
+  for (let i = 0; i < 20; i += 1) {
+    assert.equal(await call("/frame"), 200);
+    if (i === 5) assert.equal(await call("/input", { method: "POST", body: { button: "A" } }), 200);
+    now += 1000;
+  }
+  assert.equal(await call("/session-stats", { method: "POST", body: "pas du json" }), 400);
+  assert.equal(await call("/session-stats", {
+    method: "POST",
+    body: JSON.stringify({ frames: 19, bytes: 95, rttHist: [19, 0, 0, 0, 0, 0, 0, 0, 0, 0], rttSum: 570 }),
+  }), 204);
+
+  pokemonSessions.sweep(now + pokemonSessions.IDLE_MS);
+  await new Promise((resolve) => setImmediate(resolve));
+  const rows = events.slice(before).filter((event) => event.event_name === "pokemon_session");
+  assert.equal(rows.length, 1);
+  const [row] = rows;
+  assert.equal(row.user_username, "carol");
+  assert.equal(row.event_type, "system");
+  assert.equal(row.properties.watched_s, 19);
+  assert.equal(row.properties.inputs, 1);
+  assert.equal(row.properties.mode, "polling");
+  assert.equal(row.properties.server_frames, 20);
+  assert.equal(row.properties.server_bytes, 100);
+  assert.equal(row.properties.client_frames, 19);
+  assert.equal(row.properties.rtt_avg_ms, 30);
+  assert.equal(pokemonSessions.percentileFromHistogram(row.properties.rtt_hist), 50);
+  assert.equal(row.properties.played_s, 30);
+  assert.deepEqual(row.properties.daily.map(([, watchedMs, playedMs]) => [watchedMs, playedMs]), [[19000, 30000]]);
+});

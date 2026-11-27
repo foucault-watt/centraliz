@@ -259,6 +259,7 @@ const getUsernamesForGroup = async (group) => {
 const applyEventQueryFilters = (query, filters = {}) => {
   if (filters.startDate) query = query.gte("created_at", filters.startDate.toISOString());
   if (filters.beforeDate) query = query.lt("created_at", filters.beforeDate.toISOString());
+  if (filters.source) query = query.eq("source", filters.source);
   if (filters.module) query = query.eq("module", filters.module);
   if (filters.eventName) query = query.eq("event_name", filters.eventName);
   else if (filters.eventNames?.length) query = query.in("event_name", filters.eventNames);
@@ -287,6 +288,7 @@ const resolveEventFilters = async (filters = {}) => {
   return {
     startDate: filters.range ? getRangeStart(filters.range) : filters.startDate,
     beforeDate: filters.beforeDate,
+    source: filters.source,
     module: filters.module || null,
     eventName: filters.eventName || null,
     eventNames: filters.eventNames || null,
@@ -808,6 +810,30 @@ const analyticsService = {
       ...stats,
       participants: stats.participants.map(withName),
       sessionList: stats.sessionList.map(withName),
+    };
+  },
+  // Sessions de jeu Pokémon (une ligne « pokemon_session » par session et
+  // par appareil) : indicateurs, classement des joueurs, minutes par jour et
+  // mesures techniques.
+  async getPokemonStats({ range = "30d", hideExcluded = true } = {}) {
+    const { buildPokemonStats, periodStart } = require("./pokemonSessionStats");
+    const safeRange = Object.hasOwn(VALID_RANGES, range) ? range : "30d";
+    const days = VALID_RANGES[safeRange];
+    const now = Date.now();
+    const events = await fetchEvents(
+      { module: "pokemon", eventName: "pokemon_session", source: "backend", startDate: periodStart(days, now), hideExcluded },
+      "user_username,properties,created_at",
+    );
+    const stats = buildPokemonStats(events, { days, now });
+    const users = await getUsersByUsername(stats.players.map((player) => player.username));
+    return {
+      range: safeRange,
+      ...stats,
+      players: stats.players.map((player) => ({
+        ...player,
+        displayName: users.get(player.username)?.displayName || player.username,
+        group: users.get(player.username)?.group || null,
+      })),
     };
   },
   VALID_RANGES,

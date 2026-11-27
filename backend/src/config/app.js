@@ -124,7 +124,10 @@ app.use("/api/user", userRoutes);
 app.use("/api/theme-palette", themePaletteRoutes);
 app.use("/api/nav-pages", navPagesRoutes);
 
-installRestartRoutes(app, { secret: process.env.SECRET_API });
+installRestartRoutes(app, {
+  secret: process.env.SECRET_API,
+  exit: (code) => (app.locals.restart ?? process.exit)(code),
+});
 
 // Assurez-vous que ce middleware est placé après les routes pour éviter les conflits
 app.use((err, req, res, next) => {

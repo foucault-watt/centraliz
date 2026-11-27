@@ -54,7 +54,7 @@ function refEvent(frame, now = Date.now()) {
   return `id: ${frame.id}\nevent: ref\ndata: ${data}\n\n`;
 }
 
-function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Date.now, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
+function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Date.now, onTraffic = () => {}, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
   const minIntervalMs = 1000 / Math.max(fps, 1);
   let padTimer = null;
   let pending = null;
@@ -81,7 +81,9 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
       padTimer = null;
       if (closed || congested) return;
       stats.padded += 1;
-      res.write(paddingComment(padBytes));
+      const padding = paddingComment(padBytes);
+      res.write(padding);
+      onTraffic(padding.length, 0);
     }, PAD_AFTER_MS);
   };
 
@@ -103,7 +105,9 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
     stats.sent += 1;
     const known = remember(frame.id);
     if (known) stats.refs += 1;
-    const accepted = res.write(known ? refEvent(frame, now()) : frameEvent(frame, now()));
+    const event = known ? refEvent(frame, now()) : frameEvent(frame, now());
+    const accepted = res.write(event);
+    onTraffic(Buffer.byteLength(event), 1);
     schedulePadding();
     if (accepted === false) {
       congested = true;

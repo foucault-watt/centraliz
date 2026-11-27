@@ -179,6 +179,10 @@ function noteViewer(fps, viewer) {
   if (!loopRunning) captureLoop();
 }
 
+function hasRecentCapture(maxAgeMs) {
+  return lastCapturedAt !== null && Date.now() - lastCapturedAt <= maxAgeMs;
+}
+
 function getFrameStatus() {
   const now = Date.now();
   captures = captures.filter((c) => now - c.at <= STATS_WINDOW_MS);
@@ -241,6 +245,7 @@ module.exports = {
   subscribe,
   getFrameBuffer,
   getFrameStatus,
+  hasRecentCapture,
   clampFps,
   targetFps,
   MAX_FPS,

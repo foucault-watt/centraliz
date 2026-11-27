@@ -156,7 +156,8 @@ describe("Pokemon", () => {
     expect(screen.getByRole("heading", { name: /Première version/ })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Image en direct · v1\.1/ })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Partie en vitesse ×2 · v1.2/ })).toBeInTheDocument();
-    expect(summary).toHaveTextContent("v1.2");
+    expect(screen.getByRole("heading", { name: /Chat et fil d’activité · v1.3/ })).toBeInTheDocument();
+    expect(summary).toHaveTextContent("v1.3");
     expect(screen.getByRole("heading", { name: "À venir" })).toBeInTheDocument();
 
     fireEvent.click(summary);

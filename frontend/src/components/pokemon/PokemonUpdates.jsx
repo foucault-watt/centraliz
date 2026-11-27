@@ -1,6 +1,22 @@
-import { ChevronDown, FastForward, Gamepad2, History, Radio, Save, Users, Vote, Zap } from "lucide-react";
+import { ChevronDown, FastForward, Gamepad2, History, Medal, MessageCircle, Radio, Save, Users, Vote, Zap } from "lucide-react";
 
 const releases = [
+  {
+    version: "1.3",
+    title: "Chat et fil d’activité",
+    changes: [
+      {
+        icon: MessageCircle,
+        title: "Discuter pendant la partie",
+        description: "Un chat permet d’échanger avec les autres joueurs directement à côté du jeu, en messages de 300 caractères au plus. Sur grand écran, il s’affiche à gauche de la liste des joueurs.",
+      },
+      {
+        icon: Medal,
+        title: "Les moments forts de la partie",
+        description: "Le fil d’activité mêle les messages et les événements du jeu, comme les badges obtenus ou les Pokémon capturés. Des filtres permettent de n’afficher que le chat ou que les événements, et un récapitulatif indique ce qui s’est passé depuis la dernière visite.",
+      },
+    ],
+  },
   {
     version: "1.2",
     title: "Partie en vitesse ×2",

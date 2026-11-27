@@ -4,17 +4,6 @@ module.exports = (req, res, next) => {
   const sessionUser = req.session && req.session.user;
   if (!sessionUser) {
     console.warn(`[Auth Middleware] Accès non autorisé depuis IP: ${req.ip}`);
-    // debug-info
-    try {
-      console.debug(
-        `Auth Debug: sessionID=${req.sessionID || "none"} cookie=${
-          req.headers.cookie || "none"
-        }`
-      );
-    } catch (err) {
-      // ignore debug errors
-    }
-
     // Dev bypass (ENABLE by set DEV_AUTH_BYPASS=true in .env) - ONLY for local development
     const devBypass = process.env.DEV_AUTH_BYPASS === "true";
     const devIp =

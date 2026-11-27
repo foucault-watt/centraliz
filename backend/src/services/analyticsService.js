@@ -650,6 +650,18 @@ const buildTimeseriesPoints = (events, sessions, groupBy = "day") => {
 
 const MODULE_EVENT_FIELDS = "user_username, event_name, event_type, module, created_at";
 
+const createModuleSummary = (module, createdAt = null) => ({
+  module,
+  totalEvents: 0,
+  users: new Set(),
+  eventsMap: new Map(),
+  eventTypesMap: new Map(),
+  timelineMap: new Map(),
+  usersByDay: new Map(),
+  firstSeenAt: createdAt,
+  lastSeenAt: createdAt,
+});
+
 // `preloadedEvents` : évite un second chargement quand l'appelant a déjà les événements.
 const buildModuleSummaries = async (filters = {}, preloadedEvents = null) => {
   const events = preloadedEvents || (await fetchEvents(filters, MODULE_EVENT_FIELDS));
@@ -666,17 +678,7 @@ const buildModuleSummaries = async (filters = {}, preloadedEvents = null) => {
   const modules = new Map();
   events.forEach((event) => {
     if (!modules.has(event.module)) {
-      modules.set(event.module, {
-        module: event.module,
-        totalEvents: 0,
-        users: new Set(),
-        eventsMap: new Map(),
-        eventTypesMap: new Map(),
-        timelineMap: new Map(),
-        usersByDay: new Map(),
-        firstSeenAt: event.created_at,
-        lastSeenAt: event.created_at,
-      });
+      modules.set(event.module, createModuleSummary(event.module, event.created_at));
     }
 
     const summary = modules.get(event.module);
@@ -697,6 +699,10 @@ const buildModuleSummaries = async (filters = {}, preloadedEvents = null) => {
       summary.lastSeenAt = event.created_at;
     }
   });
+
+  if ((!filters.module || filters.module === "pokemon") && !modules.has("pokemon")) {
+    modules.set("pokemon", createModuleSummary("pokemon"));
+  }
 
   return [...modules.values()]
     .map((summary) => {

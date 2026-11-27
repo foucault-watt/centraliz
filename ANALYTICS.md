@@ -46,7 +46,18 @@ Eviter en particulier les evenements automatiques declenches a chaque chargement
 
 ## Dashboard admin
 
-Les statistiques agregées sont disponibles sur `/analytics/admin` pour les administrateurs. La vue n'expose pas les logs individuels.
+Les statistiques agregées sont disponibles sur `/analytics/admin` pour les administrateurs. Les vues par compte et par module sont également réservées aux administrateurs.
+
+### Pokémon
+
+Le module est disponible dans Analytics Admin, onglet Modules, même sans activité
+sur la période choisie. Le serveur enregistre les événements suivants.
+
+- `pokemon_stream_viewed` pour la première image récente servie au compte.
+- `pokemon_play_started` pour la première commande de jeu transmise avec succès.
+
+Chaque type d’activité est compté à nouveau après dix minutes d’inactivité du
+compte pour ce type. Le mode démo est exclu de la collecte.
 
 ## Retention
 
@@ -56,3 +67,36 @@ La retention cible des evenements bruts est de 24 mois. Purge SQL recommandee :
 DELETE FROM public.analytics_events
 WHERE created_at < now() - interval '24 months';
 ```
+
+## Le Musée : page publique et analytics de jeu
+
+La page `/musee` ne requiert pas de compte. Elle charge le jeu sur demande,
+sur PC, tablette et téléphone. `POST /api/analytics/musee` est public mais n’accepte que les
+événements du protocole du jeu, des identifiants aléatoires et des métriques bornées.
+L’identité d’un compte vient de la session serveur, jamais du corps de la requête.
+Un identifiant aléatoire de navigateur est conservé localement pour les visiteurs.
+Il ne permet pas de connaître leur identité ni de les reconnaître sur un autre appareil.
+Aucun nouveau schéma/table ni accès direct navigateur à Supabase n’est ajouté.
+
+Événements : `musee_play_clicked`, `musee_game_ready`, `musee_level_started`,
+`musee_level_checkpoint` (toutes les 30 secondes actives),
+`musee_level_completed` et `musee_level_left`. Propriétés : identifiant de niveau,
+de tentative/session/événement, reprise/debug/réussite, secondes actives,
+déplacements valides, fiches ouvertes et réponses montrées. La page reçoit les
+messages uniquement de son iframe et de la même origine. Les tentatives quittées
+à la fermeture ont au plus la dernière mesure reçue ; la livraison est best-effort.
+
+Le rapport `/analytics/admin/musee` et `GET /api/analytics/musee/summary` sont
+protégés par les middlewares session et administrateur existants. Les exclusions
+sont respectées sans supprimer les visiteurs anonymes. Les essais debug sont exclus.
+Les instantanés cumulatifs sont fusionnés au maximum par tentative, pas additionnés.
+Le taux de réussite utilise la cohorte des tentatives commencées pendant la période.
+Une tentative sans réussite observée n’est pas automatiquement un abandon définitif.
+La durée médiane est celle de la tentative réussie, pas le temps total cumulé sur
+toutes les reprises d’un niveau. Un joueur passant de visiteur anonyme à compte
+connecté peut apparaître comme deux participants ; les navigateurs ne sont pas
+une mesure exacte de personnes physiques.
+
+La collecte ne bloque jamais le jeu et ne synchronise aucune progression.
+La table `analytics_events` et sa politique de rétention existante sont réutilisées.
+Les données envoyées par le client sont déclaratives, pas une validation anti-triche.

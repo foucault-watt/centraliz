@@ -329,7 +329,7 @@ const JsonBadges = ({ value }) => {
   );
 };
 
-const MiniBarList = ({ items, labelKey = "name", onClickItem }) => {
+const MiniBarList = ({ items, labelKey = "name", labels, onClickItem }) => {
   const max = Math.max(...(items || []).map((item) => item.count), 1);
   if (!items?.length) return <EmptyPanel />;
 
@@ -353,7 +353,7 @@ const MiniBarList = ({ items, labelKey = "name", onClickItem }) => {
             >
               <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="truncate font-semibold text-gray-700 group-hover:text-primary">
-                  {item[labelKey]}
+                  {labels?.get(item[labelKey]) ?? item[labelKey]}
                 </span>
                 <span className="text-gray-500">{formatNumber(item.count)}</span>
               </div>
@@ -1648,6 +1648,11 @@ const MODULE_LABELS = {
 };
 const moduleLabel = (module) => MODULE_LABELS[module] || module || "—";
 
+const POKEMON_EVENT_LABELS = new Map([
+  ["pokemon_stream_viewed", "Consultation du flux"],
+  ["pokemon_play_started", "Première commande de jeu"],
+]);
+
 const EVENT_TYPE_COLORS = {
   exposure: "#93c5fd",
   load: "#d1d5db",
@@ -1784,7 +1789,7 @@ const ModulesPage = ({ queryState, eventTypes, hideExcluded, openModule }) => {
         <SectionTitle
           icon={Layers3}
           title="Portée des modules"
-          subtitle={`Part des ${formatNumber(data?.activeUsersTotal || 0)} utilisateurs actifs qui ont ouvert chaque module sur la période.`}
+          subtitle={`Part des ${formatNumber(data?.activeUsersTotal || 0)} utilisateurs actifs qui ont utilisé chaque module sur la période.`}
         />
         <div className="space-y-2.5">
           {modules.map((item, index) => (
@@ -2190,7 +2195,11 @@ const ModuleDetailPage = ({
 
         <Card className="p-4 md:p-5">
           <SectionTitle icon={Activity} title="Top actions du module" />
-          <MiniBarList items={summary.topEvents || []} onClickItem={(item) => openExplorer({ module: summary.module, eventName: item.name })} />
+          <MiniBarList
+            items={summary.topEvents || []}
+            labels={summary.module === "pokemon" ? POKEMON_EVENT_LABELS : undefined}
+            onClickItem={(item) => openExplorer({ module: summary.module, eventName: item.name })}
+          />
         </Card>
       </div>
 

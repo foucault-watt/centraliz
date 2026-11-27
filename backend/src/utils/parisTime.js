@@ -59,7 +59,22 @@ const parisPeriodKey = (value, groupBy = "day") => {
   return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
 };
 
+// Décale une date civile sans traverser un changement d'heure en temps UTC.
+function shiftDayKey(day, offset) {
+  const civil = new Date(day);
+  civil.setUTCDate(civil.getUTCDate() + offset);
+  return civil.toISOString().slice(0, 10);
+}
+
+function parisDayStart(day) {
+  const midnightUtc = Date.parse(day);
+  // À Paris, le changement d'heure intervient après minuit local et UTC.
+  return midnightUtc - parisHour(midnightUtc) * 60 * 60 * 1000;
+}
+
 module.exports = {
+  shiftDayKey,
+  parisDayStart,
   TIME_ZONE,
   parisParts,
   parisHour,

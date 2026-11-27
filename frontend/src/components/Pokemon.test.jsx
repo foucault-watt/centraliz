@@ -280,7 +280,7 @@ describe("stats du flux", () => {
     expect(stats.duplicateRatio).toBeCloseTo(0.5);
     expect(stats.rttMs).toBe(40);
     expect(stats.delayMs).toBe(50); // 30 ms d'âge + 40/2 de trajet
-    expect(stats.minute).toEqual({ requests: 6, pushed: 0, fresh: 3, bytes: 5 * 2048, errors: 1, notModified: 0 });
+    expect(stats.minute).toEqual({ requests: 6, pushed: 0, cached: 0, fresh: 3, bytes: 5 * 2048, errors: 1, notModified: 0 });
     expect(stats.session.errors).toBe(1);
   });
 });

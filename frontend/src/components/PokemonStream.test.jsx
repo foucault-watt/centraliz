@@ -29,6 +29,9 @@ class FakeEventSource {
     const img = btoa(`image-${id}`);
     (this.listeners.frame || []).forEach((fn) => fn({ data: JSON.stringify({ id, ageMs: 12, img }) }));
   }
+  emitRef(id) {
+    (this.listeners.ref || []).forEach((fn) => fn({ data: JSON.stringify({ id, ageMs: 12 }) }));
+  }
   fail({ closed = false } = {}) {
     this.readyState = closed ? 2 : 0;
     this.onerror?.();
@@ -77,6 +80,74 @@ describe("flux continu (SSE)", () => {
     expect(screen.getByAltText("Écran du jeu Pokémon en direct")).toHaveAttribute("src", "blob:2");
     expect(screen.getByText("En direct")).toBeInTheDocument();
     expect(pollingCalls()).toBe(0);
+  });
+
+  it("réaffiche depuis le cache une image déjà reçue (animation en boucle)", async () => {
+    render(<Pokemon />);
+    const source = FakeEventSource.instances[0];
+    const screenImg = () => screen.getByAltText("Écran du jeu Pokémon en direct");
+
+    await act(async () => {
+      source.emitFrame("a");
+      source.emitFrame("b");
+      source.emitRef("a");
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(screenImg()).toHaveAttribute("src", "blob:1");
+    expect(global.URL.createObjectURL).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      source.emitRef("b");
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(screenImg()).toHaveAttribute("src", "blob:2");
+    expect(global.URL.revokeObjectURL).not.toHaveBeenCalled();
+  });
+
+  it("rouvre le flux si le serveur désigne une image absente du cache", async () => {
+    render(<Pokemon />);
+    const source = FakeEventSource.instances[0];
+    await act(async () => {
+      source.emitFrame("a");
+      source.emitRef("inconnue");
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(source.closed).toBe(true);
+    expect(FakeEventSource.instances).toHaveLength(2);
+    expect(FakeEventSource.instances[1].closed).toBe(false);
+  });
+
+  it("n'affiche une image qu'une fois décodée, puis la plus récente", async () => {
+    const decodes = [];
+    const RealImage = global.Image;
+    global.Image = class {
+      decode() {
+        return new Promise((resolve) => decodes.push({ src: this.src, resolve }));
+      }
+    };
+    try {
+      render(<Pokemon />);
+      const source = FakeEventSource.instances[0];
+      const screenImg = () => screen.queryByAltText("Écran du jeu Pokémon en direct");
+      await act(async () => {
+        source.emitFrame("a");
+        source.emitFrame("b");
+        source.emitFrame("c");
+      });
+      expect(decodes.map((d) => d.src)).toEqual(["blob:1"]); // une à la fois
+      expect(screenImg()).toBeNull();
+      await act(async () => {
+        decodes[0].resolve();
+      });
+      expect(screenImg()).toHaveAttribute("src", "blob:1");
+      expect(decodes.map((d) => d.src)).toEqual(["blob:1", "blob:3"]); // b sautée
+      await act(async () => {
+        decodes[1].resolve();
+      });
+      expect(screenImg()).toHaveAttribute("src", "blob:3");
+    } finally {
+      global.Image = RealImage;
+    }
   });
 
   it("rouvre le flux continu à la cadence choisie", async () => {

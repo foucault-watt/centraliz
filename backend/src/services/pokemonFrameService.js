@@ -62,6 +62,22 @@ const state = {
 
 let latestFrameBuffer = null;
 let latestFrameId = null;
+// Dernières images encodées, par empreinte : une animation en boucle repasse
+// par les mêmes images, inutile de les réencoder (et de refaire leur base64).
+const ENCODED_LIMIT = 32;
+const encoded = new Map(); // frameId -> { buffer, base64? }
+
+async function encodeFrame(frameId, rawBuffer) {
+  let entry = encoded.get(frameId);
+  if (entry) {
+    encoded.delete(frameId); // remise en tête
+  } else {
+    entry = { buffer: await sharp(rawBuffer).webp({ lossless: true }).toBuffer() };
+  }
+  encoded.set(frameId, entry);
+  if (encoded.size > ENCODED_LIMIT) encoded.delete(encoded.keys().next().value);
+  return entry;
+}
 let lastCapturedAt = null; // dernière capture (même si l'image n'a pas changé)
 let loopRunning = false;
 let lastViewerAt = 0;
@@ -122,11 +138,13 @@ async function refreshFrame() {
     const unchanged = frameId === latestFrameId && latestFrameBuffer;
 
     if (!unchanged) {
-      latestFrameBuffer = await sharp(rawBuffer).webp({ lossless: true }).toBuffer();
+      const entry = await encodeFrame(frameId, rawBuffer);
+      if (!entry.base64) entry.base64 = entry.buffer.toString("base64");
+      latestFrameBuffer = entry.buffer;
       latestFrameId = frameId;
       state.lastFrameAt = new Date().toISOString();
       state.frameSizeBytes = latestFrameBuffer.length;
-      bus.publish({ id: frameId, buffer: latestFrameBuffer, capturedAt: Date.now() });
+      bus.publish({ id: frameId, buffer: entry.buffer, base64: entry.base64, capturedAt: Date.now() });
     }
     lastCapturedAt = Date.now();
     state.status = "ok";
@@ -159,6 +177,10 @@ function noteViewer(fps, viewer) {
   lastViewerAt = now;
   viewerRequests.push({ at: now, fps: clampFps(fps), viewer: viewer || "anonyme" });
   if (!loopRunning) captureLoop();
+}
+
+function hasRecentCapture(maxAgeMs) {
+  return lastCapturedAt !== null && Date.now() - lastCapturedAt <= maxAgeMs;
 }
 
 function getFrameStatus() {
@@ -223,6 +245,7 @@ module.exports = {
   subscribe,
   getFrameBuffer,
   getFrameStatus,
+  hasRecentCapture,
   clampFps,
   targetFps,
   MAX_FPS,

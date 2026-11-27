@@ -19,6 +19,7 @@
 //   à LATENCY_BUCKETS cases : fusionnable entre sessions pour un p95 global.
 
 const { deviceType } = require("./pokemonPresence");
+const { parisPeriodKey, parisDayStart, shiftDayKey } = require("../utils/parisTime");
 
 const WATCH_GAP_MS = 6000;
 const PLAY_WINDOW_MS = 30000;
@@ -33,6 +34,7 @@ const BUTTONS = ["UP", "DOWN", "LEFT", "RIGHT", "A", "B", "START"];
 const LATENCY_BUCKETS = [50, 100, 150, 200, 300, 500, 750, 1000, 2000, Infinity];
 
 const sessions = new Map();
+const pendingWrites = new Set();
 let recorder = null;
 let sweepTimer = null;
 
@@ -69,21 +71,28 @@ function keyFor({ user, sessionId, userAgent }) {
 }
 
 function newSession(userKey, context, now) {
+  const startDay = parisPeriodKey(now);
+  const nextDay = shiftDayKey(startDay, 1);
   return {
+    startDay,
+    nextDay,
+    midnight: parisDayStart(nextDay),
+    daily: new Map(),
+    continuation: false,
     userKey,
     device: deviceType(context.userAgent),
     startedAt: now,
     lastSeenAt: now,
     lastWatchAt: 0,
-    lastWatchMode: null,
     watchedMs: 0,
     sseMs: 0,
     pollingMs: 0,
     playedMs: 0,
+    playStart: null,
     playEnd: 0,
     inputs: 0,
     buttons: BUTTONS.map(() => 0),
-    openStreams: 0,
+    openStreams: new Set(),
     streams: 0,
     serverBytes: 0,
     serverFrames: 0,
@@ -101,10 +110,23 @@ function sessionFor(context, now) {
   const ids = keyFor(context || {});
   if (!ids) return null;
   let session = sessions.get(ids.key);
-  // Autre compte sur le même navigateur, ou session interminable : on clôt.
-  if (session && (session.userKey !== ids.userKey || now - session.startedAt > MAX_SESSION_MS)) {
+  if (session && session.userKey !== ids.userKey) {
     finalize(ids.key, now);
     session = null;
+  }
+  if (session && now - session.startedAt >= MAX_SESSION_MS) {
+    const previous = session;
+    const boundary = previous.startedAt + MAX_SESSION_MS;
+    finalize(ids.key, boundary);
+    const startedAt = now - boundary < IDLE_MS ? boundary : now;
+    session = newSession(ids.userKey, context, startedAt);
+    session.openStreams = previous.openStreams;
+    session.continuation = session.openStreams.size > 0;
+    if (previous.playEnd > startedAt) {
+      session.playStart = startedAt;
+      session.playEnd = previous.playEnd;
+    }
+    sessions.set(ids.key, session);
   }
   if (!session) {
     if (sessions.size >= MAX_SESSIONS) return null;
@@ -116,20 +138,47 @@ function sessionFor(context, now) {
   return session;
 }
 
-// Signe de vie d'un spectateur : mode "sse" (tic du flux) ou "polling".
-function noteWatch(context, mode, now = Date.now()) {
-  const session = sessionFor(context, now);
-  if (!session) return;
+function addDailyTime(session, kind, start, end) {
+  if (end <= start) return;
+  // Une session est plafonnée à six heures. Elle traverse au plus un minuit.
+  const firstEnd = Math.min(end, session.midnight);
+  if (firstEnd > start) {
+    const daily = session.daily.get(session.startDay) || [0, 0];
+    daily[kind] += firstEnd - start;
+    session.daily.set(session.startDay, daily);
+  }
+  if (end > session.midnight) {
+    const day = session.nextDay;
+    const daily = session.daily.get(day) || [0, 0];
+    daily[kind] += end - Math.max(start, session.midnight);
+    session.daily.set(day, daily);
+  }
+}
+
+function addPlayTime(session, end) {
+  if (session.playStart === null) return;
+  const playedUntil = Math.min(session.playEnd, end);
+  session.playedMs += Math.max(0, playedUntil - session.playStart);
+  addDailyTime(session, 1, session.playStart, playedUntil);
+}
+
+// Signe de vie d'un spectateur : image récente en mode SSE ou polling.
+function addWatchTime(session, mode, now) {
   if (session.lastWatchAt) {
     const gap = now - session.lastWatchAt;
     if (gap > 0 && gap <= WATCH_GAP_MS) {
       session.watchedMs += gap;
+      addDailyTime(session, 0, session.lastWatchAt, now);
       if (mode === "sse") session.sseMs += gap;
       else session.pollingMs += gap;
     }
   }
   session.lastWatchAt = Math.max(session.lastWatchAt, now);
-  session.lastWatchMode = mode;
+}
+
+function noteWatch(context, mode, now = Date.now()) {
+  const session = sessionFor(context, now);
+  if (session) addWatchTime(session, mode, now);
 }
 
 function noteInput(context, button, now = Date.now()) {
@@ -138,14 +187,20 @@ function noteInput(context, button, now = Date.now()) {
   session.inputs += 1;
   const index = BUTTONS.indexOf(button);
   if (index >= 0) session.buttons[index] += 1;
-  const end = now + PLAY_WINDOW_MS;
-  session.playedMs += now >= session.playEnd ? PLAY_WINDOW_MS : end - session.playEnd;
-  session.playEnd = end;
+  if (now >= session.playEnd) {
+    addPlayTime(session, now);
+    session.playStart = now;
+  }
+  session.playEnd = now + PLAY_WINDOW_MS;
 }
 
 function noteServerTraffic(context, { bytes = 0, frames = 0 } = {}, now = Date.now()) {
   const session = sessionFor(context, now);
   if (!session) return;
+  addTraffic(session, bytes, frames);
+}
+
+function addTraffic(session, bytes, frames) {
   session.serverBytes += clampNumber(bytes, 1e12);
   session.serverFrames += clampNumber(frames, 1e9);
 }
@@ -153,16 +208,33 @@ function noteServerTraffic(context, { bytes = 0, frames = 0 } = {}, now = Date.n
 function streamOpened(context, now = Date.now()) {
   const session = sessionFor(context, now);
   if (!session) return;
-  session.openStreams += 1;
+  session.openStreams.add(context);
   session.streams += 1;
 }
 
-function streamClosed(context, traffic, now = Date.now()) {
-  const session = sessionFor(context, now);
-  if (!session) return;
-  noteWatch(context, "sse", now);
-  session.openStreams = Math.max(0, session.openStreams - 1);
-  if (traffic) noteServerTraffic(context, traffic, now);
+function sessionForStream(context, now) {
+  const ids = keyFor(context);
+  const session = ids && sessions.get(ids.key);
+  if (!session?.openStreams.has(context)) return null;
+  return sessionFor(context, now);
+}
+
+function noteStreamWatch(context, hasRecentFrame, now = Date.now()) {
+  const session = sessionForStream(context, now);
+  if (session && hasRecentFrame) addWatchTime(session, "sse", now);
+}
+
+function noteStreamTraffic(context, bytes, frames, now = Date.now()) {
+  const session = sessionForStream(context, now);
+  if (session) addTraffic(session, bytes, frames);
+}
+
+function streamClosed(context, now = Date.now()) {
+  const ids = keyFor(context);
+  const session = ids && sessions.get(ids.key);
+  if (session?.openStreams.delete(context)) {
+    session.lastSeenAt = Math.max(session.lastSeenAt, now);
+  }
 }
 
 // Résumé envoyé par le navigateur depuis le précédent (valeurs bornées : le
@@ -196,12 +268,11 @@ function noteClientSummary(context, summary = {}, now = Date.now()) {
 // sanitizeProperties ; tableaux de 10 valeurs au plus).
 function toProperties(session, endedAt) {
   const watchedS = Math.round(session.watchedMs / 1000);
-  // La dernière fenêtre de jeu ne déborde pas après la fin de la session.
-  const overshoot = Math.max(0, session.playEnd - endedAt);
-  const playedS = Math.round(Math.max(0, session.playedMs - overshoot) / 1000);
+  const playedS = Math.round(session.playedMs / 1000);
   const mode = session.sseMs && session.pollingMs ? "mixed" : session.pollingMs ? "polling" : "sse";
   return {
-    v: 1,
+    v: 2,
+    daily: [...session.daily].map(([day, [watchedMs, playedMs]]) => [day, watchedMs, playedMs]),
     started_at: new Date(session.startedAt).toISOString(),
     ended_at: new Date(endedAt).toISOString(),
     watched_s: watchedS,
@@ -218,7 +289,6 @@ function toProperties(session, endedAt) {
     client_frames: session.clientFrames,
     fps: watchedS ? Math.round((session.clientFrames / watchedS) * 10) / 10 : 0,
     rtt_avg_ms: session.rttCount ? Math.round(session.rttSum / session.rttCount) : null,
-    rtt_p95_ms: percentileFromHistogram(session.rttHist),
     rtt_hist: session.rttHist,
     delay_avg_ms: session.delayCount ? Math.round(session.delaySum / session.delayCount) : null,
   };
@@ -228,12 +298,17 @@ function finalize(key, now = Date.now()) {
   const session = sessions.get(key);
   if (!session) return null;
   sessions.delete(key);
-  if (session.watchedMs < MIN_WATCHED_MS && session.inputs === 0) return null;
-  const endedAt = Math.max(session.lastSeenAt, session.lastWatchAt);
-  const properties = toProperties(session, Math.min(endedAt, now));
+  const endedAt = Math.min(now, Math.max(session.lastSeenAt, session.playEnd));
+  addPlayTime(session, endedAt);
+  const hasContinuation = session.continuation && (session.serverBytes || session.watchedMs);
+  if (session.watchedMs < MIN_WATCHED_MS && !session.playedMs && !session.inputs && !hasContinuation) return null;
+  const properties = toProperties(session, endedAt);
   if (recorder) {
     try {
-      recorder({ userUsername: session.userKey, properties });
+      const write = Promise.resolve(recorder({ userUsername: session.userKey, properties }))
+        .catch((error) => console.error("[Pokémon sessions] Enregistrement impossible:", error))
+        .finally(() => pendingWrites.delete(write));
+      pendingWrites.add(write);
     } catch (error) {
       console.error("[Pokémon sessions] Enregistrement impossible:", error);
     }
@@ -246,17 +321,24 @@ function sweep(now = Date.now()) {
   const closed = [];
   for (const [key, session] of sessions) {
     const idle = now - Math.max(session.lastSeenAt, session.lastWatchAt);
-    const tooLong = now - session.startedAt > MAX_SESSION_MS;
-    if ((session.openStreams === 0 && idle >= IDLE_MS) || tooLong) {
+    if (!session.openStreams.size && idle >= IDLE_MS) {
       const properties = finalize(key, now);
       if (properties) closed.push(properties);
     }
   }
-  if (!sessions.size && sweepTimer) {
-    clearInterval(sweepTimer);
-    sweepTimer = null;
-  }
+  if (!sessions.size) stopSweep();
   return closed;
+}
+
+function stopSweep() {
+  if (sweepTimer) clearInterval(sweepTimer);
+  sweepTimer = null;
+}
+
+async function flush(now = Date.now()) {
+  stopSweep();
+  for (const key of sessions.keys()) finalize(key, now);
+  await Promise.all(pendingWrites);
 }
 
 function ensureSweep() {
@@ -272,8 +354,7 @@ function setRecorder(fn) {
 
 function resetForTests() {
   sessions.clear();
-  if (sweepTimer) clearInterval(sweepTimer);
-  sweepTimer = null;
+  stopSweep();
 }
 
 module.exports = {
@@ -282,9 +363,12 @@ module.exports = {
   noteServerTraffic,
   streamOpened,
   streamClosed,
+  noteStreamWatch,
+  noteStreamTraffic,
   noteClientSummary,
   sweep,
   finalize,
+  flush,
   setRecorder,
   resetForTests,
   percentileFromHistogram,

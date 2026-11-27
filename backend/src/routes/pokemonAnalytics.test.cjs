@@ -120,7 +120,7 @@ test("seul le début de chaque activité Pokémon réelle est compté par compte
 test("une session de jeu donne une seule ligne pokemon_session, avec le résumé du navigateur", async (t) => {
   const pokemonSessions = require("../services/pokemonSessions");
   pokemonSessions.resetForTests();
-  let now = Date.now() + 100 * inactivityMs;
+  let now = Date.parse("2026-11-27T14:00:00Z");
   t.mock.method(Date, "now", () => now);
   const before = events.length;
 
@@ -169,5 +169,7 @@ test("une session de jeu donne une seule ligne pokemon_session, avec le résumé
   assert.equal(row.properties.server_bytes, 100);
   assert.equal(row.properties.client_frames, 19);
   assert.equal(row.properties.rtt_avg_ms, 30);
-  assert.equal(row.properties.rtt_p95_ms, 50);
+  assert.equal(pokemonSessions.percentileFromHistogram(row.properties.rtt_hist), 50);
+  assert.equal(row.properties.played_s, 30);
+  assert.deepEqual(row.properties.daily.map(([, watchedMs, playedMs]) => [watchedMs, playedMs]), [[19000, 30000]]);
 });

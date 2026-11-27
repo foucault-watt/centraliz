@@ -30,7 +30,8 @@ test("une session regardée puis jouée donne une seule ligne agrégée", () => 
   const end = watchFor(pc, T0, 120);
   // Dix boutons en dix secondes : une seule fenêtre de jeu de 40 s.
   for (let i = 0; i < 10; i += 1) sessions.noteInput(pc, i % 2 ? "A" : "UP", T0 + 30000 + i * 1000);
-  sessions.streamClosed(pc, { bytes: 500000, frames: 400 }, end);
+  sessions.noteStreamTraffic(pc, 500000, 400, end);
+  sessions.streamClosed(pc, end);
   sessions.noteClientSummary(pc, {
     bytes: 480000,
     frames: 360,
@@ -56,7 +57,7 @@ test("une session regardée puis jouée donne une seule ligne agrégée", () => 
   assert.equal(p.client_frames, 360);
   assert.equal(p.fps, 3);
   assert.equal(p.rtt_avg_ms, 110);
-  assert.equal(p.rtt_p95_ms, 200);
+  assert.equal(sessions.percentileFromHistogram(p.rtt_hist), 200);
   assert.equal(p.delay_avg_ms, 90);
   assert.equal(p.started_at, new Date(T0).toISOString());
   assert.equal(sessions.sessionCount(), 0);
@@ -74,7 +75,8 @@ test("les reconnexions proches restent dans la même session, les longues coupur
   const phone = { user: bob, sessionId: "s2", userAgent: PHONE };
   sessions.streamOpened(phone, T0);
   let t = watchFor(phone, T0, 60);
-  sessions.streamClosed(phone, { bytes: 1000, frames: 10 }, t);
+  sessions.noteStreamTraffic(phone, 1000, 10, t);
+  sessions.streamClosed(phone, t);
   // Flux coupé 40 s puis repris en secours (interrogation) : même session.
   sessions.sweep(t + 40000);
   t = watchFor(phone, t + 40000, 30, "polling");
@@ -99,7 +101,7 @@ test("un flux ouvert garde la session, les sessions trop courtes sont ignorées"
   sessions.noteWatch(pc, "sse", T0);
   assert.deepEqual(sessions.sweep(T0 + sessions.IDLE_MS * 3), []);
   assert.equal(sessions.sessionCount(), 1);
-  sessions.streamClosed(pc, null, T0 + 3000);
+  sessions.streamClosed(pc, T0 + 3000);
   sessions.sweep(T0 + sessions.IDLE_MS * 5);
   assert.equal(rows.length, 0, "3 s regardées : rien n'est enregistré");
   assert.equal(sessions.sessionCount(), 0);
@@ -136,4 +138,73 @@ test("p95 lu sur l'histogramme", () => {
   assert.equal(sessions.percentileFromHistogram([0, 0, 0, 0, 0, 0, 0, 0, 0, 3]), 2000);
   assert.equal(sessions.bucketIndex(49), 0);
   assert.equal(sessions.bucketIndex(5000), 9);
+});
+
+test("un flux ouvert conserve ses compteurs après six heures, même s’il ferme aussitôt", () => {
+  const rows = setup();
+  const pc = { user: alice, sessionId: "long", userAgent: PC };
+  const rollover = T0 + 6 * 60 * 60 * 1000;
+  sessions.streamOpened(pc, T0);
+  watchFor(pc, T0, 30);
+  sessions.noteStreamTraffic(pc, 60000, 100, rollover - 1000);
+  sessions.noteStreamWatch(pc, true, rollover);
+  sessions.noteStreamTraffic(pc, 120, 2, rollover + 1000);
+  assert.deepEqual(sessions.sweep(rollover + sessions.IDLE_MS + 1000), []);
+  sessions.streamClosed(pc, rollover + sessions.IDLE_MS + 1000);
+  sessions.sweep(rollover + 2 * sessions.IDLE_MS + 1000);
+
+  assert.deepEqual(rows.map(({ properties: p }) => [p.streams, p.server_bytes, p.server_frames]), [
+    [1, 60000, 100],
+    [0, 120, 2],
+  ]);
+});
+
+test("un flux sans image récente ne génère pas de temps regardé", () => {
+  const rows = setup();
+  const pc = { user: alice, sessionId: "offline", userAgent: PC };
+  sessions.streamOpened(pc, T0);
+  for (let offset = 0; offset <= 30000; offset += 3000) {
+    sessions.noteStreamWatch(pc, false, T0 + offset);
+  }
+  sessions.streamClosed(pc, T0 + 31000);
+  sessions.sweep(T0 + 31000 + sessions.IDLE_MS);
+  assert.deepEqual(rows, []);
+});
+
+test("le temps joué et regardé est ventilé de part et d’autre de minuit à Paris", () => {
+  const rows = setup();
+  const pc = { user: alice, sessionId: "midnight", userAgent: PC };
+  const midnight = Date.parse("2026-11-27T23:00:00Z");
+  sessions.noteInput(pc, "A", midnight - 10000);
+  watchFor(pc, midnight - 15000, 30, "polling");
+  sessions.sweep(midnight + 15000 + sessions.IDLE_MS);
+  assert.equal(rows[0].properties.played_s, 30);
+  assert.deepEqual(rows[0].properties.daily, [
+    ["2026-11-27", 15000, 10000],
+    ["2026-11-28", 15000, 20000],
+  ]);
+});
+
+test("la fermeture enregistre une session active et attend les écritures déjà engagées", async () => {
+  setup();
+  const pc = { user: alice, sessionId: "pending", userAgent: PC };
+  const phone = { user: bob, sessionId: "active", userAgent: PHONE };
+  const writes = [];
+  sessions.setRecorder((row) => new Promise((resolve) => writes.push({ row, resolve })));
+  sessions.noteInput(pc, "A", T0);
+  sessions.sweep(T0 + sessions.IDLE_MS);
+  sessions.noteInput(phone, "B", T0 + sessions.IDLE_MS);
+  const finished = sessions.flush(T0 + sessions.IDLE_MS + 5000);
+  assert.deepEqual(writes.map(({ row }) => [row.userUsername, row.properties.played_s]), [
+    ["alice", 30],
+    ["bob", 5],
+  ]);
+  let done = false;
+  finished.then(() => { done = true; });
+  writes[1].resolve();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(done, false);
+  writes[0].resolve();
+  await finished;
+  assert.equal(sessions.sessionCount(), 0);
 });

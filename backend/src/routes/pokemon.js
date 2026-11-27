@@ -15,8 +15,7 @@ const MAX_TRACKED_FRAME_AGE_MS = 15000;
 // Une ligne par session de jeu et par appareil (voir pokemonSessions). Rien
 // n'est enregistré en démo.
 pokemonSessions.setRecorder(({ userUsername, properties }) => {
-  if (pokemonService.isDemo) return;
-  void analyticsService.trackEvent({
+  return analyticsService.trackEvent({
     userUsername,
     eventName: "pokemon_session",
     module: "pokemon",
@@ -74,9 +73,9 @@ router.post("/input", authMiddleware, async (req, res) => {
     const { button } = req.body || {};
     const result = await pokemonService.sendInput(button);
     pokemonPresence.notePlaying(presenceContext(req), result.button);
-    pokemonSessions.noteInput(presenceContext(req), result.button);
     res.json(result);
     if (!pokemonService.isDemo) {
+      pokemonSessions.noteInput(presenceContext(req), result.button);
       pokemonAnalytics.trackActivity(req, "pokemon_play_started", "interaction");
     }
   } catch (error) {
@@ -121,8 +120,11 @@ router.get("/frame", authMiddleware, async (req, res) => {
     const viewer = user && (user.id || user.userName || user.username);
     const context = presenceContext(req);
     pokemonPresence.noteWatching(context);
-    pokemonSessions.noteWatch(context, "polling");
     const frame = pokemonService.getFrameBuffer(req.query.fps, viewer);
+
+    const trackSession = !pokemonService.isDemo;
+    const isRecent = frame.ageMs != null && frame.ageMs <= MAX_TRACKED_FRAME_AGE_MS;
+    if (trackSession && isRecent) pokemonSessions.noteWatch(context, "polling");
 
     res.setHeader("Content-Type", `image/${frame.format}`);
     res.setHeader(
@@ -152,9 +154,9 @@ router.get("/frame", authMiddleware, async (req, res) => {
       res.status(304).end();
     } else {
       res.send(frame.buffer);
-      pokemonSessions.noteServerTraffic(context, { bytes: frame.buffer.length, frames: 1 });
+      if (trackSession && isRecent) pokemonSessions.noteServerTraffic(context, { bytes: frame.buffer.length, frames: 1 });
     }
-    if (!pokemonService.isDemo && frame.ageMs != null && frame.ageMs <= MAX_TRACKED_FRAME_AGE_MS) {
+    if (trackSession && isRecent) {
       pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
     }
   } catch (error) {
@@ -194,17 +196,24 @@ function streamFrames(req, res, experimental = false) {
   const fps = pokemonService.clampFps(req.query.fps, experimental) || 10;
 
   openSse(res);
-  const sender = createSseSender(res, { fps });
+  const context = presenceContext(req);
+  const trackSession = !pokemonService.isDemo;
+  if (trackSession) pokemonSessions.streamOpened(context);
+  const sender = createSseSender(res, {
+    fps,
+    onTraffic: trackSession ? (bytes, frames) => pokemonSessions.noteStreamTraffic(context, bytes, frames) : undefined,
+  });
   const unsubscribe = pokemonService.subscribe({ fps, viewer, onFrame: sender.offer, experimental });
 
-  const context = presenceContext(req);
-  pokemonPresence.noteWatching(context);
-  pokemonSessions.streamOpened(context);
-  pokemonSessions.noteWatch(context, "sse");
-  const presenceTimer = setInterval(() => {
+  const refreshPresence = () => {
     pokemonPresence.noteWatching(context);
-    pokemonSessions.noteWatch(context, "sse");
-  }, PRESENCE_REFRESH_MS);
+    if (trackSession) {
+      const hasRecentFrame = sender.stats.sent > 0 && pokemonService.hasRecentCapture(MAX_TRACKED_FRAME_AGE_MS);
+      pokemonSessions.noteStreamWatch(context, hasRecentFrame);
+    }
+  };
+  refreshPresence();
+  const presenceTimer = setInterval(refreshPresence, PRESENCE_REFRESH_MS);
   const heartbeat = setInterval(() => res.write(": ping\n\n"), HEARTBEAT_MS);
   if (!pokemonService.isDemo) {
     pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
@@ -215,7 +224,7 @@ function streamFrames(req, res, experimental = false) {
     clearInterval(heartbeat);
     sender.close();
     unsubscribe();
-    pokemonSessions.streamClosed(context, { bytes: sender.stats.bytes, frames: sender.stats.sent });
+    if (trackSession) pokemonSessions.streamClosed(context);
   });
 }
 
@@ -263,7 +272,7 @@ router.post(
     if (!summary || typeof summary !== "object" || Array.isArray(summary)) {
       return res.status(400).json({ success: false });
     }
-    pokemonSessions.noteClientSummary(presenceContext(req), summary);
+    if (!pokemonService.isDemo) pokemonSessions.noteClientSummary(presenceContext(req), summary);
     return res.status(204).end();
   }
 );

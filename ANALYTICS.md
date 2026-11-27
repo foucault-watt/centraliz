@@ -55,6 +55,12 @@ sur la période choisie. Le serveur enregistre les événements suivants.
 
 - `pokemon_stream_viewed` pour la première image récente servie au compte.
 - `pokemon_play_started` pour la première commande de jeu transmise avec succès.
+- `pokemon_session` pour le bilan d’une session d’un navigateur. La page Pokémon
+  envoie un résumé réseau à `/api/pokemon/session-stats` toutes les minutes et
+  à la fermeture. Le serveur agrège les durées et le trafic, puis enregistre
+  le bilan à la fin de la session ou lors d’un arrêt normal. Un flux continu
+  est découpé toutes les six heures. Les durées du graphique sont réparties
+  par jour civil à Paris.
 
 Chaque type d’activité est compté à nouveau après dix minutes d’inactivité du
 compte pour ce type. Le mode démo est exclu de la collecte.

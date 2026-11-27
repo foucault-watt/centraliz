@@ -84,5 +84,6 @@ module.exports = {
   getFrameBuffer: demo ? pokemonDemoService.getFrameBuffer : pokemonFrameService.getFrameBuffer,
   getFrameStatus: demo ? pokemonDemoService.getFrameStatus : pokemonFrameService.getFrameStatus,
   getHealth,
+  hasRecentCapture: pokemonFrameService.hasRecentCapture,
   sendInput,
 };

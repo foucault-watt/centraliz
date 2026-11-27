@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchApi } from "../../utils/api";
+import { createFrameCache } from "./frameCache";
 import { recordFrame, recordRtt } from "./sessionStats";
 
 // Image du jeu, rafraîchie en boucle (une requête à la fois, jamais
@@ -40,6 +41,22 @@ const base64ToBytes = (base64) => {
 };
 const MINUTE_MS = 60000;
 
+// true une fois l'image décodée (prête à être peinte sans attente), false si
+// elle est illisible ou déjà libérée. Sans img.decode (anciens navigateurs,
+// tests), on l'affiche directement.
+async function decodeImage(url) {
+  if (typeof Image === "undefined") return true;
+  const img = new Image();
+  if (typeof img.decode !== "function") return true;
+  img.src = url;
+  try {
+    await img.decode();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const isHidden = () =>
@@ -59,13 +76,14 @@ const EMPTY_STATS = {
   delayMs: 0,
   notModifiedRatio: 0,
   pushedPerSec: 0,
-  minute: { requests: 0, pushed: 0, fresh: 0, bytes: 0, errors: 0, notModified: 0 },
+  minute: { requests: 0, pushed: 0, cached: 0, fresh: 0, bytes: 0, errors: 0, notModified: 0 },
   session: { requests: 0, fresh: 0, bytes: 0, errors: 0 },
   history: [],
 };
 
 // Calcule les stats à partir des échantillons (exporté pour les tests).
-// sample : { at, ok, bytes, rttMs, ageMs, fresh, unchanged (304), pushed (SSE) }
+// sample : { at, ok, bytes, rttMs, ageMs, fresh, unchanged (304), pushed (SSE),
+//            cached (SSE : image déjà reçue, réaffichée depuis le cache) }
 export function computeStats(samples, session, history, now = Date.now()) {
   const recent = samples.filter((s) => now - s.at <= RECENT_MS);
   const minute = samples.filter((s) => now - s.at <= MINUTE_MS);
@@ -83,9 +101,11 @@ export function computeStats(samples, session, history, now = Date.now()) {
     freshPerSec: recentFresh.length / seconds,
     duplicateRatio: recentOk.length ? 1 - recentFresh.length / recentOk.length : 0,
     notModifiedRatio: recentOk.length ? recentOk.filter((s) => s.unchanged).length / recentOk.length : 0,
-    // Taille moyenne d'une image réellement téléchargée (les 304 sont vides).
+    cachedRatio: recentOk.length ? recentOk.filter((s) => s.cached).length / recentOk.length : 0,
+    // Taille moyenne d'une image réellement téléchargée (les 304 sont vides,
+    // les images du cache ne pèsent que leur identifiant).
     bytesPerFrame: (() => {
-      const downloaded = recentOk.filter((s) => s.bytes > 0);
+      const downloaded = recentOk.filter((s) => s.bytes > 0 && !s.cached);
       return downloaded.length ? bytes / downloaded.length : 0;
     })(),
     bytesPerSecond: bytes / seconds,
@@ -98,6 +118,7 @@ export function computeStats(samples, session, history, now = Date.now()) {
       requests: minute.filter((s) => !s.pushed).length,
       pushed: minute.filter((s) => s.pushed).length,
       fresh: minute.filter((s) => s.ok && s.fresh).length,
+      cached: minute.filter((s) => s.cached).length,
       bytes: minute.reduce((sum, s) => sum + (s.ok ? s.bytes : 0), 0),
       errors: minute.filter((s) => !s.ok).length,
       notModified: minute.filter((s) => s.unchanged).length,
@@ -124,12 +145,36 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
     return () => clearTimeout(id);
   }, [requestedFps]);
   const urlRef = useRef("");
+  const cacheRef = useRef(null);
+  if (!cacheRef.current) cacheRef.current = createFrameCache();
   const fpsRef = useRef(requestedFps);
   fpsRef.current = requestedFps;
   const samples = useRef([]);
   const session = useRef({ requests: 0, fresh: 0, bytes: 0, errors: 0 });
   const history = useRef([]);
   const lastTimestamp = useRef(null);
+
+  // Affichage : ne passer à une image qu'une fois décodée par le navigateur.
+  // Changer la source de l'<img> avant la fin du décodage de la précédente
+  // l'abandonne ; à 60 images/s, l'écran pouvait rester figé tant que le
+  // flux ne se calmait pas. Une seule image décodée à la fois, et seule la
+  // plus récente attend : l'écran avance toujours, quitte à sauter des images.
+  const paintRef = useRef({ wanted: "", busy: false });
+  const paintLatest = useCallback(async (url) => {
+    const paint = paintRef.current;
+    paint.wanted = url;
+    if (paint.busy) return;
+    paint.busy = true;
+    try {
+      for (;;) {
+        const next = paint.wanted;
+        if (await decodeImage(next)) setFrameUrl(next);
+        if (paint.wanted === next) break;
+      }
+    } finally {
+      paint.busy = false;
+    }
+  }, []);
 
   useEffect(() => {
     const onVisibility = () => setHidden(isHidden());
@@ -155,12 +200,11 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
       }
     };
 
-    const showFrame = (blob) => {
-      const nextUrl = URL.createObjectURL(blob);
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-      urlRef.current = nextUrl;
-      setFrameUrl(nextUrl);
+    const display = (url) => {
+      urlRef.current = url;
+      paintLatest(url);
     };
+    const showFrame = (blob, id) => display(cacheRef.current.put(blob, id));
 
     const loop = async () => {
       while (!cancelled) {
@@ -241,11 +285,35 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
         if (cancelled) return;
         try {
           const data = JSON.parse(event.data);
-          showFrame(new Blob([base64ToBytes(data.img)], { type: "image/webp" }));
+          showFrame(new Blob([base64ToBytes(data.img)], { type: "image/webp" }), data.id);
           record({ at: Date.now(), ok: true, bytes: data.img.length, rttMs: null, ageMs: data.ageMs ?? null, fresh: true, pushed: true });
           recordFrame({ bytes: data.img.length, ageMs: data.ageMs ?? null });
           hasFrame = true;
           receivedFrame = true;
+          errors = 0;
+          setStatus("live");
+        } catch {
+          // Message illisible : on attend le suivant.
+        }
+      });
+      // Image déjà reçue (animation en boucle) : le serveur n'envoie que
+      // son identifiant, on la réaffiche depuis le cache.
+      source.addEventListener("ref", (event) => {
+        if (cancelled) return;
+        try {
+          const data = JSON.parse(event.data);
+          const url = cacheRef.current.get(data.id);
+          if (!url) {
+            // Le serveur croit que le navigateur a cette image, mais elle
+            // n'est plus en cache : on rouvre le flux, le serveur repart
+            // d'une mémoire vide et renvoie l'image entière.
+            source.close();
+            setRunId((n) => n + 1);
+            return;
+          }
+          display(url);
+          recordFrame({ bytes: event.data.length, ageMs: data.ageMs ?? null });
+          record({ at: Date.now(), ok: true, bytes: event.data.length, rttMs: null, ageMs: data.ageMs ?? null, fresh: true, pushed: true, cached: true });
           errors = 0;
           setStatus("live");
         } catch {
@@ -281,7 +349,7 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
     return () => {
       cancelled = true;
     };
-  }, [hidden, runId, mode, streamFps]);
+  }, [hidden, runId, mode, streamFps, paintLatest]);
 
   // Stats recalculées chaque seconde ; un point d'historique par seconde,
   // 60 points gardés.
@@ -309,7 +377,7 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
 
   useEffect(
     () => () => {
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      cacheRef.current.clear();
     },
     []
   );

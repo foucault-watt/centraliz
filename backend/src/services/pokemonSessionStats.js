@@ -1,10 +1,8 @@
 // Statistiques de la console admin à partir des lignes « pokemon_session »
 // (une par session de jeu et par appareil, voir pokemonSessions).
 
-const { parisPeriodKey } = require("../utils/parisTime");
+const { parisPeriodKey, shiftDayKey, parisDayStart } = require("../utils/parisTime");
 const { BUTTONS, LATENCY_BUCKETS, percentileFromHistogram } = require("./pokemonSessions");
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 const num = (value) => {
   const number = Number(value);
@@ -20,13 +18,18 @@ const minutes = (seconds) => round(seconds / 60, 1);
 
 const share = (part, total) => (total ? round((part / total) * 100, 0) : 0);
 
+function periodStart(days, now) {
+  return new Date(parisDayStart(shiftDayKey(parisPeriodKey(now), 1 - days)));
+}
+
 function emptyDays(days, now) {
-  const keys = [];
+  const today = parisPeriodKey(now);
+  const byDay = new Map();
   for (let i = days - 1; i >= 0; i -= 1) {
-    const key = parisPeriodKey(new Date(now - i * DAY_MS), "day");
-    if (key && !keys.includes(key)) keys.push(key);
+    const day = shiftDayKey(today, -i);
+    byDay.set(day, { day, watchedMs: 0, playedMs: 0, sessions: 0, players: new Set() });
   }
-  return new Map(keys.map((key) => [key, { day: key, watchedMinutes: 0, playedMinutes: 0, sessions: 0, players: new Set() }]));
+  return byDay;
 }
 
 // rows : [{ user_username, created_at, properties }]
@@ -46,14 +49,39 @@ function buildPokemonStats(rows = [], { days = 30, now = Date.now() } = {}) {
   let delaySessions = 0;
   let fpsSum = 0;
   let fpsWeight = 0;
+  let technicalWatchedS = 0;
 
   for (const row of rows) {
     const p = row.properties || {};
-    const watchedS = num(p.watched_s);
-    const playedS = num(p.played_s);
     const inputs = num(p.inputs);
     const startedAt = p.started_at || row.created_at;
     const endedAt = p.ended_at || row.created_at;
+    const sessionWatchedS = num(p.watched_s);
+    const daily = p.v >= 2 && Array.isArray(p.daily) && p.daily.length
+      ? p.daily
+      : [[parisPeriodKey(startedAt), sessionWatchedS * 1000, num(p.played_s) * 1000]];
+    let watchedMs = 0;
+    let playedMs = 0;
+    let inPeriod = false;
+    for (const entry of daily) {
+      if (!Array.isArray(entry)) continue;
+      const [key, dayWatchedMs, dayPlayedMs] = entry;
+      const day = byDay.get(key);
+      if (!day) continue;
+      inPeriod = true;
+      const watched = num(dayWatchedMs);
+      const played = num(dayPlayedMs);
+      watchedMs += watched;
+      playedMs += played;
+      day.watchedMs += watched;
+      day.playedMs += played;
+      day.sessions += 1;
+      if (row.user_username) day.players.add(row.user_username);
+    }
+    if (!inPeriod) continue;
+    const watchedS = watchedMs / 1000;
+    const playedS = playedMs / 1000;
+    technicalWatchedS += sessionWatchedS;
 
     totals.sessions += 1;
     totals.watchedS += watchedS;
@@ -67,7 +95,7 @@ function buildPokemonStats(rows = [], { days = 30, now = Date.now() } = {}) {
     devices[device] += 1;
     deviceWatchedS[device] += watchedS;
     if (modes[p.mode] !== undefined) modes[p.mode] += 1;
-    sseS += Math.min(num(p.sse_s), watchedS);
+    sseS += Math.min(num(p.sse_s), sessionWatchedS);
 
     if (Array.isArray(p.buttons)) BUTTONS.forEach((_, i) => { buttons[i] += num(p.buttons[i]); });
     if (Array.isArray(p.rtt_hist)) {
@@ -86,18 +114,9 @@ function buildPokemonStats(rows = [], { days = 30, now = Date.now() } = {}) {
       delaySum += num(p.delay_avg_ms);
       delaySessions += 1;
     }
-    if (watchedS && p.fps != null) {
-      fpsSum += num(p.fps) * watchedS;
-      fpsWeight += watchedS;
-    }
-
-    const dayKey = parisPeriodKey(startedAt, "day");
-    const day = byDay.get(dayKey);
-    if (day) {
-      day.watchedMinutes += watchedS / 60;
-      day.playedMinutes += playedS / 60;
-      day.sessions += 1;
-      if (row.user_username) day.players.add(row.user_username);
+    if (sessionWatchedS && p.fps != null) {
+      fpsSum += num(p.fps) * sessionWatchedS;
+      fpsWeight += sessionWatchedS;
     }
 
     if (row.user_username) {
@@ -140,8 +159,8 @@ function buildPokemonStats(rows = [], { days = 30, now = Date.now() } = {}) {
     },
     daily: [...byDay.values()].map((day) => ({
       day: day.day,
-      watchedMinutes: round(day.watchedMinutes, 1),
-      playedMinutes: round(day.playedMinutes, 1),
+      watchedMinutes: minutes(day.watchedMs / 1000),
+      playedMinutes: minutes(day.playedMs / 1000),
       sessions: day.sessions,
       players: day.players.size,
     })),
@@ -151,7 +170,7 @@ function buildPokemonStats(rows = [], { days = 30, now = Date.now() } = {}) {
       clientBytes: totals.clientBytes,
       serverFrames: totals.serverFrames,
       bytesPerSession: totals.sessions ? Math.round(totals.serverBytes / totals.sessions) : 0,
-      bytesPerMinute: totals.watchedS ? Math.round(totals.serverBytes / (totals.watchedS / 60)) : 0,
+      bytesPerMinute: technicalWatchedS ? Math.round(totals.serverBytes / (technicalWatchedS / 60)) : 0,
       rttAvgMs: rttCount ? Math.round(rttSum / rttCount) : null,
       rttP95Ms: percentileFromHistogram(rttHist),
       rttSamples: rttHist.reduce((sum, count) => sum + count, 0),
@@ -161,7 +180,7 @@ function buildPokemonStats(rows = [], { days = 30, now = Date.now() } = {}) {
       })),
       delayAvgMs: delaySessions ? Math.round(delaySum / delaySessions) : null,
       fpsAvg: fpsWeight ? round(fpsSum / fpsWeight, 1) : null,
-      sseTimeShare: share(sseS, totals.watchedS),
+      sseTimeShare: share(sseS, technicalWatchedS),
       modes,
       devices,
       deviceWatchedMinutes: { mobile: minutes(deviceWatchedS.mobile), desktop: minutes(deviceWatchedS.desktop) },
@@ -170,4 +189,4 @@ function buildPokemonStats(rows = [], { days = 30, now = Date.now() } = {}) {
   };
 }
 
-module.exports = { buildPokemonStats };
+module.exports = { buildPokemonStats, periodStart };

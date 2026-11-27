@@ -1,0 +1,114 @@
+{
+ "dir": "s1",
+ "frames": 663,
+ "unreadable": 0,
+ "durationS": 22,
+ "identical": 559,
+ "identicalPct": 84.4,
+ "changed": 103,
+ "tiles": {
+  "n": 103,
+  "mean": 6,
+  "p50": 6,
+  "p95": 10,
+  "max": 18
+ },
+ "tileHist": {
+  "1-10": 100,
+  "11-50": 3,
+  "51-150": 0,
+  "151-400": 0,
+  "401-600": 0
+ },
+ "bytesChangedFrames": {
+  "full": {
+   "n": 103,
+   "mean": 3022,
+   "p50": 3028,
+   "p95": 3144,
+   "max": 3158
+  },
+  "tilesWebp": {
+   "n": 103,
+   "mean": 246,
+   "p50": 272,
+   "p95": 348,
+   "max": 486
+  },
+  "tilesPng": {
+   "n": 103,
+   "mean": 331,
+   "p50": 358,
+   "p95": 460,
+   "max": 658
+  },
+  "tilesZ24": {
+   "n": 103,
+   "mean": 253,
+   "p50": 274,
+   "p95": 393,
+   "max": 603
+  },
+  "tilesZ15": {
+   "n": 103,
+   "mean": 225,
+   "p50": 244,
+   "p95": 354,
+   "max": 546
+  },
+  "bbox": {
+   "n": 103,
+   "mean": 245,
+   "p50": 260,
+   "p95": 400,
+   "max": 560
+  },
+  "hybridTiles": {
+   "n": 103,
+   "mean": 246,
+   "p50": 272,
+   "p95": 348,
+   "max": 486
+  },
+  "hybridBbox": {
+   "n": 103,
+   "mean": 245,
+   "p50": 260,
+   "p95": 400,
+   "max": 560
+  }
+ },
+ "bodyBytesPerSecond": {
+  "full": 14138,
+  "tilesWebp": 1152,
+  "tilesPng": 1547,
+  "tilesZ24": 1182,
+  "tilesZ15": 1051,
+  "bbox": 1147,
+  "hybridTiles": 1152,
+  "hybridBbox": 1147
+ },
+ "cpuMs": {
+  "fullWebp": {
+   "n": 103,
+   "mean": 7,
+   "p50": 7,
+   "p95": 9,
+   "max": 14
+  },
+  "diff": {
+   "n": 103,
+   "mean": 1,
+   "p50": 1,
+   "p95": 1,
+   "max": 9
+  },
+  "tilesWebp": {
+   "n": 103,
+   "mean": 1,
+   "p50": 1,
+   "p95": 3,
+   "max": 4
+  }
+ }
+}

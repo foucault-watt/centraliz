@@ -4,7 +4,9 @@ import {
   FileText,
   Gamepad2,
   Mail,
+  BookOpen,
   LibraryBig,
+  Landmark,
   Users,
 } from "lucide-react";
 
@@ -15,9 +17,14 @@ export const pagesCatalog = [
   { id: "links", label: "Liens", icon: ExternalLink },
   { id: "calendars", label: "Calendriers", icon: Calendar1 },
   { id: "communication", label: "Mails", icon: Mail },
+  { id: "moodle", label: "Moodle", icon: BookOpen },
   { id: "cekilui", label: "Cékilui", icon: Users },
   { id: "pokemon", label: "Pokémon", icon: Gamepad2 },
   { id: "bibli", label: "Bibli", icon: LibraryBig },
+  // /le-musee, pas /musee : /musee est la page publique à partager, sans menu.
+  ...(process.env.REACT_APP_MUSEE_ENABLED === "true"
+    ? [{ id: "le-musee", label: "Le Musée", icon: Landmark }]
+    : []),
 ];
 
 // Utilisé si l'API est injoignable.

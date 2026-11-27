@@ -1,0 +1,73 @@
+.musee-player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #1c1917;
+}
+
+.musee-player iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.musee-player:not(.musee-player--immersive):fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100dvh;
+  aspect-ratio: auto;
+  border-radius: 0;
+  background: #000;
+}
+
+.musee-player:not(.musee-player--immersive):fullscreen iframe {
+  flex: none;
+  width: min(100vw, calc(100dvh * 16 / 9));
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+/* Phones and tablets: the game takes the whole page, any shape; it lays itself out for it. */
+.musee-player--immersive {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  aspect-ratio: auto;
+  border-radius: 0;
+  background: #000;
+}
+
+.musee-player--immersive iframe {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.musee-player-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.5rem;
+  font-size: 0.875rem;
+  color: #f5f5f4;
+  background: #1c1917;
+}
+
+.musee-player-bar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  touch-action: manipulation;
+}

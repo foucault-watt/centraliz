@@ -9,6 +9,8 @@ const KNOWN_PAGE_IDS = [
   "cekilui",
   "pokemon",
   "bibli",
+  "moodle",
+  "le-musee",
 ];
 
 const getBaseGroup = (group) => (group ? group.split("-")[0] : null);

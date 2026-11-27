@@ -3,7 +3,7 @@ const authMiddleware = require("../middlewares/auth");
 const pokemonService = require("../services/pokemonService");
 const pokemonSpeedService = require("../services/pokemonSpeedService");
 const pokemonPresence = require("../services/pokemonPresence");
-const { createSseSender } = require("../services/pokemonSse");
+const { createSseSender, paddingComment } = require("../services/pokemonSse");
 
 const router = express.Router();
 
@@ -183,12 +183,16 @@ router.get("/stream", authMiddleware, (req, res) => {
 // Test public du flux, sans aucune donnée du jeu : 10 messages en 2,5 s puis
 // fin. Sert à vérifier de l'extérieur que nginx et le proxy HTTPS laissent
 // passer un flux au fil de l'eau (npm run pokemon:remote ou curl -N).
+// ?pad=N ajoute N octets de bourrage après chaque message : permet de
+// mesurer la taille qui force les proxys à ne pas garder le flux.
 router.get("/stream-test", (req, res) => {
   openSse(res);
+  const pad = Math.min(Math.max(parseInt(req.query.pad, 10) || 0, 0), 65536);
   let count = 0;
   const timer = setInterval(() => {
     count += 1;
     res.write(`event: tick\ndata: {"n":${count},"at":${Date.now()}}\n\n`);
+    if (pad) res.write(paddingComment(pad));
     if (count >= 10) {
       clearInterval(timer);
       res.end();

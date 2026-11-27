@@ -21,7 +21,7 @@ npm run pokemon:remote -- exec "ss -ltnp"
 npm run pokemon:remote -- get /chemin/distant [local]
 npm run pokemon:remote -- put local /chemin/distant
 npm run pokemon:remote -- restart       # systemctl restart centraliz-gba.service + diagnostic
-npm run pokemon:remote -- stream-check  # vérifie depuis l'extérieur que le flux SSE des images passe nginx sans être retenu
+npm run pokemon:remote -- stream-check  # vérifie depuis l'extérieur que le flux SSE des images passe nginx sans être retenu ; sinon, cherche la taille de bourrage qui le débloque (POKEMON_SSE_PAD_BYTES, 16 Ko par défaut)
 ```
 
 Les captures sont écrites dans `logs/pokemon/`, qui est ignoré par Git. Pour les lire, ouvrir le PNG avec l'outil de lecture d'image.

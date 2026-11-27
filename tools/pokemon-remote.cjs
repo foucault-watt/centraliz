@@ -187,14 +187,15 @@ async function restart(client) {
 // Vérifie depuis l'extérieur (nginx + proxy HTTPS compris) que le flux SSE
 // arrive au fil de l'eau : /api/pokemon/stream-test envoie 10 messages
 // espacés de 250 ms. S'ils arrivent tous d'un coup, un proxy les retient.
-async function streamCheck(baseUrl) {
-  const url = `${baseUrl.replace(/\/$/, '')}/api/pokemon/stream-test`;
+// Renvoie true si le flux passe, false s'il est retenu, null si la route
+// n'existe pas.
+async function streamTest(baseUrl, pad = 0) {
+  const url = `${baseUrl.replace(/\/$/, '')}/api/pokemon/stream-test${pad ? `?pad=${pad}` : ''}`;
   const started = Date.now();
   const response = await fetch(url, { headers: { Accept: 'text/event-stream' } });
-  console.log(`${url} -> HTTP ${response.status} (${response.headers.get('content-type') || 'sans type'})`);
   if (!response.ok || !/event-stream/.test(response.headers.get('content-type') || '')) {
-    console.log('FAIL  pas de flux SSE (route absente ou bloquée : backend déployé ?)');
-    return 1;
+    console.log(`${url} -> HTTP ${response.status} : pas de flux SSE (backend déployé ?)`);
+    return null;
   }
   const arrivals = [];
   const decoder = new TextDecoder();
@@ -204,13 +205,29 @@ async function streamCheck(baseUrl) {
     const count = (text.match(/event: tick/g) || []).length;
     while (arrivals.length < count) arrivals.push(Date.now() - started);
   }
-  console.log(`Arrivées (ms) : ${arrivals.join(', ')}`);
   const spread = arrivals.length ? arrivals[arrivals.length - 1] - arrivals[0] : 0;
-  if (arrivals.length === 10 && spread >= 1800) {
-    console.log('OK    les messages arrivent au fil de l\'eau : le flux passe sans être retenu');
+  const ok = arrivals.length === 10 && spread >= 1800;
+  const label = pad ? `bourrage ${pad / 1024} Ko` : 'sans bourrage';
+  console.log(`${ok ? 'OK  ' : 'FAIL'}  ${label.padEnd(18)} arrivées (ms) : ${arrivals.join(', ')}`);
+  return ok;
+}
+
+// Sans bourrage d'abord ; s'il est retenu, cherche la plus petite taille de
+// bourrage qui débloque le flux (celle qu'utilise POKEMON_SSE_PAD_BYTES).
+async function streamCheck(baseUrl) {
+  const direct = await streamTest(baseUrl, 0);
+  if (direct === null) return 1;
+  if (direct) {
+    console.log('Le flux passe sans être retenu : le bourrage n\'est plus nécessaire.');
     return 0;
   }
-  console.log(`FAIL  ${arrivals.length}/10 messages, étalés sur ${spread} ms : un proxy retient le flux`);
+  for (const pad of [4096, 8192, 16384, 32768]) {
+    if (await streamTest(baseUrl, pad)) {
+      console.log(`Un proxy retient le flux, mais ${pad / 1024} Ko de bourrage le débloquent (POKEMON_SSE_PAD_BYTES, 16 Ko par défaut).`);
+      return 0;
+    }
+  }
+  console.log('Un proxy retient le flux, même avec 32 Ko de bourrage : il faut proxy_buffering off côté nginx.');
   return 1;
 }
 

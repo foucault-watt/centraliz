@@ -186,20 +186,20 @@ export default function ActivityPanel({ isAdmin = false }) {
         </div>
       </div>
 
-      <ul ref={listRef} className="max-h-72 space-y-1.5 overflow-y-auto" aria-live="polite">
+      <ul ref={listRef} className="max-h-72 space-y-1.5 overflow-y-auto lg:max-h-96" aria-live="polite">
         {visible.length === 0 && (
           <li className="text-sm text-gray-500">Aucun message pour l'instant.</li>
         )}
         {visible.map((item) =>
           item.kind === "event" ? (
-            <li key={item.id} className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-sm text-amber-900">
-              <Medal size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <li key={item.id} className="flex items-baseline gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-sm text-amber-900">
+              <Medal size={14} className="shrink-0 self-center" aria-hidden="true" />
               <span className="flex-1">{item.text}</span>
-              <span className="text-xs tabular-nums text-amber-700/70">{time(item.createdAt)}</span>
+              <span className="shrink-0 text-xs tabular-nums text-amber-700/70">{time(item.createdAt)}</span>
             </li>
           ) : (
-            <li key={item.id} className="group flex items-start gap-2 px-1 text-sm">
-              <span className="text-xs tabular-nums text-gray-400">{time(item.createdAt)}</span>
+            <li key={item.id} className="group flex items-baseline gap-2 px-1 text-sm">
+              <span className="shrink-0 text-xs tabular-nums text-gray-400">{time(item.createdAt)}</span>
               <span className="flex-1 break-words">
                 <span className="font-semibold text-secondary">{item.author}</span>{" "}
                 <span className="text-gray-700">{item.text}</span>
@@ -209,7 +209,7 @@ export default function ActivityPanel({ isAdmin = false }) {
                   type="button"
                   aria-label="Supprimer le message"
                   onClick={() => deleteMessage(item)}
-                  className="text-gray-300 hover:text-red-500"
+                  className="self-center text-gray-300 hover:text-red-500"
                 >
                   <Trash2 size={14} />
                 </button>

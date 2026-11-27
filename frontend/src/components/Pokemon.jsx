@@ -235,64 +235,68 @@ function Pokemon({ user }) {
         </span>
       </p>
 
-      <div className="mx-auto w-full max-w-3xl">
-        <PlayersPanel />
-      </div>
-
-      <div className="mx-auto w-full max-w-3xl">
-        <ActivityPanel isAdmin={isAdmin} />
-      </div>
-
-      <div className="mx-auto w-full max-w-3xl space-y-3">
-        {isAdmin && <SpeedControl />}
-        <div
-          role="group"
-          aria-label="Réglages du flux"
-          className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-gray-200/80 bg-white px-3 py-2 shadow-sm sm:px-4"
-          onKeyDown={(event) => {
-            // Entrée active le réglage sélectionné sans envoyer Start au jeu.
-            if (event.key === "Enter") event.stopPropagation();
-          }}
-        >
-          <label className="flex w-full items-center gap-3 sm:w-auto sm:flex-1">
-            <span className="shrink-0 text-sm font-semibold tabular-nums text-secondary">Cible {requestedFps} FPS</span>
-            <input
-              aria-label="FPS cibles"
-              type="range"
-              min="1"
-              max={maxFps}
-              value={requestedFps}
-              onChange={(event) => setTargetFps(Number(event.target.value))}
-              className="min-w-0 flex-1 accent-[var(--color-primary)]"
-            />
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {(maxFps > DEFAULT_FPS ? [...FPS_PRESETS, 45, ADMIN_MAX_FPS] : FPS_PRESETS).map((fps) => (
-              <button
-                key={fps}
-                type="button"
-                aria-label={`${fps} FPS`}
-                aria-pressed={requestedFps === fps}
-                onClick={() => setTargetFps(fps)}
-                className="min-h-9 min-w-9 rounded-lg bg-gray-100 px-2 text-sm font-semibold tabular-nums text-secondary hover:bg-gray-200 aria-pressed:bg-primary/10 aria-pressed:text-primary aria-pressed:ring-1 aria-pressed:ring-inset aria-pressed:ring-primary"
-              >
-                {fps}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            aria-expanded={showDebug}
-            aria-controls={debugId}
-            onClick={() => setShowDebug((open) => !open)}
-            className="ml-auto inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-secondary hover:bg-gray-100"
-          >
-            Stats du flux
-            <ChevronDown size={16} aria-hidden="true" className={showDebug ? "rotate-180" : undefined} />
-          </button>
+      {/* Sur grand écran : le chat à gauche, joueurs et réglages à droite.
+          Sur mobile : une seule colonne, joueurs puis chat puis réglages. */}
+      <div className="mx-auto grid w-full max-w-3xl gap-5 lg:max-w-none lg:grid-cols-2 lg:items-start">
+        <div className="lg:col-start-2 lg:row-start-1">
+          <PlayersPanel />
         </div>
-        <div id={debugId} hidden={!showDebug}>
-          {showDebug && <DebugPanel targetFps={requestedFps} stats={stats} mode={mode} />}
+
+        <div className="lg:col-start-1 lg:row-span-2 lg:row-start-1">
+          <ActivityPanel isAdmin={isAdmin} />
+        </div>
+
+        <div className="space-y-3 lg:col-start-2 lg:row-start-2">
+          {isAdmin && <SpeedControl />}
+          <div
+            role="group"
+            aria-label="Réglages du flux"
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-gray-200/80 bg-white px-3 py-2 shadow-sm sm:px-4"
+            onKeyDown={(event) => {
+              // Entrée active le réglage sélectionné sans envoyer Start au jeu.
+              if (event.key === "Enter") event.stopPropagation();
+            }}
+          >
+            <label className="flex w-full items-center gap-3 sm:w-auto sm:flex-1">
+              <span className="shrink-0 text-sm font-semibold tabular-nums text-secondary">Cible {requestedFps} FPS</span>
+              <input
+                aria-label="FPS cibles"
+                type="range"
+                min="1"
+                max={maxFps}
+                value={requestedFps}
+                onChange={(event) => setTargetFps(Number(event.target.value))}
+                className="min-w-0 flex-1 accent-[var(--color-primary)]"
+              />
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {(maxFps > DEFAULT_FPS ? [...FPS_PRESETS, 45, ADMIN_MAX_FPS] : FPS_PRESETS).map((fps) => (
+                <button
+                  key={fps}
+                  type="button"
+                  aria-label={`${fps} FPS`}
+                  aria-pressed={requestedFps === fps}
+                  onClick={() => setTargetFps(fps)}
+                  className="min-h-9 min-w-9 rounded-lg bg-gray-100 px-2 text-sm font-semibold tabular-nums text-secondary hover:bg-gray-200 aria-pressed:bg-primary/10 aria-pressed:text-primary aria-pressed:ring-1 aria-pressed:ring-inset aria-pressed:ring-primary"
+                >
+                  {fps}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-expanded={showDebug}
+              aria-controls={debugId}
+              onClick={() => setShowDebug((open) => !open)}
+              className="ml-auto inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-secondary hover:bg-gray-100"
+            >
+              Stats du flux
+              <ChevronDown size={16} aria-hidden="true" className={showDebug ? "rotate-180" : undefined} />
+            </button>
+          </div>
+          <div id={debugId} hidden={!showDebug}>
+            {showDebug && <DebugPanel targetFps={requestedFps} stats={stats} mode={mode} />}
+          </div>
         </div>
       </div>
     </div>

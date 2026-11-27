@@ -2,6 +2,8 @@ const express = require("express");
 const authMiddleware = require("../middlewares/auth");
 const pokemonService = require("../services/pokemonService");
 const pokemonSpeedService = require("../services/pokemonSpeedService");
+const pokemonPresence = require("../services/pokemonPresence");
+const { createSseSender } = require("../services/pokemonSse");
 
 const router = express.Router();
 
@@ -21,6 +23,13 @@ router.put("/speed", authMiddleware, async (req, res, next) => {
     if (!error.status) return next(error);
     res.status(error.status).json({ message: error.message });
   }
+});
+
+// Pour la liste des joueurs : qui, et depuis quel appareil (session).
+const presenceContext = (req) => ({
+  user: req.session && req.session.user,
+  sessionId: req.sessionID,
+  userAgent: req.get("user-agent"),
 });
 
 router.get("/health", authMiddleware, async (req, res) => {
@@ -45,6 +54,7 @@ router.post("/input", authMiddleware, async (req, res) => {
   try {
     const { button } = req.body || {};
     const result = await pokemonService.sendInput(button);
+    pokemonPresence.notePlaying(presenceContext(req), result.button);
     res.json(result);
   } catch (error) {
     const status = error.status || 500;
@@ -84,7 +94,10 @@ router.get("/frame-status", authMiddleware, async (req, res) => {
 
 router.get("/frame", authMiddleware, async (req, res) => {
   try {
-    const frame = pokemonService.getFrameBuffer();
+    const user = req.session && req.session.user;
+    const viewer = user && (user.id || user.userName || user.username);
+    pokemonPresence.noteWatching(presenceContext(req));
+    const frame = pokemonService.getFrameBuffer(req.query.fps, viewer);
 
     res.setHeader("Content-Type", `image/${frame.format}`);
     res.setHeader(
@@ -93,11 +106,28 @@ router.get("/frame", authMiddleware, async (req, res) => {
     );
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
+    // Le navigateur s'en sert pour distinguer images nouvelles et doublons,
+    // et pour mesurer l'âge de l'image (calculé ici : pas de décalage
+    // d'horloge entre serveur et navigateur).
     if (frame.lastFrameAt) {
       res.setHeader("X-Frame-Timestamp", frame.lastFrameAt);
     }
+    if (frame.ageMs != null) {
+      res.setHeader("X-Frame-Age-Ms", String(frame.ageMs));
+    }
+    // Empreinte de l'image : si le navigateur l'a déjà (If-None-Match),
+    // 304 sans corps (environ une image sur deux en jeu). Comparaison
+    // manuelle : le navigateur envoie aussi Cache-Control: no-cache, que la
+    // détection automatique d'Express prend pour un refus du 304.
+    const etag = frame.frameId ? `"${frame.frameId}"` : null;
+    if (etag) res.setHeader("ETag", etag);
+    res.setHeader("Access-Control-Expose-Headers", "ETag, X-Frame-Timestamp, X-Frame-Age-Ms");
 
-    res.send(frame.buffer);
+    if (etag && req.get("if-none-match") === etag) {
+      res.status(304).end();
+    } else {
+      res.send(frame.buffer);
+    }
   } catch (error) {
     res.status(error.status || 503).json({
       success: false,
@@ -108,6 +138,69 @@ router.get("/frame", authMiddleware, async (req, res) => {
         "Aucune frame Pokémon n'est disponible pour le moment.",
     });
   }
+});
+
+// En-têtes d'un flux SSE. X-Accel-Buffering: no demande à nginx de ne pas
+// retenir les données (sans changer sa configuration).
+function openSse(res) {
+  res.status(200);
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+  res.write("retry: 2000\n\n");
+}
+
+const HEARTBEAT_MS = 15000;
+const PRESENCE_REFRESH_MS = 3000;
+
+// Flux continu des images (Server-Sent Events) : le serveur envoie chaque
+// image différente dès qu'elle est capturée, au plus `fps` fois par seconde.
+// Remplace l'interrogation en boucle de /frame (gardée en secours).
+router.get("/stream", authMiddleware, (req, res) => {
+  const user = req.session && req.session.user;
+  const viewer = user && (user.id || user.userName || user.username);
+  const fps = pokemonService.clampFps(req.query.fps) || 10;
+
+  openSse(res);
+  const sender = createSseSender(res, { fps });
+  const unsubscribe = pokemonService.subscribe({ fps, viewer, onFrame: sender.offer });
+
+  const context = presenceContext(req);
+  pokemonPresence.noteWatching(context);
+  const presenceTimer = setInterval(() => pokemonPresence.noteWatching(context), PRESENCE_REFRESH_MS);
+  const heartbeat = setInterval(() => res.write(": ping\n\n"), HEARTBEAT_MS);
+
+  req.on("close", () => {
+    clearInterval(presenceTimer);
+    clearInterval(heartbeat);
+    sender.close();
+    unsubscribe();
+  });
+});
+
+// Test public du flux, sans aucune donnée du jeu : 10 messages en 2,5 s puis
+// fin. Sert à vérifier de l'extérieur que nginx et le proxy HTTPS laissent
+// passer un flux au fil de l'eau (npm run pokemon:remote ou curl -N).
+router.get("/stream-test", (req, res) => {
+  openSse(res);
+  let count = 0;
+  const timer = setInterval(() => {
+    count += 1;
+    res.write(`event: tick\ndata: {"n":${count},"at":${Date.now()}}\n\n`);
+    if (count >= 10) {
+      clearInterval(timer);
+      res.end();
+    }
+  }, 250);
+  req.on("close", () => clearInterval(timer));
+});
+
+// Qui regarde et qui joue en ce moment (visible par tous les connectés).
+router.get("/presence", authMiddleware, (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.json(pokemonPresence.getPresence());
 });
 
 module.exports = router;

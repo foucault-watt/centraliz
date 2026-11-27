@@ -36,10 +36,17 @@ app.set("trust proxy", 1);
 // Utiliser Helmet pour sécuriser les en-têtes HTTP
 app.use(helmet());
 
+const POKEMON_POLLING = /^\/api\/pokemon\/(frame|frame-status|presence)(\?|$)/;
+const isPokemonPolling = (req) => POKEMON_POLLING.test(req.originalUrl || req.url || "");
+
 // Utiliser Morgan pour les logs détaillés des requêtes HTTP
 app.use(
   morgan("combined", {
     skip: function (req, res) {
+      // Le flux Pokémon interroge ces routes jusqu'à 30 fois par seconde et
+      // par spectateur : les logger remplirait le disque (~800 Mo/jour par
+      // spectateur). Seules leurs erreurs sont gardées.
+      if (isPokemonPolling(req) && res.statusCode < 400) return true;
       // Skip les logs Morgan qui seraient dupliqués
       return req.url === "/healthcheck"; // exemple de filtre
     },

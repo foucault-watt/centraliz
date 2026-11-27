@@ -1,5 +1,13 @@
 const mgbaClient = require("./mgbaClient");
 const pokemonFrameService = require("./pokemonFrameService");
+const pokemonDemoService = require("./pokemonDemoService");
+
+// En local (URL_FRONT sur localhost), pas d'émulateur : écran de démo.
+const demo = pokemonDemoService.isDemoMode();
+if (demo) {
+  console.log("[Pokémon] Mode démo local : écran simulé, pas de mGBA-http.");
+  pokemonDemoService.ensureRendered().catch(() => {});
+}
 
 const ALLOWED_BUTTONS = [
   "UP",
@@ -29,6 +37,9 @@ function normalizeButton(button) {
 }
 
 async function getHealth() {
+  if (demo) {
+    return { success: true, status: "ok", demo: true, acceptedButtons: ALLOWED_BUTTONS };
+  }
   const health = await mgbaClient.getHealth();
 
   return {
@@ -51,7 +62,11 @@ async function sendInput(button) {
 
   const luaButtonName = BUTTON_TO_LUA_NAME[normalizedButton];
 
-  await mgbaClient.sendButton(luaButtonName);
+  if (demo) {
+    await pokemonDemoService.sendInput(normalizedButton);
+  } else {
+    await mgbaClient.sendButton(luaButtonName);
+  }
 
   return {
     success: true,
@@ -63,8 +78,10 @@ async function sendInput(button) {
 
 module.exports = {
   ALLOWED_BUTTONS,
-  getFrameBuffer: pokemonFrameService.getFrameBuffer,
-  getFrameStatus: pokemonFrameService.getFrameStatus,
+  subscribe: demo ? pokemonDemoService.subscribe : pokemonFrameService.subscribe,
+  clampFps: pokemonFrameService.clampFps,
+  getFrameBuffer: demo ? pokemonDemoService.getFrameBuffer : pokemonFrameService.getFrameBuffer,
+  getFrameStatus: demo ? pokemonDemoService.getFrameStatus : pokemonFrameService.getFrameStatus,
   getHealth,
   sendInput,
 };

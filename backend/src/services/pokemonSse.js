@@ -45,7 +45,7 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
   let congested = false;
   let timer = null;
   let closed = false;
-  const stats = { sent: 0, skipped: 0, padded: 0 };
+  const stats = { sent: 0, skipped: 0, padded: 0, bytes: 0 };
 
   const schedulePadding = () => {
     if (!padBytes) return;
@@ -54,7 +54,9 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
       padTimer = null;
       if (closed || congested) return;
       stats.padded += 1;
-      res.write(paddingComment(padBytes));
+      const padding = paddingComment(padBytes);
+      stats.bytes += padding.length;
+      res.write(padding);
     }, PAD_AFTER_MS);
   };
 
@@ -74,7 +76,9 @@ function createSseSender(res, { fps = 10, padBytes = DEFAULT_PAD_BYTES, now = Da
     lastSentAt = now();
     lastSentId = frame.id;
     stats.sent += 1;
-    const accepted = res.write(frameEvent(frame, now()));
+    const event = frameEvent(frame, now());
+    stats.bytes += event.length; // ASCII : un caractère = un octet
+    const accepted = res.write(event);
     schedulePadding();
     if (accepted === false) {
       congested = true;

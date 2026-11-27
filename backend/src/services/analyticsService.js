@@ -810,6 +810,31 @@ const analyticsService = {
       sessionList: stats.sessionList.map(withName),
     };
   },
+  // Sessions de jeu Pokémon (une ligne « pokemon_session » par session et
+  // par appareil) : indicateurs, classement des joueurs, minutes par jour et
+  // mesures techniques.
+  async getPokemonStats({ range = "30d", hideExcluded = true } = {}) {
+    const safeRange = VALID_RANGES[range] ? range : "30d";
+    const events = await fetchEvents(
+      { module: "pokemon", eventName: "pokemon_session", range: safeRange },
+      "user_username,properties,created_at",
+    );
+    const excluded = new Set(hideExcluded ? await getExcludedUsernames() : []);
+    const stats = require("./pokemonSessionStats").buildPokemonStats(
+      events.filter((event) => !excluded.has(event.user_username)),
+      { days: VALID_RANGES[safeRange] },
+    );
+    const users = await getUsersByUsername(stats.players.map((player) => player.username));
+    return {
+      range: safeRange,
+      ...stats,
+      players: stats.players.map((player) => ({
+        ...player,
+        displayName: users.get(player.username)?.displayName || player.username,
+        group: users.get(player.username)?.group || null,
+      })),
+    };
+  },
   VALID_RANGES,
   sanitizeProperties,
   stepKeyForEvent,

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchApi } from "../../utils/api";
+import { recordFrame, recordRtt } from "./sessionStats";
 
 // Image du jeu, rafraîchie en boucle (une requête à la fois, jamais
 // d'empilement), mise en pause quand l'onglet est caché.
@@ -183,15 +184,19 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
           const ageHeader = response.headers?.get?.("X-Frame-Age-Ms");
           const fresh = !unchanged && (!id || id !== lastTimestamp.current);
           if (!unchanged) lastTimestamp.current = id;
+          const rttMs = Date.now() - startedAt;
+          const ageMs = ageHeader != null && ageHeader !== "" ? Number(ageHeader) : null;
           record({
             at: Date.now(),
             ok: true,
             bytes: blob ? blob.size : 0,
-            rttMs: Date.now() - startedAt,
-            ageMs: ageHeader != null && ageHeader !== "" ? Number(ageHeader) : null,
+            rttMs,
+            ageMs,
             fresh,
             unchanged,
           });
+          recordRtt(rttMs);
+          if (fresh) recordFrame({ bytes: blob ? blob.size : 0, ageMs, rttMs });
 
           if (blob && (fresh || !urlRef.current)) showFrame(blob);
           hasFrame = true;
@@ -238,6 +243,7 @@ export default function usePokemonStream({ targetFps = DEFAULT_FPS, isAdmin = fa
           const data = JSON.parse(event.data);
           showFrame(new Blob([base64ToBytes(data.img)], { type: "image/webp" }));
           record({ at: Date.now(), ok: true, bytes: data.img.length, rttMs: null, ageMs: data.ageMs ?? null, fresh: true, pushed: true });
+          recordFrame({ bytes: data.img.length, ageMs: data.ageMs ?? null });
           hasFrame = true;
           receivedFrame = true;
           errors = 0;

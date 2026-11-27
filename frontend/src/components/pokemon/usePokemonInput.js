@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchApi } from "../../utils/api";
+import { recordRtt } from "./sessionStats";
 import {
   REPEAT_DELAY_MS,
   REPEAT_INTERVAL_MS,
@@ -28,11 +29,13 @@ export default function usePokemonInput({ enabled = true } = {}) {
     if (inFlight.current) return;
     inFlight.current = true;
     try {
+      const startedAt = Date.now();
       const response = await fetchApi("/api/pokemon/input", {
         method: "POST",
         body: JSON.stringify({ button }),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      recordRtt(Date.now() - startedAt);
       setError("");
     } catch {
       setError("La commande n'est pas passée. Nouvel essai possible dans un instant.");

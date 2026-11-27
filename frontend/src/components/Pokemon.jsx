@@ -15,6 +15,7 @@ import DebugPanel from "./pokemon/DebugPanel";
 import PlayersPanel from "./pokemon/PlayersPanel";
 import PokemonUpdates from "./pokemon/PokemonUpdates";
 import SpeedControl from "./pokemon/SpeedControl";
+import { useSessionStatsReporter } from "./pokemon/sessionStats";
 
 // Page Pokémon : une console. L'écran du jeu, une croix, A, B et Start.
 // Mobile : écran en haut, manette sous les pouces.
@@ -156,6 +157,7 @@ function Pokemon({ user }) {
   const debugId = useId();
   const [targetFps, setTargetFps] = useState(DEFAULT_FPS);
   const { frameUrl, status, retry, stats, mode, requestedFps } = usePokemonStream({ targetFps, isAdmin });
+  useSessionStatsReporter();
   const maxFps = isAdmin && mode === "sse" ? ADMIN_MAX_FPS : DEFAULT_FPS;
   const canPlay = Boolean(frameUrl) && status !== "offline";
   const { press, release, pressed, error } = usePokemonInput({ enabled: canPlay });

@@ -5,10 +5,26 @@ const pokemonService = require("../services/pokemonService");
 const pokemonSpeedService = require("../services/pokemonSpeedService");
 const pokemonPresence = require("../services/pokemonPresence");
 const pokemonAnalytics = require("../services/pokemonAnalytics");
+const pokemonSessions = require("../services/pokemonSessions");
+const analyticsService = require("../services/analyticsService");
 const { createSseSender, paddingComment } = require("../services/pokemonSse");
 
 const router = express.Router();
 const MAX_TRACKED_FRAME_AGE_MS = 15000;
+
+// Une ligne par session de jeu et par appareil (voir pokemonSessions). Rien
+// n'est enregistré en démo.
+pokemonSessions.setRecorder(({ userUsername, properties }) => {
+  if (pokemonService.isDemo) return;
+  void analyticsService.trackEvent({
+    userUsername,
+    eventName: "pokemon_session",
+    module: "pokemon",
+    eventType: "system",
+    isAutomatic: true,
+    properties,
+  });
+});
 
 router.get("/speed", authMiddleware, adminMiddleware, async (req, res, next) => {
   res.set("Cache-Control", "no-store");
@@ -58,6 +74,7 @@ router.post("/input", authMiddleware, async (req, res) => {
     const { button } = req.body || {};
     const result = await pokemonService.sendInput(button);
     pokemonPresence.notePlaying(presenceContext(req), result.button);
+    pokemonSessions.noteInput(presenceContext(req), result.button);
     res.json(result);
     if (!pokemonService.isDemo) {
       pokemonAnalytics.trackActivity(req, "pokemon_play_started", "interaction");
@@ -102,7 +119,9 @@ router.get("/frame", authMiddleware, async (req, res) => {
   try {
     const user = req.session && req.session.user;
     const viewer = user && (user.id || user.userName || user.username);
-    pokemonPresence.noteWatching(presenceContext(req));
+    const context = presenceContext(req);
+    pokemonPresence.noteWatching(context);
+    pokemonSessions.noteWatch(context, "polling");
     const frame = pokemonService.getFrameBuffer(req.query.fps, viewer);
 
     res.setHeader("Content-Type", `image/${frame.format}`);
@@ -133,6 +152,7 @@ router.get("/frame", authMiddleware, async (req, res) => {
       res.status(304).end();
     } else {
       res.send(frame.buffer);
+      pokemonSessions.noteServerTraffic(context, { bytes: frame.buffer.length, frames: 1 });
     }
     if (!pokemonService.isDemo && frame.ageMs != null && frame.ageMs <= MAX_TRACKED_FRAME_AGE_MS) {
       pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
@@ -179,7 +199,12 @@ function streamFrames(req, res, experimental = false) {
 
   const context = presenceContext(req);
   pokemonPresence.noteWatching(context);
-  const presenceTimer = setInterval(() => pokemonPresence.noteWatching(context), PRESENCE_REFRESH_MS);
+  pokemonSessions.streamOpened(context);
+  pokemonSessions.noteWatch(context, "sse");
+  const presenceTimer = setInterval(() => {
+    pokemonPresence.noteWatching(context);
+    pokemonSessions.noteWatch(context, "sse");
+  }, PRESENCE_REFRESH_MS);
   const heartbeat = setInterval(() => res.write(": ping\n\n"), HEARTBEAT_MS);
   if (!pokemonService.isDemo) {
     pokemonAnalytics.trackActivity(req, "pokemon_stream_viewed", "exposure");
@@ -190,6 +215,7 @@ function streamFrames(req, res, experimental = false) {
     clearInterval(heartbeat);
     sender.close();
     unsubscribe();
+    pokemonSessions.streamClosed(context, { bytes: sender.stats.bytes, frames: sender.stats.sent });
   });
 }
 
@@ -216,6 +242,31 @@ router.get("/stream-test", (req, res) => {
   }, 250);
   req.on("close", () => clearInterval(timer));
 });
+
+// Résumé des mesures du navigateur (aller-retour, retard, images et octets
+// reçus) depuis le précédent : toutes les 60 s et à la fermeture de la page
+// (navigator.sendBeacon, envoyé en text/plain pour éviter une requête
+// préalable CORS). Ajouté à la session en mémoire, rien n'est écrit ici.
+router.post(
+  "/session-stats",
+  express.text({ type: "text/plain", limit: "4kb" }),
+  authMiddleware,
+  (req, res) => {
+    let summary = req.body;
+    if (typeof summary === "string") {
+      try {
+        summary = JSON.parse(summary);
+      } catch {
+        summary = null;
+      }
+    }
+    if (!summary || typeof summary !== "object" || Array.isArray(summary)) {
+      return res.status(400).json({ success: false });
+    }
+    pokemonSessions.noteClientSummary(presenceContext(req), summary);
+    return res.status(204).end();
+  }
+);
 
 // Qui regarde et qui joue en ce moment (visible par tous les connectés).
 router.get("/presence", authMiddleware, (req, res) => {

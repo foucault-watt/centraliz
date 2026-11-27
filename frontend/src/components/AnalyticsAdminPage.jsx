@@ -55,6 +55,7 @@ import {
 } from "react-router-dom";
 import { fetchApi } from "../utils/api";
 import MuseeAnalyticsPanel from "./MuseeAnalyticsPanel";
+import PokemonAnalyticsPanel from "./PokemonAnalyticsPanel";
 import PageHeader from "./PageHeader";
 import { BarChart3 as PageIcon } from "lucide-react";
 
@@ -1651,6 +1652,7 @@ const moduleLabel = (module) => MODULE_LABELS[module] || module || "—";
 const POKEMON_EVENT_LABELS = new Map([
   ["pokemon_stream_viewed", "Consultation du flux"],
   ["pokemon_play_started", "Première commande de jeu"],
+  ["pokemon_session", "Session de jeu (résumé)"],
 ]);
 
 const EVENT_TYPE_COLORS = {
@@ -2154,6 +2156,10 @@ const ModuleDetailPage = ({
           </>
         }
       />
+
+      {summary.module === "pokemon" && (
+        <PokemonAnalyticsPanel initialRange={queryState.range} hideExcluded={hideExcluded} />
+      )}
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <StatCard icon={Activity} label="Events" value={summary.totalEvents} />

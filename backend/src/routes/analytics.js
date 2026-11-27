@@ -259,6 +259,22 @@ router.get("/admin/heatmap", authMiddleware, adminMiddleware, async (req, res) =
   }
 });
 
+router.get("/admin/pokemon/summary", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const summary = await analyticsService.getPokemonStats({
+      range: req.query.range,
+      hideExcluded: req.query.hideExcluded !== "false",
+    });
+    res.json({ success: true, summary });
+  } catch (error) {
+    console.error("[Analytics] Erreur Pokémon:", error);
+    res.status(500).json({
+      success: false,
+      error: "Statistiques Pokémon indisponibles.",
+    });
+  }
+});
+
 router.get("/admin/excluded-users", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const excludedUsers = await analyticsService.getExcludedUsers();

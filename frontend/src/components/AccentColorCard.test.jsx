@@ -4,8 +4,8 @@ import AccentColorCard, {
   THEME_COLOR_CARD_DISMISS_STORAGE_KEY,
 } from "./AccentColorCard";
 
-jest.mock("../utils/api", () => ({
-  fetchApi: jest.fn(),
+vi.mock("../utils/api", () => ({
+  fetchApi: vi.fn(),
 }));
 
 const palette = [
@@ -36,7 +36,7 @@ describe("AccentColorCard", () => {
       json: async () => ({ success: true, entries: palette }),
     });
 
-    render(<AccentColorCard onSaved={jest.fn()} />);
+    render(<AccentColorCard onSaved={vi.fn()} />);
 
     expect(await screen.findByText("Association Test 1")).toBeInTheDocument();
     expect(screen.getByText("Association Test 2")).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe("AccentColorCard", () => {
       json: async () => ({ success: true, entries: palette }),
     });
 
-    render(<AccentColorCard onSaved={jest.fn()} />);
+    render(<AccentColorCard onSaved={vi.fn()} />);
     await screen.findByText("Association Test 1");
 
     fireEvent.click(screen.getByRole("button", { name: "Plus tard" }));
@@ -58,12 +58,12 @@ describe("AccentColorCard", () => {
       window.sessionStorage.getItem(THEME_COLOR_CARD_DISMISS_STORAGE_KEY)
     ).toBe("true");
 
-    const { container } = render(<AccentColorCard onSaved={jest.fn()} />);
+    const { container } = render(<AccentColorCard onSaved={vi.fn()} />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it("saves the chosen color and notifies the parent so the card can disappear for good", async () => {
-    const onSaved = jest.fn().mockResolvedValue();
+    const onSaved = vi.fn().mockResolvedValue();
     fetchApi
       .mockResolvedValueOnce({
         json: async () => ({ success: true, entries: palette }),
@@ -99,7 +99,7 @@ describe("AccentColorCard", () => {
         json: async () => ({ error: "Erreur serveur" }),
       });
 
-    render(<AccentColorCard onSaved={jest.fn()} />);
+    render(<AccentColorCard onSaved={vi.fn()} />);
     await screen.findByText("Association Test 1");
 
     fireEvent.click(screen.getByRole("button", { name: /Association Test 1/ }));

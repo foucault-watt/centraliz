@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import ReglagesPage from "./ReglagesPage";
 import { fetchApi } from "../utils/api";
 
-jest.mock("../utils/api", () => ({
-  fetchApi: jest.fn(),
+vi.mock("../utils/api", () => ({
+  fetchApi: vi.fn(),
 }));
 
 const user = {
@@ -35,7 +35,7 @@ describe("ReglagesPage", () => {
   });
 
   it("renders getSetupStatus's output as a progress list, without re-deriving the logic", async () => {
-    render(<ReglagesPage user={user} onUserRefresh={jest.fn()} />);
+    render(<ReglagesPage user={user} onUserRefresh={vi.fn()} />);
 
     expect(screen.getByText(/3\/8\s*étapes terminées/)).toBeInTheDocument();
     expect(await screen.findByText(/Tu es dans les 12%/)).toBeInTheDocument();

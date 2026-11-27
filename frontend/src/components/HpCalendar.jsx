@@ -15,15 +15,13 @@ import {
   Users,
   X,
 } from "lucide-react";
-import moment from "moment-timezone";
-import "moment/locale/fr";
+import moment from "../utils/momentFr";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { fetchApi } from "../utils/api";
 import { trackProductEvent } from "../utils/analytics";
 
-moment.locale("fr");
 
 // Hyperplanning décrit toujours des horaires de Centrale Lille en heure française,
 // peu importe le fuseau horaire du navigateur qui affiche le planning.

@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { fetchApi } from "../utils/api";
 import IcalSetupCard from "./IcalSetupCard";
 
-jest.mock("../utils/api", () => ({
-  fetchApi: jest.fn(),
+vi.mock("../utils/api", () => ({
+  fetchApi: vi.fn(),
 }));
 
 describe("IcalSetupCard", () => {
@@ -13,7 +13,7 @@ describe("IcalSetupCard", () => {
   });
 
   it("shows the card and its call-to-action by default, with no way to dismiss it", () => {
-    render(<IcalSetupCard userName="jdupont" onSaved={jest.fn()} />);
+    render(<IcalSetupCard userName="jdupont" onSaved={vi.fn()} />);
 
     expect(screen.getByText("Ajoute ton lien iCal")).toBeInTheDocument();
     expect(
@@ -26,7 +26,7 @@ describe("IcalSetupCard", () => {
       json: async () => ({ isValid: false }),
     });
 
-    render(<IcalSetupCard userName="jdupont" onSaved={jest.fn()} />);
+    render(<IcalSetupCard userName="jdupont" onSaved={vi.fn()} />);
     await userEvent.type(screen.getByLabelText("Lien iCal"), "not-a-link");
     fireEvent.click(screen.getByRole("button", { name: "Valider" }));
 
@@ -36,7 +36,7 @@ describe("IcalSetupCard", () => {
   });
 
   it("shows an error and does not notify the parent when saving the valid link fails", async () => {
-    const onSaved = jest.fn();
+    const onSaved = vi.fn();
     fetchApi
       .mockResolvedValueOnce({ json: async () => ({ isValid: true }) })
       .mockResolvedValueOnce({
@@ -59,7 +59,7 @@ describe("IcalSetupCard", () => {
   });
 
   it("saves a valid link and notifies the parent so the card can disappear for good", async () => {
-    const onSaved = jest.fn().mockResolvedValue();
+    const onSaved = vi.fn().mockResolvedValue();
     fetchApi
       .mockResolvedValueOnce({ json: async () => ({ isValid: true }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });

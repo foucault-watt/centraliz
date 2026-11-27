@@ -1,13 +1,11 @@
 // Importation des dépendances nécessaires
 import ICAL from "ical.js";
-import moment from "moment-timezone";
-import "moment/locale/fr";
+import moment from "../utils/momentFr";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { fetchApi } from "../utils/api";
 import "../styles/ClaCalendar.scss";
 
 // Configuration de moment.js en français
-moment.locale("fr");
 
 // Ces calendriers décrivent des horaires en heure française, peu importe
 // le fuseau horaire du navigateur qui les affiche.
